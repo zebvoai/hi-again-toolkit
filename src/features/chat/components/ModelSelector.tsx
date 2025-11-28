@@ -69,9 +69,32 @@ const modelInfo: Record<string, { description: string; strengths: string[]; spee
 
 // Model grouping by provider
 const getModelProvider = (model: string): string => {
-  if (model.includes('GPT') || model.includes('gpt')) return 'OpenAI';
+  const modelLower = model.toLowerCase();
+  
+  // Text models
+  if (model.includes('GPT') || model.includes('gpt') || model.includes('DALL-E')) return 'OpenAI';
   if (model.includes('Claude') || model.includes('claude')) return 'Anthropic';
   if (model.includes('Gemini') || model.includes('gemini')) return 'Google';
+  
+  // Image model providers
+  if (modelLower.includes('wan')) return 'Alibaba';
+  if (modelLower.includes('seedream') || modelLower.includes('dreamina')) return 'ByteDance';
+  if (modelLower.includes('bria')) return 'Bria AI';
+  if (modelLower.includes('ideogram')) return 'Ideogram AI';
+  if (modelLower.includes('leonardo')) return 'Leonardo AI';
+  if (modelLower.includes('luma')) return 'Luma AI';
+  if (modelLower.includes('neta')) return 'Neta.art';
+  if (modelLower.includes('recraft')) return 'Recraft AI';
+  if (modelLower.includes('reve')) return 'Reve';
+  if (modelLower.includes('runway')) return 'RunwayML';
+  if (modelLower.includes('stable') || modelLower.includes('sdxl')) return 'Stability AI';
+  if (modelLower.includes('flux')) return 'FLUX (Black Forest Labs)';
+  if (modelLower.includes('qwen') || modelLower.includes('jib')) return 'Qwen/Jib Mix';
+  if (modelLower.includes('hunyuan')) return 'Hunyuan';
+  if (modelLower.includes('z-image')) return 'Z-Image';
+  if (modelLower.includes('hidream')) return 'HiDream';
+  if (modelLower.includes('chroma') || modelLower.includes('female') || modelLower.includes('step1x') || modelLower.includes('any llm')) return 'WaveSpeed AI';
+  
   return 'Other';
 };
 
