@@ -1,13 +1,18 @@
 export type Mode = 'text' | 'image' | 'video' | 'build';
 export type Provider = 'openai' | 'anthropic' | 'google' | 'stability' | 'runway' | 'pika';
 
+export interface MultiModelContent {
+  [modelName: string]: string;
+}
+
 export interface Message {
   id: string;
   role: 'user' | 'assistant';
-  content: string;
+  content: string | MultiModelContent;
   timestamp: number;
   metadata?: {
     model?: string;
+    models?: string[];
     provider?: string;
     imageUrl?: string;
     error?: string;
@@ -29,6 +34,11 @@ export interface ChatResponse {
     promptTokens: number;
     completionTokens: number;
   };
+}
+
+export interface MultiModelChatResponse {
+  content: MultiModelContent;
+  models: string[];
 }
 
 export interface ImageRequest {

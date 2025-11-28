@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Message as MessageType } from '@/types';
+import type { Message as MessageType, MultiModelContent } from '@/types';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -7,6 +7,7 @@ import { Copy, Check, User, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
+import { MultiModelResponse } from './MultiModelResponse';
 
 interface MessageProps {
   message: MessageType;
@@ -15,6 +16,7 @@ interface MessageProps {
 
 export const Message = ({ message, onRetry }: MessageProps) => {
   const isUser = message.role === 'user';
+  const isMultiModel = !isUser && typeof message.content === 'object' && !Array.isArray(message.content);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
@@ -30,7 +32,8 @@ export const Message = ({ message, onRetry }: MessageProps) => {
   };
   
   const copyMessage = () => {
-    navigator.clipboard.writeText(message.content);
+    const textToCopy = typeof message.content === 'string' ? message.content : JSON.stringify(message.content);
+    navigator.clipboard.writeText(textToCopy);
     setCopied(true);
     toast({
       title: 'Copied!',
@@ -38,6 +41,26 @@ export const Message = ({ message, onRetry }: MessageProps) => {
     });
     setTimeout(() => setCopied(false), 2000);
   };
+
+  // Handle multi-model responses
+  if (isMultiModel) {
+    const multiContent = message.content as MultiModelContent;
+    const models = message.metadata?.models || Object.keys(multiContent);
+    
+    return (
+      <div className="flex justify-start mb-6 group animate-fade-in">
+        <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center shadow-md mr-3 flex-shrink-0">
+          <Bot className="w-5 h-5 text-white" />
+        </div>
+        <div className="flex-1 max-w-4xl">
+          <MultiModelResponse content={multiContent} models={models} />
+        </div>
+      </div>
+    );
+  }
+
+  // Get content as string for user and single AI messages
+  const contentString = typeof message.content === 'string' ? message.content : '';
   
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-6 group animate-fade-in`}>
@@ -74,13 +97,13 @@ export const Message = ({ message, onRetry }: MessageProps) => {
               alt="Generated" 
               className="rounded-xl w-full max-w-md shadow-md"
             />
-            {message.content && (
-              <p className="text-sm leading-relaxed">{message.content}</p>
+            {contentString && (
+              <p className="text-sm leading-relaxed">{contentString}</p>
             )}
           </div>
         ) : isUser ? (
           <p className="text-sm leading-relaxed whitespace-pre-wrap">
-            {message.content}
+            {contentString}
           </p>
         ) : (
           <div className="prose prose-sm max-w-none">
@@ -122,7 +145,7 @@ export const Message = ({ message, onRetry }: MessageProps) => {
                 },
               }}
             >
-              {message.content}
+              {contentString}
             </ReactMarkdown>
           </div>
         )}
