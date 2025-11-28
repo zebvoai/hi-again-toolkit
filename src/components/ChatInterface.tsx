@@ -221,11 +221,6 @@ export function ChatInterface() {
       </div>
 
       {/* Scroll to Top Button */}
-      <Button className="fixed bottom-6 right-6 w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg z-50" onClick={() => window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    })}>
-        
-      </Button>
+      
     </div>;
 }
