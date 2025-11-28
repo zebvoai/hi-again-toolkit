@@ -7,7 +7,8 @@ export const api = {
     message: string, 
     mode: Mode, 
     history: Message[],
-    provider?: Provider
+    provider?: Provider,
+    model?: string
   ): Promise<ChatResponse> {
     const response = await fetch(`${API_BASE}/chat`, {
       method: 'POST',
@@ -19,7 +20,8 @@ export const api = {
         message,
         mode,
         conversationHistory: history,
-        provider
+        provider,
+        model
       })
     });
     

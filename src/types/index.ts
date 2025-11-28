@@ -10,6 +10,7 @@ export interface Message {
     model?: string;
     provider?: string;
     imageUrl?: string;
+    error?: string;
   };
 }
 
