@@ -47,21 +47,21 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
             Back to Carousel
           </Button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
           {models.map((model) => (
-            <div key={model} className="bg-white rounded-lg border border-gray-200 p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-blue-600 font-medium text-sm">{model}</h3>
+            <div key={model} className="bg-white/80 backdrop-blur-sm rounded-xl border border-border/30 p-3.5 space-y-2 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <span className="text-xs font-medium text-primary/90 tracking-wide">{model}</span>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8"
+                  className="h-7 w-7 hover:bg-muted/50"
                   onClick={() => handleCopy(content[model])}
                 >
-                  <Copy className="w-4 h-4" />
+                  <Copy className="w-3.5 h-3.5" />
                 </Button>
               </div>
-              <div className="text-sm text-gray-700 prose prose-sm max-w-none">
+              <div className="text-sm text-foreground/90 prose prose-sm max-w-none leading-relaxed">
                 <ReactMarkdown
                   components={{
                     code({ inline, className, children, ...props }: any) {
@@ -111,35 +111,37 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
         </Button>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-blue-600 font-medium">[{currentModel}]</h3>
-          <div className="flex items-center gap-2">
+      <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-border/30 p-4 space-y-2.5 shadow-sm hover:shadow-md transition-shadow">
+        <div className="flex items-center justify-between gap-3 mb-1">
+          <span className="text-xs font-medium text-primary/90 tracking-wide">
+            {currentModel}
+          </span>
+          <div className="flex items-center gap-1.5">
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8"
+              className="h-7 w-7 hover:bg-muted/50"
               onClick={handlePrev}
               disabled={models.length <= 1}
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="w-4 h-4" />
             </Button>
-            <span className="text-sm text-muted-foreground">
+            <span className="text-xs text-muted-foreground min-w-[3rem] text-center">
               {currentIndex + 1} of {models.length}
             </span>
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8"
+              className="h-7 w-7 hover:bg-muted/50"
               onClick={handleNext}
               disabled={models.length <= 1}
             >
-              <ChevronRight className="w-5 h-5" />
+              <ChevronRight className="w-4 h-4" />
             </Button>
           </div>
         </div>
 
-        <div className="prose prose-sm max-w-none text-gray-700">
+        <div className="prose prose-sm max-w-none text-foreground/90 leading-relaxed">
           <ReactMarkdown
             components={{
               code({ inline, className, children, ...props }: any) {
@@ -165,14 +167,14 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
           </ReactMarkdown>
         </div>
 
-        <div className="pt-2 border-t">
+        <div className="flex items-center justify-end pt-1">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => handleCopy(currentContent)}
-            className="text-sm"
+            className="h-7 px-2 text-xs hover:bg-muted/50 text-muted-foreground hover:text-foreground"
           >
-            <Copy className="w-4 h-4 mr-2" />
+            <Copy className="w-3.5 h-3.5 mr-1.5" />
             Copy
           </Button>
         </div>
