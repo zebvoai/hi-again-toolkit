@@ -141,6 +141,26 @@ export const useConversations = () => {
 
   useEffect(() => {
     fetchConversations();
+
+    // Set up realtime subscription to automatically refresh when conversations change
+    const channel = supabase
+      .channel('conversations-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'conversations'
+        },
+        () => {
+          fetchConversations();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   return {

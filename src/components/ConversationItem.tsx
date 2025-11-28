@@ -28,17 +28,19 @@ export const ConversationItem = ({
 
   return (
     <div
-      className={`group relative flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors hover:bg-accent/50 ${
-        isActive ? 'bg-accent border-l-4 border-blue-600' : ''
+      className={`group relative flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-all ${
+        isActive 
+          ? 'bg-blue-50 border-l-4 border-blue-600 pl-2.5' 
+          : 'hover:bg-accent/50 border-l-4 border-transparent'
       }`}
       onClick={onClick}
     >
       <div className="flex-1 min-w-0 pr-2">
-        <p className={`text-sm truncate ${isActive ? 'font-medium text-foreground' : 'text-foreground'}`}>
+        <p className={`text-sm truncate ${isActive ? 'font-medium text-blue-600' : 'text-foreground'}`}>
           {title}
         </p>
         <p className="text-xs text-muted-foreground mt-0.5">
-          {timeAgo.replace('about ', '').replace(' ago', ' ago')}
+          {timeAgo}
         </p>
       </div>
 
@@ -47,7 +49,7 @@ export const ConversationItem = ({
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+            className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
             onClick={(e) => e.stopPropagation()}
           >
             <MoreVertical className="w-4 h-4" />
