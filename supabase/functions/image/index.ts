@@ -99,39 +99,58 @@ serve(async (req) => {
         throw new Error('OPENAI_API_KEY not configured');
       }
       
-      const response = await fetch('https://api.openai.com/v1/images/generations', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: actualModel,
-          prompt,
-          n: 1,
-          size: '1024x1024'
-        })
-      });
+      // Retry logic for transient 500 errors
+      let lastError;
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          const response = await fetch('https://api.openai.com/v1/images/generations', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${apiKey}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              model: actualModel,
+              prompt,
+              n: 1,
+              size: '1024x1024'
+            })
+          });
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`OpenAI error (attempt ${attempt}/3):`, response.status, errorText);
+            
+            // Retry on 500 errors (server issues)
+            if (response.status === 500 && attempt < 3) {
+              lastError = `OpenAI server error (${response.status})`;
+              await new Promise(resolve => setTimeout(resolve, 1000 * attempt)); // Exponential backoff
+              continue;
+            }
+            
+            throw new Error(`OpenAI API error: ${response.status}. ${response.status === 500 ? 'Server temporarily unavailable. Please try again or use Gemini models.' : 'Please check your request.'}`);
+          }
       
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('OpenAI error:', response.status, errorText);
-        throw new Error(`Image generation failed: ${response.status}`);
+          const data = await response.json();
+          console.log(`Image generated successfully with OpenAI (attempt ${attempt}/3)`);
+          
+          return new Response(
+            JSON.stringify({
+              imageUrl: data.data[0].url,
+              revisedPrompt: data.data[0].revised_prompt,
+              model: model || actualModel
+            }),
+            { 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            }
+          );
+        } catch (error) {
+          lastError = error instanceof Error ? error.message : 'Unknown error';
+          if (attempt === 3) throw error;
+        }
       }
       
-      const data = await response.json();
-      console.log('Image generated successfully with OpenAI');
-      
-      return new Response(
-        JSON.stringify({
-          imageUrl: data.data[0].url,
-          revisedPrompt: data.data[0].revised_prompt,
-          model: model || actualModel
-        }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
+      throw new Error(lastError || 'OpenAI image generation failed after 3 attempts');
     }
     
     throw new Error('Provider not supported for image generation');
