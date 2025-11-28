@@ -1,6 +1,12 @@
 import { Bot } from 'lucide-react';
 
-export const TypingIndicator = ({ model }: { model?: string }) => {
+export const TypingIndicator = ({ models }: { models?: string[] }) => {
+  const displayText = !models || models.length === 0 
+    ? 'AI is thinking...'
+    : models.length === 1 
+    ? `${models[0]} is typing`
+    : `${models.length} models are thinking...`;
+
   return (
     <div className="flex justify-start mb-6 animate-fade-in">
       <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center shadow-md mr-3 flex-shrink-0">
@@ -10,7 +16,7 @@ export const TypingIndicator = ({ model }: { model?: string }) => {
         <div className="flex items-center gap-3">
           <div className="flex flex-col gap-2">
             <span className="text-sm font-medium text-foreground">
-              {model || 'AI'} is typing
+              {displayText}
             </span>
             <div className="flex gap-1">
               <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce shadow-sm" style={{ animationDelay: '0ms' }} />
