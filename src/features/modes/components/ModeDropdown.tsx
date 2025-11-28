@@ -43,9 +43,9 @@ export const ModeDropdown = () => {
                 isSelected && "bg-blue-50 dark:bg-blue-900/30"
               )}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 w-full">
                 <div className={cn(
-                  "w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200",
+                  "w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 flex-shrink-0",
                   isSelected 
                     ? "bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/30" 
                     : "bg-gray-100 dark:bg-gray-800"
@@ -55,14 +55,14 @@ export const ModeDropdown = () => {
                     isSelected ? "text-white" : "text-gray-600 dark:text-gray-400"
                   )} />
                 </div>
-                <div className="flex flex-col items-start">
+                <div className="flex flex-col items-start flex-1 min-w-0">
                   <span className={cn(
-                    "text-sm font-medium",
+                    "text-sm font-medium truncate w-full",
                     isSelected ? "text-blue-700 dark:text-blue-400" : "text-gray-900 dark:text-gray-100"
                   )}>
                     {mode.label}
                   </span>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                  <span className="text-xs text-gray-500 dark:text-gray-400 truncate w-full">
                     {mode.description}
                   </span>
                 </div>
