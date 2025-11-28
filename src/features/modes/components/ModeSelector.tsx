@@ -20,14 +20,14 @@ export const ModeSelector = () => {
             key={mode.id}
             onClick={() => setMode(mode.id)}
             className={`
-              flex items-center gap-2 px-5 py-1.5 rounded-full text-sm font-medium transition-all
+              flex items-center gap-2 px-5 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ease-in-out
               ${selectedMode === mode.id 
-                ? 'bg-background text-foreground shadow-sm' 
-                : 'text-muted-foreground hover:text-foreground'
+                ? 'bg-background text-foreground shadow-sm scale-105' 
+                : 'text-muted-foreground hover:text-foreground hover:scale-105'
               }
             `}
           >
-            <Icon className="w-4 h-4" />
+            <Icon className={`w-4 h-4 transition-transform duration-200 ${selectedMode === mode.id ? 'scale-110' : ''}`} />
             {mode.label}
           </button>
         );
