@@ -209,10 +209,34 @@ serve(async (req) => {
       }
       
       const submitData = await submitResponse.json();
+      
+      // Some Wavespeed models are synchronous and return the image directly
+      // while others are async and return a request ID that must be polled.
+      let imageUrlFromSync: string | null = null;
       const requestId = submitData.id;
       
       if (!requestId) {
-        throw new Error('No request ID returned from Wavespeed');
+        if (submitData.output && Array.isArray(submitData.output) && submitData.output.length > 0) {
+          imageUrlFromSync = submitData.output[0];
+        } else {
+          console.error('Wavespeed unexpected response format:', submitData);
+          throw new Error('Wavespeed API did not return a request ID or image output');
+        }
+      }
+      
+      // If we already have an image URL (synchronous models), return immediately
+      if (imageUrlFromSync) {
+        console.log('Image generated synchronously with Wavespeed');
+        return new Response(
+          JSON.stringify({
+            imageUrl: imageUrlFromSync,
+            revisedPrompt: prompt,
+            model: model || actualModel
+          }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        );
       }
       
       console.log('Wavespeed task submitted:', requestId);
