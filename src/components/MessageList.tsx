@@ -53,19 +53,20 @@ export function MessageList({ messages, isStreaming }: MessageListProps) {
                   : 'bg-muted'
               )}
             >
-              <ReactMarkdown
-                className="prose prose-sm dark:prose-invert max-w-none"
-                components={{
-                  p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                  code: ({ children }) => (
-                    <code className="bg-background/50 px-1 py-0.5 rounded text-sm">
-                      {children}
-                    </code>
-                  ),
-                }}
-              >
-                {message.content}
-              </ReactMarkdown>
+              <div className="prose prose-sm dark:prose-invert max-w-none">
+                <ReactMarkdown
+                  components={{
+                    p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                    code: ({ children }) => (
+                      <code className="bg-background/50 px-1 py-0.5 rounded text-sm">
+                        {children}
+                      </code>
+                    ),
+                  }}
+                >
+                  {message.content}
+                </ReactMarkdown>
+              </div>
             </div>
 
             {message.role === 'user' && (
