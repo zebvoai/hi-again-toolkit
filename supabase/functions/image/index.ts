@@ -18,11 +18,25 @@ const modelMapping: Record<string, { api: string; provider: 'lovable' | 'openai'
   'dall-e-2': { api: 'dall-e-2', provider: 'openai' },
   'gemini-2.5-flash-image': { api: 'google/gemini-2.5-flash-image', provider: 'lovable' },
   'gemini-3-pro-image': { api: 'google/gemini-3-pro-image-preview', provider: 'lovable' },
-  // Wavespeed models
+  // Wavespeed models - Seedream
   'seedream-v4': { api: 'bytedance/seedream-v4', provider: 'wavespeed' },
+  // Wavespeed models - Flux
   'flux-pro-1.1-ultra': { api: 'black-forest-labs/flux-pro-1.1-ultra', provider: 'wavespeed' },
   'flux-dev': { api: 'wavespeed-ai/flux-dev', provider: 'wavespeed' },
   'flux-schnell': { api: 'wavespeed-ai/flux-schnell', provider: 'wavespeed' },
+  'flux-redux-dev': { api: 'wavespeed-ai/flux-redux-dev', provider: 'wavespeed' },
+  // Wavespeed models - Ideogram
+  'ideogram-v3-turbo': { api: 'ideogram-ai/ideogram-v3-turbo', provider: 'wavespeed' },
+  'ideogram-v3-balanced': { api: 'ideogram-ai/ideogram-v3-balanced', provider: 'wavespeed' },
+  'ideogram-v2': { api: 'ideogram-ai/ideogram-v2', provider: 'wavespeed' },
+  'ideogram-v2-turbo': { api: 'ideogram-ai/ideogram-v2-turbo', provider: 'wavespeed' },
+  'ideogram-v2a-turbo': { api: 'ideogram-ai/ideogram-v2a-turbo', provider: 'wavespeed' },
+  // Wavespeed models - Recraft
+  'recraft-20b': { api: 'recraft-ai/recraft-20b', provider: 'wavespeed' },
+  // Wavespeed models - Stable Diffusion
+  'stable-diffusion': { api: 'stability-ai/stable-diffusion', provider: 'wavespeed' },
+  'stable-diffusion-3': { api: 'stability-ai/stable-diffusion-3', provider: 'wavespeed' },
+  'stable-diffusion-3.5-large': { api: 'stability-ai/stable-diffusion-3.5-large', provider: 'wavespeed' },
 };
 
 serve(async (req) => {

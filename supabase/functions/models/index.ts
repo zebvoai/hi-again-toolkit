@@ -43,11 +43,29 @@ serve(async (req) => {
         'Gemini 2.5 Flash Image',
         'Gemini 3 Pro Image',
         
-        // Wavespeed Models
+        // Wavespeed Models - Seedream
         'Seedream v4',
+        
+        // Wavespeed Models - Flux
         'Flux Pro 1.1 Ultra',
         'Flux Dev',
-        'Flux Schnell'
+        'Flux Schnell',
+        'Flux Redux Dev',
+        
+        // Wavespeed Models - Ideogram
+        'Ideogram V3 Turbo',
+        'Ideogram V3 Balanced',
+        'Ideogram V2',
+        'Ideogram V2 Turbo',
+        'Ideogram V2a Turbo',
+        
+        // Wavespeed Models - Recraft
+        'Recraft 20B',
+        
+        // Wavespeed Models - Stable Diffusion
+        'Stable Diffusion',
+        'Stable Diffusion 3',
+        'Stable Diffusion 3.5 Large'
       ],
       video: [
         'Gemini Video 2.0',
