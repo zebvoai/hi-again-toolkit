@@ -3,12 +3,14 @@ import { useModels } from '../hooks/useModels';
 import { useModeStore } from '@/features/modes/store/modeStore';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Check, ChevronDown, Sparkles, Info, Search, Star, X, Clock, ArrowUpDown, Zap, Crown, Scale, Wallet } from 'lucide-react';
+import { Check, ChevronDown, Sparkles, Info, Search, Star, X, Clock, ArrowUpDown, Zap, Crown, Scale, Wallet, Palette, Save, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { toast } from 'sonner';
 
 interface ModelSelectorProps {
   values: string[];
@@ -113,10 +115,10 @@ const modelInfo: Record<string, { description: string; strengths: string[]; spee
 };
 
 // Model Presets - categorized by characteristics
-type PresetType = 'fast' | 'premium' | 'balanced' | 'budget';
+type PresetType = 'fast' | 'premium' | 'balanced' | 'budget' | 'creative';
 
 interface ModelPreset {
-  id: PresetType;
+  id: PresetType | string;
   name: string;
   description: string;
   icon: any;
@@ -126,9 +128,10 @@ interface ModelPreset {
     video: string[];
     build: string[];
   };
+  isCustom?: boolean;
 }
 
-const modelPresets: ModelPreset[] = [
+const builtInPresets: ModelPreset[] = [
   {
     id: 'fast',
     name: 'Speed',
@@ -176,12 +179,25 @@ const modelPresets: ModelPreset[] = [
       video: ['Gemini Video Flash'],
       build: ['GPT-5 Nano']
     }
+  },
+  {
+    id: 'creative',
+    name: 'Creative',
+    description: 'Models optimized for artistic and creative outputs',
+    icon: Palette,
+    models: {
+      text: ['GPT-5', 'Claude Sonnet 4.5', 'Gemini 2.5 Pro'],
+      image: ['Flux Pro 1.1 Ultra', 'Flux Dev', 'DALL-E 3', 'Ideogram V3 Balanced'],
+      video: ['Gemini Video 2.0'],
+      build: ['GPT-5', 'Claude Sonnet 4.5']
+    }
   }
 ];
 
-// Favorites management
+// Storage keys
 const FAVORITES_STORAGE_KEY = 'model-selector-favorites';
 const RECENT_MODELS_STORAGE_KEY = 'model-selector-recent';
+const CUSTOM_PRESETS_STORAGE_KEY = 'model-selector-custom-presets';
 
 const getFavorites = (): string[] => {
   try {
@@ -223,6 +239,24 @@ const addToRecentModels = (model: string) => {
   const filtered = recent.filter(m => m !== model);
   const updated = [model, ...filtered].slice(0, 5); // Keep only last 5
   saveRecentModels(updated);
+};
+
+// Custom presets management
+const getCustomPresets = (): ModelPreset[] => {
+  try {
+    const stored = localStorage.getItem(CUSTOM_PRESETS_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveCustomPresets = (presets: ModelPreset[]) => {
+  try {
+    localStorage.setItem(CUSTOM_PRESETS_STORAGE_KEY, JSON.stringify(presets));
+  } catch {
+    // Ignore storage errors
+  }
 };
 
 // Sorting types
@@ -309,11 +343,15 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
   const [favorites, setFavorites] = useState<string[]>([]);
   const [recentModels, setRecentModels] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<SortOption>('provider');
+  const [customPresets, setCustomPresets] = useState<ModelPreset[]>([]);
+  const [showSavePresetDialog, setShowSavePresetDialog] = useState(false);
+  const [newPresetName, setNewPresetName] = useState('');
   
-  // Load favorites and recent models on mount
+  // Load favorites, recent models, and custom presets on mount
   useEffect(() => {
     setFavorites(getFavorites());
     setRecentModels(getRecentModels());
+    setCustomPresets(getCustomPresets());
   }, []);
   
   const availableModels = models ? models[selectedMode] : [];
@@ -367,8 +405,11 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
     }
   };
   
-  const handlePresetSelect = (presetId: PresetType) => {
-    const preset = modelPresets.find(p => p.id === presetId);
+  // All presets (built-in + custom)
+  const allPresets = [...builtInPresets, ...customPresets];
+  
+  const handlePresetSelect = (presetId: string) => {
+    const preset = allPresets.find(p => p.id === presetId);
     if (!preset) return;
     
     const presetModels = preset.models[selectedMode] || [];
@@ -382,6 +423,71 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
     setRecentModels(getRecentModels());
   };
   
+  // Check if current selection matches a preset
+  const getMatchingPreset = (): ModelPreset | null => {
+    if (values.length === 0) return null;
+    
+    const sortedValues = [...values].sort();
+    
+    for (const preset of allPresets) {
+      const presetModels = preset.models[selectedMode] || [];
+      const availablePresetModels = presetModels.filter(model => availableModels.includes(model)).slice(0, 4);
+      const sortedPresetModels = [...availablePresetModels].sort();
+      
+      if (sortedValues.length === sortedPresetModels.length &&
+          sortedValues.every((val, idx) => val === sortedPresetModels[idx])) {
+        return preset;
+      }
+    }
+    
+    return null;
+  };
+  
+  const matchingPreset = getMatchingPreset();
+  
+  // Save current selection as custom preset
+  const handleSavePreset = () => {
+    if (!newPresetName.trim()) {
+      toast.error('Please enter a preset name');
+      return;
+    }
+    
+    if (values.length === 0) {
+      toast.error('Please select at least one model');
+      return;
+    }
+    
+    const newPreset: ModelPreset = {
+      id: `custom-${Date.now()}`,
+      name: newPresetName.trim(),
+      description: `Custom preset with ${values.length} model${values.length > 1 ? 's' : ''}`,
+      icon: Star,
+      isCustom: true,
+      models: {
+        text: selectedMode === 'text' ? values : [],
+        image: selectedMode === 'image' ? values : [],
+        video: selectedMode === 'video' ? values : [],
+        build: selectedMode === 'build' ? values : []
+      }
+    };
+    
+    const updatedPresets = [...customPresets, newPreset];
+    setCustomPresets(updatedPresets);
+    saveCustomPresets(updatedPresets);
+    
+    setShowSavePresetDialog(false);
+    setNewPresetName('');
+    toast.success(`Preset "${newPreset.name}" saved!`);
+  };
+  
+  // Delete custom preset
+  const handleDeletePreset = (presetId: string) => {
+    const updatedPresets = customPresets.filter(p => p.id !== presetId);
+    setCustomPresets(updatedPresets);
+    saveCustomPresets(updatedPresets);
+    toast.success('Preset deleted');
+  };
+  
   const displayText = values.length === 0 
     ? 'Select models' 
     : values.length === 1 
@@ -389,7 +495,8 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
     : `${values.length} models`;
   
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <>
+      <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="ghost"
@@ -423,50 +530,108 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
           
           {/* Presets Section */}
           <div className="space-y-2 px-2">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-3.5 h-3.5 text-purple-500" />
-              <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Quick Presets
-              </span>
-              <div className="h-px flex-1 bg-gradient-to-r from-purple-300/50 via-transparent to-transparent" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-3.5 h-3.5 text-purple-500" />
+                <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Quick Presets
+                </span>
+                <div className="h-px flex-1 bg-gradient-to-r from-purple-300/50 via-transparent to-transparent" />
+              </div>
+              
+              {/* Save Preset Button */}
+              {values.length > 0 && (
+                <TooltipProvider delayDuration={200}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => setShowSavePresetDialog(true)}
+                        className="p-1.5 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors"
+                      >
+                        <Save className="w-3.5 h-3.5 text-purple-500" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="bg-gray-900/95 backdrop-blur-xl border-gray-700/50">
+                      <p className="text-xs text-white">Save current selection as preset</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
             </div>
             
+            {/* Active Preset Indicator */}
+            {matchingPreset && (
+              <div className="p-2 bg-purple-50/80 dark:bg-purple-900/20 border border-purple-200/50 dark:border-purple-700/30 rounded-lg">
+                <p className="text-xs text-purple-700 dark:text-purple-400 flex items-center gap-1.5">
+                  <Check className="w-3 h-3" />
+                  <span>Active: <strong>{matchingPreset.name}</strong> preset</span>
+                </p>
+              </div>
+            )}
+            
             <div className="grid grid-cols-2 gap-2">
-              {modelPresets.map((preset) => {
+              {allPresets.map((preset) => {
                 const Icon = preset.icon;
                 const presetModels = preset.models[selectedMode] || [];
                 const availableCount = presetModels.filter(m => availableModels.includes(m)).length;
+                const isActive = matchingPreset?.id === preset.id;
                 
                 return (
                   <TooltipProvider key={preset.id} delayDuration={200}>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <button
-                          onClick={() => handlePresetSelect(preset.id)}
-                          disabled={availableCount === 0}
-                          className={cn(
-                            "flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all duration-200",
-                            "bg-white/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700",
-                            "hover:bg-white/80 dark:hover:bg-gray-800/80 hover:border-gray-300 dark:hover:border-gray-600",
-                            "hover:shadow-md",
-                            availableCount === 0 && "opacity-40 cursor-not-allowed"
+                        <div className="relative">
+                          <button
+                            onClick={() => handlePresetSelect(preset.id)}
+                            disabled={availableCount === 0}
+                            className={cn(
+                              "w-full flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all duration-200",
+                              "bg-white/50 dark:bg-gray-800/50 border",
+                              isActive 
+                                ? "border-purple-500 bg-purple-50/80 dark:bg-purple-900/30 ring-2 ring-purple-500/20" 
+                                : "border-gray-200 dark:border-gray-700",
+                              !isActive && "hover:bg-white/80 dark:hover:bg-gray-800/80 hover:border-gray-300 dark:hover:border-gray-600",
+                              "hover:shadow-md",
+                              availableCount === 0 && "opacity-40 cursor-not-allowed"
+                            )}
+                          >
+                            <Icon className={cn(
+                              "w-5 h-5",
+                              isActive ? "text-purple-600 dark:text-purple-400" : "text-gray-700 dark:text-gray-300"
+                            )} />
+                            <span className={cn(
+                              "text-xs font-medium",
+                              isActive ? "text-purple-700 dark:text-purple-400" : "text-gray-900 dark:text-gray-100"
+                            )}>
+                              {preset.name}
+                            </span>
+                            <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                              {availableCount} models
+                            </span>
+                          </button>
+                          
+                          {/* Delete button for custom presets */}
+                          {preset.isCustom && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeletePreset(preset.id);
+                              }}
+                              className="absolute -top-1 -right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-md"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
                           )}
-                        >
-                          <Icon className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-                          <span className="text-xs font-medium text-gray-900 dark:text-gray-100">
-                            {preset.name}
-                          </span>
-                          <span className="text-[10px] text-gray-500 dark:text-gray-400">
-                            {availableCount} models
-                          </span>
-                        </button>
+                        </div>
                       </TooltipTrigger>
                       <TooltipContent 
                         side="top"
                         className="bg-gray-900/95 dark:bg-gray-950/95 backdrop-blur-xl border-gray-700/50 p-3 z-[150]"
                       >
                         <div className="space-y-1">
-                          <p className="font-semibold text-white text-xs">{preset.name} Preset</p>
+                          <p className="font-semibold text-white text-xs">
+                            {preset.name} Preset {preset.isCustom && '(Custom)'}
+                          </p>
                           <p className="text-xs text-gray-300">{preset.description}</p>
                           {availableCount > 0 && (
                             <div className="pt-2 border-t border-gray-700/50">
@@ -631,6 +796,73 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
         </div>
       </PopoverContent>
     </Popover>
+    
+    {/* Save Preset Dialog */}
+    <Dialog open={showSavePresetDialog} onOpenChange={setShowSavePresetDialog}>
+      <DialogContent className="sm:max-w-md bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-gray-200 dark:border-gray-700">
+        <DialogHeader>
+          <DialogTitle>Save Custom Preset</DialogTitle>
+          <DialogDescription>
+            Give your preset a name. It will remember your current selection of {values.length} model{values.length > 1 ? 's' : ''}.
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              Preset Name
+            </label>
+            <Input
+              placeholder="e.g., My Favorite Models"
+              value={newPresetName}
+              onChange={(e) => setNewPresetName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleSavePreset();
+                }
+              }}
+              className="bg-white/50 dark:bg-gray-800/50"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              Selected Models
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {values.map((model) => (
+                <span
+                  key={model}
+                  className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-md"
+                >
+                  {model}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+        
+        <DialogFooter>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              setShowSavePresetDialog(false);
+              setNewPresetName('');
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSavePreset}
+            className="bg-purple-500 hover:bg-purple-600 text-white"
+          >
+            <Save className="w-4 h-4 mr-2" />
+            Save Preset
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 };
 
