@@ -23,9 +23,9 @@ serve(async (req) => {
   }
 
   try {
-    const { message, mode, conversationHistory, provider }: ChatRequest = await req.json();
+    const { message, mode, conversationHistory = [], provider }: ChatRequest = await req.json();
     
-    console.log('Chat request:', { message, mode, provider });
+    console.log('Chat request:', { message, mode, provider, historyLength: conversationHistory.length });
     
     // Select model based on mode and provider
     const modelMap: Record<string, Record<string, string>> = {
@@ -56,6 +56,10 @@ serve(async (req) => {
     
     if (selectedProvider === 'openai') {
       apiKey = Deno.env.get('OPENAI_API_KEY');
+      if (!apiKey) {
+        throw new Error('OPENAI_API_KEY not configured');
+      }
+      
       apiUrl = 'https://api.openai.com/v1/chat/completions';
       headers = {
         'Authorization': `Bearer ${apiKey}`,
@@ -63,7 +67,8 @@ serve(async (req) => {
       };
       
       const messages = [
-        ...conversationHistory,
+        { role: 'system', content: 'You are a helpful AI assistant.' },
+        ...conversationHistory.map(m => ({ role: m.role, content: m.content })),
         { role: 'user', content: message }
       ];
       
@@ -74,15 +79,19 @@ serve(async (req) => {
       };
     } else if (selectedProvider === 'anthropic') {
       apiKey = Deno.env.get('ANTHROPIC_API_KEY');
+      if (!apiKey) {
+        throw new Error('ANTHROPIC_API_KEY not configured');
+      }
+      
       apiUrl = 'https://api.anthropic.com/v1/messages';
       headers = {
-        'x-api-key': apiKey!,
+        'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
         'content-type': 'application/json'
       };
       
       const messages = [
-        ...conversationHistory.filter(m => m.role !== 'system'),
+        ...conversationHistory.filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content })),
         { role: 'user', content: message }
       ];
       
@@ -93,6 +102,10 @@ serve(async (req) => {
       };
     } else if (selectedProvider === 'google') {
       apiKey = Deno.env.get('GOOGLE_API_KEY');
+      if (!apiKey) {
+        throw new Error('GOOGLE_API_KEY not configured');
+      }
+      
       apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
       headers = {
         'Content-Type': 'application/json'
@@ -108,10 +121,8 @@ serve(async (req) => {
       });
       
       body = { contents };
-    }
-    
-    if (!apiKey) {
-      throw new Error(`${selectedProvider.toUpperCase()}_API_KEY not configured`);
+    } else {
+      throw new Error(`Unsupported provider: ${selectedProvider}`);
     }
     
     console.log('Calling AI provider:', selectedProvider, model);
@@ -129,14 +140,26 @@ serve(async (req) => {
     }
     
     const data = await response.json();
-    console.log('AI response received');
+    console.log('AI response received:', JSON.stringify(data).substring(0, 200));
     
     let content: string;
     if (selectedProvider === 'openai') {
+      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+        console.error('Invalid OpenAI response:', data);
+        throw new Error('Invalid response from OpenAI');
+      }
       content = data.choices[0].message.content;
     } else if (selectedProvider === 'anthropic') {
+      if (!data.content || !data.content[0]) {
+        console.error('Invalid Anthropic response:', data);
+        throw new Error('Invalid response from Anthropic');
+      }
       content = data.content[0].text;
     } else if (selectedProvider === 'google') {
+      if (!data.candidates || !data.candidates[0]) {
+        console.error('Invalid Google response:', data);
+        throw new Error('Invalid response from Google');
+      }
       content = data.candidates[0].content.parts[0].text;
     } else {
       content = 'Response not supported for this provider';
