@@ -102,6 +102,25 @@ export const api = {
     
     return response.json();
   },
+
+  async generateVideo(prompt: string, provider?: Provider, model?: string, signal?: AbortSignal): Promise<{ videoUrl: string; model?: string }> {
+    const response = await fetch(`${API_BASE}/video`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`
+      },
+      body: JSON.stringify({ prompt, provider, model }),
+      signal
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Video generation failed');
+    }
+    
+    return response.json();
+  },
   
   async getAvailableModels(): Promise<AvailableModels> {
     const response = await fetch(`${API_BASE}/models`, {

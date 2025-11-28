@@ -118,6 +118,17 @@ export const Message = ({ message, onRetry }: MessageProps) => {
               <p className="text-sm leading-relaxed">{contentString}</p>
             )}
           </div>
+        ) : message.metadata?.videoUrl ? (
+          <div className="space-y-3">
+            <video 
+              src={message.metadata.videoUrl} 
+              controls
+              className="rounded-xl w-full max-w-md shadow-md"
+            />
+            {contentString && (
+              <p className="text-sm leading-relaxed">{contentString}</p>
+            )}
+          </div>
         ) : isUser ? (
           <p className="text-sm leading-relaxed whitespace-pre-wrap">
             {contentString}
