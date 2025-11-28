@@ -36,7 +36,16 @@ serve(async (req) => {
         'Gemini 2.5 Flash Lite'
       ],
       image: [
+        // OpenAI Models
+        'gpt-image-1',
         'DALL-E 3',
+        'DALL-E 2',
+        
+        // Google Models
+        'Gemini 2.5 Flash Image',
+        'Gemini 3 Pro Image',
+        
+        // Other
         'Stable Diffusion XL'
       ],
       video: [
