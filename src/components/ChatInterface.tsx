@@ -270,7 +270,7 @@ export function ChatInterface() {
                     size="icon"
                     className={`${
                       isLoading 
-                        ? 'w-8 h-8 rounded-full bg-gray-700 hover:bg-gray-800' 
+                        ? 'w-8 h-8 rounded-full bg-gray-700 hover:bg-gray-800 animate-pulse' 
                         : 'w-9 h-9 bg-blue-600 hover:bg-blue-700'
                     } text-white transition-all duration-200 disabled:opacity-50`}
                   >
