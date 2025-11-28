@@ -4,10 +4,23 @@ import { multiModelApi } from '@/lib/multiModelApi';
 import { useChatStore } from '../store/chatStore';
 import { useModeStore } from '@/features/modes/store/modeStore';
 import { useToast } from '@/hooks/use-toast';
-import type { MultiModelContent } from '@/types';
+import { supabase } from '@/integrations/supabase/client';
+import type { MultiModelContent, Message } from '@/types';
 
 export const useChat = () => {
-  const { messages, addMessage, updateMessage, setLoading, setError, isLoading, selectedModels, isModelLocked, lockModels } = useChatStore();
+  const { 
+    messages, 
+    addMessage, 
+    updateMessage, 
+    setLoading, 
+    setError, 
+    isLoading, 
+    selectedModels, 
+    isModelLocked, 
+    lockModels,
+    currentConversationId,
+    setCurrentConversationId 
+  } = useChatStore();
   const { selectedMode } = useModeStore();
   const { toast } = useToast();
   const [lastRequestTime, setLastRequestTime] = useState(0);
@@ -29,7 +42,23 @@ export const useChat = () => {
     
     setLastRequestTime(now);
     
-    const userMessage = {
+    // Create conversation if this is the first message
+    let convId = currentConversationId;
+    if (!convId && messages.length === 0) {
+      const title = content.slice(0, 50) + (content.length > 50 ? '...' : '');
+      const { data, error } = await supabase
+        .from('conversations')
+        .insert({ title })
+        .select()
+        .single();
+      
+      if (data && !error) {
+        convId = data.id;
+        setCurrentConversationId(convId);
+      }
+    }
+    
+    const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user' as const,
       content,
@@ -39,6 +68,16 @@ export const useChat = () => {
     addMessage(userMessage);
     setLoading(true);
     setError(null);
+
+    // Save user message to database
+    if (convId) {
+      await supabase.from('messages').insert({
+        conversation_id: convId,
+        role: userMessage.role,
+        content: userMessage.content,
+        metadata: userMessage.metadata
+      });
+    }
 
     // Lock models after first message
     if (!isModelLocked && messages.length === 0) {
@@ -52,7 +91,7 @@ export const useChat = () => {
       if (selectedMode === 'image') {
         const response = await api.generateImage(content);
         
-        const assistantMessage = {
+        const assistantMessage: Message = {
           id: assistantId,
           role: 'assistant' as const,
           content: response.revisedPrompt || content,
@@ -64,6 +103,21 @@ export const useChat = () => {
         };
         
         addMessage(assistantMessage);
+        
+        // Save to database
+        if (convId) {
+          await supabase.from('messages').insert({
+            conversation_id: convId,
+            role: assistantMessage.role,
+            content: assistantMessage.content,
+            metadata: assistantMessage.metadata
+          });
+          
+          await supabase
+            .from('conversations')
+            .update({ updated_at: new Date().toISOString() })
+            .eq('id', convId);
+        }
         
         toast({
           title: 'Image generated',
@@ -107,14 +161,30 @@ export const useChat = () => {
 
         // Final update after all models complete
         if (hasCreatedMessage) {
-          updateMessage(assistantId, {
+          const finalMessage = {
             content: response.content,
             metadata: {
               models: response.models
             }
-          });
+          };
+          updateMessage(assistantId, finalMessage);
+          
+          // Save to database
+          if (convId) {
+            await supabase.from('messages').insert({
+              conversation_id: convId,
+              role: 'assistant',
+              content: finalMessage.content,
+              metadata: finalMessage.metadata
+            });
+            
+            await supabase
+              .from('conversations')
+              .update({ updated_at: new Date().toISOString() })
+              .eq('id', convId);
+          }
         } else {
-          addMessage({
+          const assistantMessage: Message = {
             id: assistantId,
             role: 'assistant' as const,
             content: response.content,
@@ -122,7 +192,23 @@ export const useChat = () => {
             metadata: {
               models: response.models
             }
-          });
+          };
+          addMessage(assistantMessage);
+          
+          // Save to database
+          if (convId) {
+            await supabase.from('messages').insert({
+              conversation_id: convId,
+              role: assistantMessage.role,
+              content: assistantMessage.content,
+              metadata: assistantMessage.metadata
+            });
+            
+            await supabase
+              .from('conversations')
+              .update({ updated_at: new Date().toISOString() })
+              .eq('id', convId);
+          }
         }
       } else {
         // Single model handling
@@ -159,15 +245,32 @@ export const useChat = () => {
         );
         
         if (hasCreatedMessage) {
-          updateMessage(assistantId, {
+          const finalMessage = {
             content: response.content || streamingContent,
             metadata: {
               model: response.model,
               provider: response.provider
             }
-          });
+          };
+          updateMessage(assistantId, finalMessage);
+          
+          // Save assistant message to database
+          if (convId) {
+            await supabase.from('messages').insert({
+              conversation_id: convId,
+              role: 'assistant',
+              content: finalMessage.content,
+              metadata: finalMessage.metadata
+            });
+            
+            // Update conversation timestamp
+            await supabase
+              .from('conversations')
+              .update({ updated_at: new Date().toISOString() })
+              .eq('id', convId);
+          }
         } else {
-          addMessage({
+          const assistantMessage = {
             id: assistantId,
             role: 'assistant' as const,
             content: response.content,
@@ -176,7 +279,23 @@ export const useChat = () => {
               model: response.model,
               provider: response.provider
             }
-          });
+          };
+          addMessage(assistantMessage);
+          
+          // Save to database
+          if (convId) {
+            await supabase.from('messages').insert({
+              conversation_id: convId,
+              role: assistantMessage.role,
+              content: assistantMessage.content,
+              metadata: assistantMessage.metadata
+            });
+            
+            await supabase
+              .from('conversations')
+              .update({ updated_at: new Date().toISOString() })
+              .eq('id', convId);
+          }
         }
       }
     } catch (error) {
