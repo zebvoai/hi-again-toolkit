@@ -199,13 +199,13 @@ export function AppSidebar() {
           {/* New Chat */}
           <Button
             variant="ghost"
-            className="w-full h-auto py-3 justify-start gap-3 hover:bg-accent rounded-lg transition-colors"
+            className="w-full justify-start gap-3 px-3 py-2.5 hover:bg-accent rounded-lg transition-colors"
             onClick={handleNewChat}
           >
-            <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
-              <Plus className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+              <Plus className="w-4 h-4 text-white" />
             </div>
-            <span className="text-base font-semibold">New Chat</span>
+            <span className="text-sm font-medium">New Chat</span>
           </Button>
 
           {/* Search Chats */}
