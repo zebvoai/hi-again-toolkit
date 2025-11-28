@@ -8,13 +8,13 @@ export const Message = ({ message }: MessageProps) => {
   const isUser = message.role === 'user';
   
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-6`}>
       <div
         className={`
-          max-w-[70%] rounded-2xl px-5 py-3
+          max-w-[75%] rounded-2xl px-5 py-4 shadow-sm
           ${isUser 
             ? 'bg-primary text-primary-foreground' 
-            : 'bg-muted text-foreground'
+            : 'bg-card text-card-foreground border border-border'
           }
         `}
       >
@@ -23,10 +23,10 @@ export const Message = ({ message }: MessageProps) => {
             <img 
               src={message.metadata.imageUrl} 
               alt="Generated" 
-              className="rounded-lg w-full"
+              className="rounded-lg w-full max-w-md"
             />
             {message.content && (
-              <p className="text-sm">{message.content}</p>
+              <p className="text-sm leading-relaxed">{message.content}</p>
             )}
           </div>
         ) : (
@@ -35,9 +35,9 @@ export const Message = ({ message }: MessageProps) => {
           </p>
         )}
         
-        {message.metadata?.model && (
-          <p className="text-xs opacity-70 mt-2">
-            {message.metadata.model} • {message.metadata.provider}
+        {message.metadata?.model && !isUser && (
+          <p className="text-xs opacity-60 mt-3 pt-2 border-t border-border/50">
+            {message.metadata.model}
           </p>
         )}
       </div>
