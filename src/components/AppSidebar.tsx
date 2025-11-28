@@ -1,4 +1,5 @@
-import { Plus, User, PanelLeft } from 'lucide-react';
+import { Plus, User, Search, Library, Folder, ChevronDown, ChevronRight, MoreVertical } from 'lucide-react';
+import { useState } from 'react';
 import {
   Sidebar,
   SidebarContent,
@@ -9,6 +10,12 @@ import {
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useChatStore } from '@/features/chat/store/chatStore';
 import { useConversations } from '@/features/chat/hooks/useConversations';
 import { ConversationItem } from './ConversationItem';
@@ -33,6 +40,14 @@ export function AppSidebar() {
     refreshConversations
   } = useConversations();
 
+  // Projects state
+  const [isProjectsOpen, setIsProjectsOpen] = useState(true);
+  const [projects, setProjects] = useState([
+    { id: 1, name: 'Queries' },
+    { id: 2, name: 'Zebvo' }
+  ]);
+  const [hoveredProject, setHoveredProject] = useState<number | null>(null);
+
   const handleNewChat = () => {
     clearMessages();
     unlockModels();
@@ -54,6 +69,14 @@ export function AppSidebar() {
     await deleteConversation(conversationId);
     if (currentConversationId === conversationId) {
       handleNewChat();
+    }
+  };
+
+  const handleProjectAction = (projectId: number, action: 'rename' | 'duplicate' | 'archive' | 'delete') => {
+    console.log(`Project ${projectId} - ${action}`);
+    // TODO: Implement project actions
+    if (action === 'delete') {
+      setProjects(projects.filter(p => p.id !== projectId));
     }
   };
 
@@ -112,14 +135,15 @@ export function AppSidebar() {
   return (
     <Sidebar className="w-[280px] border-r bg-background flex flex-col h-screen fixed" collapsible="icon">
       <div className="flex-none">
-        <SidebarHeader className="p-4 space-y-4">
-          <div className="flex items-center">
+        <SidebarHeader className="p-4 space-y-2">
+          <div className="flex items-center mb-2">
             <SidebarTrigger className="w-6 h-6" />
           </div>
           
+          {/* New Chat */}
           <Button
             variant="ghost"
-            className="w-full h-auto py-3 justify-start gap-3 hover:bg-accent rounded-lg"
+            className="w-full h-auto py-3 justify-start gap-3 hover:bg-accent rounded-lg transition-colors"
             onClick={handleNewChat}
           >
             <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
@@ -127,11 +151,124 @@ export function AppSidebar() {
             </div>
             <span className="text-base font-semibold">New Chat</span>
           </Button>
+
+          {/* Search Chats */}
+          <Button
+            variant="ghost"
+            className="w-full justify-start gap-3 px-3 py-2.5 hover:bg-accent rounded-lg transition-colors"
+          >
+            <Search className="w-5 h-5 text-muted-foreground" />
+            <span className="text-sm">Search chats</span>
+          </Button>
+
+          {/* Library */}
+          <Button
+            variant="ghost"
+            className="w-full justify-start gap-3 px-3 py-2.5 hover:bg-accent rounded-lg transition-colors"
+          >
+            <Library className="w-5 h-5 text-muted-foreground" />
+            <span className="text-sm">Library</span>
+          </Button>
         </SidebarHeader>
       </div>
 
       <ScrollArea className="flex-1 min-h-0">
-        <SidebarContent className="px-3 pb-4">
+        <SidebarContent className="px-3 pb-4 space-y-6">
+          {/* Projects Section */}
+          <div className="space-y-2">
+            {/* Projects Header */}
+            <button
+              onClick={() => setIsProjectsOpen(!isProjectsOpen)}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm font-semibold hover:bg-accent rounded-lg transition-colors"
+            >
+              {isProjectsOpen ? (
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+              ) : (
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              )}
+              <span>Projects</span>
+            </button>
+
+            {/* Projects Content */}
+            {isProjectsOpen && (
+              <div className="space-y-1">
+                {/* New Project */}
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start gap-3 px-3 py-2 hover:bg-accent rounded-lg transition-colors"
+                >
+                  <Plus className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm">New project</span>
+                </Button>
+
+                {/* Project List */}
+                {projects.map((project) => (
+                  <div
+                    key={project.id}
+                    className="group relative flex items-center gap-3 px-3 py-2 hover:bg-accent rounded-lg transition-colors cursor-pointer"
+                    onMouseEnter={() => setHoveredProject(project.id)}
+                    onMouseLeave={() => setHoveredProject(null)}
+                  >
+                    <Folder className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                    <span className="text-sm flex-1 truncate">{project.name}</span>
+                    
+                    {/* 3-dot menu (visible on hover) */}
+                    {hoveredProject === project.id && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="w-6 h-6 flex-shrink-0 opacity-100 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48 bg-background border shadow-lg z-50">
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleProjectAction(project.id, 'rename');
+                            }}
+                          >
+                            Rename
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleProjectAction(project.id, 'duplicate');
+                            }}
+                          >
+                            Duplicate
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleProjectAction(project.id, 'archive');
+                            }}
+                          >
+                            Archive
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleProjectAction(project.id, 'delete');
+                            }}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Chat History */}
           {isLoading ? (
             <div className="text-sm text-muted-foreground text-center py-8">
               Loading...
