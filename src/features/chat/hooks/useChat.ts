@@ -119,13 +119,31 @@ export const useChat = () => {
               multiModelContent[model] = response.imageUrl;
               return { model, url: response.imageUrl };
             } catch (error) {
-              multiModelContent[model] = `Error: ${error instanceof Error ? error.message : 'Unknown error'}`;
-              return { model, url: null };
+              const errorMsg = error instanceof Error ? error.message : 'Generation failed';
+              multiModelContent[model] = `Error: ${errorMsg}`;
+              console.error(`Image generation failed for ${model}:`, error);
+              return { model, url: null, error: errorMsg };
             }
           });
 
           // Wait for all images to generate
-          await Promise.all(imagePromises);
+          const results = await Promise.all(imagePromises);
+          
+          // Check for errors and show user-friendly messages
+          const failedModels = results.filter(r => !r.url).map(r => ({ model: r.model, error: (r as any).error }));
+          const successModels = results.filter(r => r.url).map(r => r.model);
+          
+          if (failedModels.length > 0 && successModels.length > 0) {
+            // Partial success
+            toast({
+              title: 'Some images generated',
+              description: `${successModels.length} of ${selectedModels.length} models succeeded. ${failedModels[0].model}: ${(failedModels[0] as any).error}`,
+              variant: 'default',
+            });
+          } else if (failedModels.length === selectedModels.length) {
+            // Complete failure
+            throw new Error(failedModels.map(f => `${f.model}: ${(f as any).error}`).join('\n'));
+          }
 
           const assistantMessage: Message = {
             id: assistantId,
@@ -441,11 +459,27 @@ export const useChat = () => {
       const errorMessage = error instanceof Error ? error.message : 'Something went wrong';
       setError(errorMessage);
       
+      // Determine user-friendly title based on error type
+      let errorTitle = 'Generation Failed';
+      let errorDescription = errorMessage;
+      
+      if (errorMessage.includes('Rate limit')) {
+        errorTitle = 'Rate Limit Reached';
+      } else if (errorMessage.includes('quota exceeded') || errorMessage.includes('billing')) {
+        errorTitle = 'Service Unavailable';
+      } else if (errorMessage.includes('temporarily unavailable') || errorMessage.includes('Server')) {
+        errorTitle = 'Service Temporarily Down';
+      } else if (errorMessage.includes('not configured') || errorMessage.includes('Authentication failed')) {
+        errorTitle = 'Configuration Error';
+      } else if (errorMessage.includes('Invalid')) {
+        errorTitle = 'Invalid Request';
+      }
+      
       // Add error message
       const errorAssistantMessage = {
         id: assistantId,
         role: 'assistant' as const,
-        content: 'Sorry, I encountered an error processing your request.',
+        content: 'I encountered an error processing your request. Please try again.',
         timestamp: Date.now(),
         metadata: {
           error: errorMessage
@@ -454,8 +488,8 @@ export const useChat = () => {
       addMessage(errorAssistantMessage);
       
       toast({
-        title: 'Error',
-        description: errorMessage,
+        title: errorTitle,
+        description: errorDescription,
         variant: 'destructive',
       });
     } finally {

@@ -42,9 +42,9 @@ serve(async (req) => {
     if (actualProvider === 'lovable') {
       const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
       
-      if (!lovableApiKey) {
-        throw new Error('LOVABLE_API_KEY not configured');
-      }
+    if (!lovableApiKey) {
+      throw new Error('AI service temporarily unavailable. Please try again later or contact support.');
+    }
       
       const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
@@ -67,7 +67,16 @@ serve(async (req) => {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Lovable AI error:', response.status, errorText);
-        throw new Error(`Image generation failed: ${response.status}`);
+        
+        if (response.status === 429) {
+          throw new Error(`${actualModel.split('/')[1] || actualModel}: Rate limit reached. Please wait a moment and try again.`);
+        } else if (response.status === 402) {
+          throw new Error(`${actualModel.split('/')[1] || actualModel}: Service quota exceeded. Please check your account status.`);
+        } else if (response.status >= 500) {
+          throw new Error(`${actualModel.split('/')[1] || actualModel}: Server temporarily unavailable. Please try again in a moment.`);
+        } else {
+          throw new Error(`${actualModel.split('/')[1] || actualModel}: Unable to generate image. Please try a different prompt or model.`);
+        }
       }
       
       const data = await response.json();
@@ -77,7 +86,7 @@ serve(async (req) => {
       const imageBase64 = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
       
       if (!imageBase64) {
-        throw new Error('No image returned from API');
+        throw new Error(`${actualModel.split('/')[1] || actualModel}: No image was generated. Please try again with a different prompt.`);
       }
       
       return new Response(
@@ -97,7 +106,7 @@ serve(async (req) => {
       const apiKey = Deno.env.get('OPENAI_API_KEY');
       
       if (!apiKey) {
-        throw new Error('OPENAI_API_KEY not configured');
+        throw new Error('OpenAI service not configured. Please contact support to enable OpenAI models.');
       }
       
       // Retry logic for transient 500 errors
@@ -124,12 +133,31 @@ serve(async (req) => {
             
             // Retry on 500 errors (server issues)
             if (response.status === 500 && attempt < 3) {
-              lastError = `OpenAI server error (${response.status})`;
+              lastError = `${actualModel}: OpenAI server temporarily unavailable (attempt ${attempt}/3)`;
               await new Promise(resolve => setTimeout(resolve, 1000 * attempt)); // Exponential backoff
               continue;
             }
             
-            throw new Error(`OpenAI API error: ${response.status}. ${response.status === 500 ? 'Server temporarily unavailable. Please try again or use Gemini models.' : 'Please check your request.'}`);
+            // Parse specific error messages
+            let errorDetail = 'Please try again';
+            try {
+              const errorData = JSON.parse(errorText);
+              if (errorData.error?.message) {
+                errorDetail = errorData.error.message;
+              }
+            } catch {}
+            
+            if (response.status === 429) {
+              throw new Error(`${actualModel}: Rate limit exceeded. Please wait a moment before trying again.`);
+            } else if (response.status === 401) {
+              throw new Error(`${actualModel}: Authentication failed. Please contact support.`);
+            } else if (response.status === 400) {
+              throw new Error(`${actualModel}: Invalid request. ${errorDetail.includes('billing') ? 'Please check your OpenAI account billing.' : 'Please try a different prompt.'}`);
+            } else if (response.status === 500) {
+              throw new Error(`${actualModel}: Server temporarily unavailable. Try using Gemini models instead.`);
+            } else {
+              throw new Error(`${actualModel}: ${errorDetail}`);
+            }
           }
       
           const data = await response.json();
@@ -151,10 +179,10 @@ serve(async (req) => {
         }
       }
       
-      throw new Error(lastError || 'OpenAI image generation failed after 3 attempts');
+      throw new Error(lastError || `${actualModel}: Failed to generate image after 3 attempts. Please try again or use a different model.`);
     }
     
-    throw new Error('Provider not supported for image generation');
+    throw new Error(`${model || 'Selected model'}: This model is not currently supported. Please select a different model.`);
     
   } catch (error) {
     console.error('Image generation error:', error);
