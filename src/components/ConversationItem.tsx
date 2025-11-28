@@ -15,6 +15,10 @@ interface ConversationItemProps {
   isActive: boolean;
   onClick: () => void;
   onDelete: () => void;
+  onShare?: () => void;
+  onStartGroupChat?: () => void;
+  onRename?: () => void;
+  onArchive?: () => void;
 }
 
 export const ConversationItem = ({
@@ -23,23 +27,27 @@ export const ConversationItem = ({
   isActive,
   onClick,
   onDelete,
+  onShare,
+  onStartGroupChat,
+  onRename,
+  onArchive,
 }: ConversationItemProps) => {
   const timeAgo = formatDistanceToNow(new Date(updatedAt), { addSuffix: true });
 
   return (
     <div
-      className={`group relative flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-all ${
+      className={`group relative flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-all overflow-hidden ${
         isActive 
           ? 'bg-blue-50 border-l-4 border-blue-600 pl-2.5' 
           : 'hover:bg-accent/50 border-l-4 border-transparent'
       }`}
       onClick={onClick}
     >
-      <div className="flex-1 min-w-0 pr-2">
-        <p className={`text-sm truncate ${isActive ? 'font-medium text-blue-600' : 'text-foreground'}`}>
+      <div className="flex-1 min-w-0 overflow-hidden">
+        <p className={`text-sm truncate whitespace-nowrap overflow-hidden text-ellipsis ${isActive ? 'font-medium text-blue-600' : 'text-foreground'}`}>
           {title}
         </p>
-        <p className="text-xs text-muted-foreground mt-0.5">
+        <p className="text-xs text-muted-foreground mt-0.5 truncate whitespace-nowrap overflow-hidden text-ellipsis">
           {timeAgo}
         </p>
       </div>
@@ -49,13 +57,45 @@ export const ConversationItem = ({
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+            className="h-7 w-7 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
             onClick={(e) => e.stopPropagation()}
           >
             <MoreVertical className="w-4 h-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="end" className="w-48 bg-background border shadow-lg z-50">
+          <DropdownMenuItem
+            onClick={(e) => {
+              e.stopPropagation();
+              onShare?.();
+            }}
+          >
+            Share
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={(e) => {
+              e.stopPropagation();
+              onStartGroupChat?.();
+            }}
+          >
+            Start a group chat
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={(e) => {
+              e.stopPropagation();
+              onRename?.();
+            }}
+          >
+            Rename
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={(e) => {
+              e.stopPropagation();
+              onArchive?.();
+            }}
+          >
+            Archive
+          </DropdownMenuItem>
           <DropdownMenuItem
             className="text-destructive focus:text-destructive"
             onClick={(e) => {
