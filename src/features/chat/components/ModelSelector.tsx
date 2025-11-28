@@ -3,7 +3,6 @@ import { useModels } from '../hooks/useModels';
 import { useModeStore } from '@/features/modes/store/modeStore';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Check, ChevronDown, Sparkles, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -115,8 +114,7 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
     : `${values.length} models`;
   
   return (
-    <TooltipProvider delayDuration={300}>
-      <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="ghost"
@@ -221,57 +219,7 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
                         </button>
                       );
                       
-                      return info ? (
-                        <Tooltip key={model}>
-                          <TooltipTrigger asChild>
-                            {modelButton}
-                          </TooltipTrigger>
-                          <TooltipContent 
-                            side="left" 
-                            className="max-w-[280px] bg-gray-900/98 dark:bg-gray-800/98 backdrop-blur-xl border border-gray-700/50 p-4 z-[150]"
-                            sideOffset={8}
-                          >
-                            <div className="space-y-3">
-                              <div>
-                                <h4 className="font-semibold text-white text-sm mb-1">{model}</h4>
-                                <p className="text-xs text-gray-300 leading-relaxed">
-                                  {info.description}
-                                </p>
-                              </div>
-                              
-                              <div className="space-y-2">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Speed:</span>
-                                  <span className={cn(
-                                    "text-xs font-medium px-2 py-0.5 rounded-full",
-                                    info.speed === 'Very Fast' && "bg-green-500/20 text-green-400",
-                                    info.speed === 'Fast' && "bg-blue-500/20 text-blue-400",
-                                    info.speed === 'Moderate' && "bg-amber-500/20 text-amber-400"
-                                  )}>
-                                    {info.speed}
-                                  </span>
-                                </div>
-                                
-                                <div>
-                                  <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider block mb-1.5">
-                                    Key Strengths:
-                                  </span>
-                                  <div className="flex flex-wrap gap-1">
-                                    {info.strengths.map((strength, idx) => (
-                                      <span 
-                                        key={idx}
-                                        className="text-[10px] px-2 py-0.5 bg-blue-500/10 text-blue-300 rounded-md border border-blue-500/20"
-                                      >
-                                        {strength}
-                                      </span>
-                                    ))}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </TooltipContent>
-                        </Tooltip>
-                      ) : modelButton;
+                      return modelButton;
                     })}
                   </div>
                 </div>
@@ -290,6 +238,5 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
         </div>
       </PopoverContent>
     </Popover>
-    </TooltipProvider>
   );
 };
