@@ -205,7 +205,36 @@ serve(async (req) => {
     
     console.log('Chat request:', { message, mode, provider, requestedModel, models, historyLength: conversationHistory.length });
 
-    // Handle multi-model requests
+    // VIDEO MODE: Only process video models, ignore text models
+    if (mode === 'video') {
+      const videoModels = ['Runway Gen-2', 'Pika 1.0'];
+      let selectedVideoModels = models?.filter(m => videoModels.includes(m)) || [];
+      
+      // If user selected a video model, use only that
+      if (selectedVideoModels.length === 0 && requestedModel && videoModels.includes(requestedModel)) {
+        selectedVideoModels = [requestedModel];
+      }
+      
+      if (selectedVideoModels.length === 0) {
+        return new Response(
+          JSON.stringify({ error: 'No video model selected. Please select Runway Gen-2 or Pika 1.0 for video generation.' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      console.log('Video generation request with models:', selectedVideoModels);
+      
+      // For now, return a message that video generation is not yet fully implemented
+      // In production, this would call Runway or Pika APIs
+      return new Response(
+        JSON.stringify({ 
+          error: 'Video generation API integration is not yet implemented. This feature requires Runway Gen-2 or Pika API keys and endpoints.' 
+        }),
+        { status: 501, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Handle multi-model requests (text mode only)
     if (models && Array.isArray(models) && models.length > 1) {
       console.log('Multi-model request:', models);
       return await handleMultiModelRequest(message, models, conversationHistory, stream);
