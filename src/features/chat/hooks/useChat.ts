@@ -105,40 +105,103 @@ export const useChat = () => {
     
     try {
       if (selectedMode === 'image') {
-        const response = await api.generateImage(content, undefined, abortControllerRef.current?.signal);
-        
-        const assistantMessage: Message = {
-          id: assistantId,
-          role: 'assistant' as const,
-          content: response.revisedPrompt || content,
-          timestamp: Date.now(),
-          metadata: {
-            imageUrl: response.imageUrl,
-            model: 'DALL-E 3'
-          }
-        };
-        
-        addMessage(assistantMessage);
-        
-        // Save to database
-        if (convId) {
-          await supabase.from('messages').insert({
-            conversation_id: convId,
-            role: assistantMessage.role,
-            content: assistantMessage.content,
-            metadata: assistantMessage.metadata
+        // Handle multi-model image generation
+        if (selectedModels.length > 1) {
+          let multiModelContent: MultiModelContent = {};
+          const imagePromises = selectedModels.map(async (model) => {
+            try {
+              const response = await api.generateImage(
+                content, 
+                undefined, 
+                model.toLowerCase().replace(/\s+/g, '-'),
+                abortControllerRef.current?.signal
+              );
+              multiModelContent[model] = response.imageUrl;
+              return { model, url: response.imageUrl };
+            } catch (error) {
+              multiModelContent[model] = `Error: ${error instanceof Error ? error.message : 'Unknown error'}`;
+              return { model, url: null };
+            }
           });
+
+          // Wait for all images to generate
+          await Promise.all(imagePromises);
+
+          const assistantMessage: Message = {
+            id: assistantId,
+            role: 'assistant' as const,
+            content: multiModelContent,
+            timestamp: Date.now(),
+            metadata: {
+              models: selectedModels,
+              isImage: true
+            }
+          };
+
+          addMessage(assistantMessage);
+
+          // Save to database
+          if (convId) {
+            await supabase.from('messages').insert({
+              conversation_id: convId,
+              role: assistantMessage.role,
+              content: assistantMessage.content,
+              metadata: assistantMessage.metadata
+            });
+
+            await supabase
+              .from('conversations')
+              .update({ updated_at: new Date().toISOString() })
+              .eq('id', convId);
+          }
+
+          toast({
+            title: 'Images generated',
+            description: `Generated images with ${selectedModels.length} models`,
+          });
+        } else {
+          // Single model image generation
+          const selectedModel = selectedModels[0] || 'DALL-E 3';
+          const response = await api.generateImage(
+            content, 
+            undefined, 
+            selectedModel.toLowerCase().replace(/\s+/g, '-'),
+            abortControllerRef.current?.signal
+          );
           
-          await supabase
-            .from('conversations')
-            .update({ updated_at: new Date().toISOString() })
-            .eq('id', convId);
+          const assistantMessage: Message = {
+            id: assistantId,
+            role: 'assistant' as const,
+            content: response.revisedPrompt || content,
+            timestamp: Date.now(),
+            metadata: {
+              imageUrl: response.imageUrl,
+              model: selectedModel
+            }
+          };
+          
+          addMessage(assistantMessage);
+          
+          // Save to database
+          if (convId) {
+            await supabase.from('messages').insert({
+              conversation_id: convId,
+              role: assistantMessage.role,
+              content: assistantMessage.content,
+              metadata: assistantMessage.metadata
+            });
+            
+            await supabase
+              .from('conversations')
+              .update({ updated_at: new Date().toISOString() })
+              .eq('id', convId);
+          }
+          
+          toast({
+            title: 'Image generated',
+            description: 'Your image has been created successfully',
+          });
         }
-        
-        toast({
-          title: 'Image generated',
-          description: 'Your image has been created successfully',
-        });
       } else if (selectedMode === 'video') {
         // VIDEO MODE: Filter to only video models
         const videoModels = ['Runway Gen-2', 'Pika 1.0'];
