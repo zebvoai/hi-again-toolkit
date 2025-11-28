@@ -160,7 +160,7 @@ export function ChatInterface() {
 
       {/* Chat Input Area */}
       <div className="p-4 pb-6">
-        <div className="max-w-4xl mx-auto">
+        <div key={selectedMode} className="max-w-4xl mx-auto animate-scale-in">
           {isModelLocked && <div className="flex justify-center mb-3">
               <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200 px-4 py-1.5">
                 <div className="w-2 h-2 rounded-full bg-blue-500 mr-2" />
