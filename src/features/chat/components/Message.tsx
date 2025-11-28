@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { MultiModelResponse } from './MultiModelResponse';
+import { formatModelName } from '@/lib/utils';
 
 interface MessageProps {
   message: MessageType;
@@ -86,7 +87,7 @@ export const Message = ({ message, onRetry }: MessageProps) => {
             variant="secondary" 
             className="mb-2.5 text-xs font-medium bg-gray-100 text-gray-700 border-0"
           >
-            {message.metadata.model}
+            {formatModelName(message.metadata.model)}
           </Badge>
         )}
         
