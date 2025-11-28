@@ -57,13 +57,14 @@ export const ConversationItem = ({
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+            className="h-[22px] w-[22px] flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-[120ms] rounded"
             onClick={(e) => e.stopPropagation()}
+            aria-label="More options"
           >
             <MoreVertical className="w-4 h-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48 bg-background border shadow-lg z-50">
+        <DropdownMenuContent align="end" className="min-w-[160px] bg-background border shadow-lg z-[200] rounded-lg">
           <DropdownMenuItem
             onClick={(e) => {
               e.stopPropagation();

@@ -80,9 +80,60 @@ export function AppSidebar() {
     }
   };
 
-  const handleConversationAction = (conversationId: string, action: 'share' | 'group' | 'rename' | 'archive') => {
-    console.log(`Conversation ${conversationId} - ${action}`);
-    // TODO: Implement conversation actions
+  const handleShare = async (conversationId: string) => {
+    const conversation = conversations.find(c => c.id === conversationId);
+    if (!conversation) return;
+    
+    // Use Web Share API if available
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: conversation.title,
+          text: `Check out this conversation: ${conversation.title}`,
+          url: window.location.href
+        });
+      } catch (err) {
+        console.log('Share cancelled');
+      }
+    } else {
+      // Fallback: copy to clipboard
+      await navigator.clipboard.writeText(window.location.href);
+      alert('Link copied to clipboard!');
+    }
+  };
+
+  const handleStartGroupChat = (conversationId: string) => {
+    const conversation = conversations.find(c => c.id === conversationId);
+    alert(`Starting group chat based on: ${conversation?.title}`);
+    // TODO: Open group chat modal with this conversation preselected
+  };
+
+  const handleRename = (conversationId: string) => {
+    const conversation = conversations.find(c => c.id === conversationId);
+    if (!conversation) return;
+    
+    const newTitle = prompt('Enter new conversation title:', conversation.title);
+    if (newTitle && newTitle.trim() && newTitle !== conversation.title) {
+      // TODO: Call API to rename conversation
+      console.log(`Renaming conversation ${conversationId} to: ${newTitle}`);
+      refreshConversations();
+    }
+  };
+
+  const handleArchive = async (conversationId: string) => {
+    const conversation = conversations.find(c => c.id === conversationId);
+    if (!conversation) return;
+    
+    // TODO: Call API to archive conversation
+    console.log(`Archiving conversation: ${conversationId}`);
+    alert(`Archived: ${conversation.title}`);
+    
+    // If this was the current conversation, start a new chat
+    if (currentConversationId === conversationId) {
+      handleNewChat();
+    }
+    
+    refreshConversations();
   };
 
   // Group conversations by date
@@ -178,7 +229,7 @@ export function AppSidebar() {
       </div>
 
       <ScrollArea className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
-        <SidebarContent className="px-3 pb-4 space-y-6 pr-2">
+        <SidebarContent className="px-3 pb-4 space-y-6 pr-[6px]">
           {/* Projects Section */}
           <div className="space-y-2">
             {/* Projects Header */}
@@ -299,10 +350,10 @@ export function AppSidebar() {
                         isActive={currentConversationId === conv.id}
                         onClick={() => handleLoadConversation(conv.id)}
                         onDelete={() => handleDeleteConversation(conv.id)}
-                        onShare={() => handleConversationAction(conv.id, 'share')}
-                        onStartGroupChat={() => handleConversationAction(conv.id, 'group')}
-                        onRename={() => handleConversationAction(conv.id, 'rename')}
-                        onArchive={() => handleConversationAction(conv.id, 'archive')}
+                        onShare={() => handleShare(conv.id)}
+                        onStartGroupChat={() => handleStartGroupChat(conv.id)}
+                        onRename={() => handleRename(conv.id)}
+                        onArchive={() => handleArchive(conv.id)}
                       />
                     ))}
                   </div>
