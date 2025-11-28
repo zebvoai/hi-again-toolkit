@@ -396,13 +396,26 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
     if (values.includes(model)) {
       onChange(values.filter(m => m !== model));
     } else {
-      if (values.length < 4) {
-        onChange([...values, model]);
-        // Add to recent models
-        addToRecentModels(model);
-        setRecentModels(getRecentModels());
-      }
+      // Allow unlimited selection for testing
+      onChange([...values, model]);
+      // Add to recent models
+      addToRecentModels(model);
+      setRecentModels(getRecentModels());
     }
+  };
+  
+  // Select all models (for testing purposes)
+  const handleSelectAll = () => {
+    onChange(availableModels);
+    availableModels.forEach(model => addToRecentModels(model));
+    setRecentModels(getRecentModels());
+    toast.success(`Selected all ${availableModels.length} models for testing`);
+  };
+  
+  // Clear all selections
+  const handleClearAll = () => {
+    onChange([]);
+    toast.success('Cleared all selections');
   };
   
   // All presets (built-in + custom)
@@ -524,8 +537,55 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
             <div>
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Select Models</h3>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                Choose up to 4 models • {values.length}/4 selected
+                {values.length <= 4 ? (
+                  <>Choose up to 4 models • {values.length}/4 selected</>
+                ) : (
+                  <span className="text-amber-600 dark:text-amber-400">
+                    🧪 Test mode: {values.length} models selected
+                  </span>
+                )}
               </p>
+            </div>
+            
+            {/* Select/Clear All Buttons */}
+            <div className="flex items-center gap-1">
+              <TooltipProvider delayDuration={200}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleSelectAll}
+                      className="h-7 px-2 text-xs hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                    >
+                      Select All
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="bg-gray-900/95 backdrop-blur-xl border-gray-700/50">
+                    <p className="text-xs text-white">Select all models for testing</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              
+              {values.length > 0 && (
+                <TooltipProvider delayDuration={200}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleClearAll}
+                        className="h-7 px-2 text-xs hover:bg-red-100 dark:hover:bg-red-900/30"
+                      >
+                        Clear
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="bg-gray-900/95 backdrop-blur-xl border-gray-700/50">
+                      <p className="text-xs text-white">Clear all selections</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
             </div>
           </div>
           
@@ -713,7 +773,7 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
                         key={model}
                         model={model}
                         isSelected={values.includes(model)}
-                        isDisabled={!values.includes(model) && values.length >= 4}
+                        isDisabled={false}
                         isFavorite={true}
                         onToggle={handleToggle}
                         onToggleFavorite={toggleFavorite}
@@ -740,7 +800,7 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
                         key={model}
                         model={model}
                         isSelected={values.includes(model)}
-                        isDisabled={!values.includes(model) && values.length >= 4}
+                        isDisabled={false}
                         isFavorite={favorites.includes(model)}
                         onToggle={handleToggle}
                         onToggleFavorite={toggleFavorite}
@@ -771,7 +831,7 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
                         key={model}
                         model={model}
                         isSelected={values.includes(model)}
-                        isDisabled={!values.includes(model) && values.length >= 4}
+                        isDisabled={false}
                         isFavorite={favorites.includes(model)}
                         onToggle={handleToggle}
                         onToggleFavorite={toggleFavorite}
@@ -784,10 +844,10 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
           </ScrollArea>
           
           {/* Footer Info */}
-          {values.length >= 4 && (
-            <div className="px-2 py-2 bg-blue-50/50 dark:bg-blue-900/20 border border-blue-200/50 dark:border-blue-700/30 rounded-xl">
-              <p className="text-xs text-blue-700 dark:text-blue-400 text-center">
-                Maximum of 4 models selected
+          {values.length > 4 && (
+            <div className="px-2 py-2 bg-amber-50/50 dark:bg-amber-900/20 border border-amber-200/50 dark:border-amber-700/30 rounded-xl">
+              <p className="text-xs text-amber-700 dark:text-amber-400 text-center">
+                🧪 Test mode: {values.length} models selected (normally limited to 4)
               </p>
             </div>
           )}
