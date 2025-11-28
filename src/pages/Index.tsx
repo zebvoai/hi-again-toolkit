@@ -1,20 +1,28 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ModeSelector } from '@/features/modes/components/ModeSelector';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ModelSelector } from '@/features/chat/components/ModelSelector';
 import { ChevronUp, Paperclip, Send } from 'lucide-react';
 import { useChat } from '@/features/chat/hooks/useChat';
 import { useModeStore } from '@/features/modes/store/modeStore';
 import { Message } from '@/features/chat/components/Message';
+import { TypingIndicator } from '@/features/chat/components/TypingIndicator';
 
 const Index = () => {
   const [input, setInput] = useState('');
-  const { messages, sendMessage, isLoading } = useChat();
+  const [selectedModel, setSelectedModel] = useState('gpt-5-2025-08-07');
+  const { messages, sendMessage, isLoading, retryMessage } = useChat();
   const { selectedMode } = useModeStore();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isLoading]);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim() && !isLoading) {
-      sendMessage(input);
+      sendMessage(input, selectedModel);
       setInput('');
     }
   };
@@ -39,8 +47,14 @@ const Index = () => {
         <div className="flex-1 overflow-y-auto px-4 pt-8 pb-40">
           <div className="max-w-4xl mx-auto">
             {messages.map((message) => (
-              <Message key={message.id} message={message} />
+              <Message 
+                key={message.id} 
+                message={message}
+                onRetry={() => retryMessage(message.content, selectedModel)}
+              />
             ))}
+            {isLoading && <TypingIndicator />}
+            <div ref={messagesEndRef} />
           </div>
         </div>
       )}
@@ -69,17 +83,10 @@ const Index = () => {
         <div className="max-w-4xl mx-auto px-4 py-3">
           {/* Model Selector */}
           <div className="flex justify-center mb-2">
-            <Select defaultValue="zebvo-4">
-              <SelectTrigger className="w-auto border-border bg-background rounded-lg text-sm px-3 py-1.5 h-8">
-                <SelectValue placeholder="Select model" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="zebvo-4">Model : Zebvo 4.0</SelectItem>
-                <SelectItem value="gpt-4">GPT-5</SelectItem>
-                <SelectItem value="claude">Claude Sonnet 4</SelectItem>
-                <SelectItem value="gemini">Gemini Pro</SelectItem>
-              </SelectContent>
-            </Select>
+            <ModelSelector 
+              value={selectedModel}
+              onChange={setSelectedModel}
+            />
           </div>
           
           {/* Chat Input */}

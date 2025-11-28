@@ -15,6 +15,7 @@ interface ChatRequest {
   mode: 'text' | 'image' | 'video' | 'build';
   conversationHistory: Message[];
   provider?: string;
+  model?: string;
 }
 
 serve(async (req) => {
@@ -23,9 +24,9 @@ serve(async (req) => {
   }
 
   try {
-    const { message, mode, conversationHistory = [], provider }: ChatRequest = await req.json();
+    const { message, mode, conversationHistory = [], provider, model: requestedModel }: ChatRequest = await req.json();
     
-    console.log('Chat request:', { message, mode, provider, historyLength: conversationHistory.length });
+    console.log('Chat request:', { message, mode, provider, requestedModel, historyLength: conversationHistory.length });
     
     // Select model based on mode and provider
     const modelMap: Record<string, Record<string, string>> = {
@@ -46,7 +47,8 @@ serve(async (req) => {
     };
     
     const selectedProvider = provider || 'openai';
-    const model = modelMap[mode]?.[selectedProvider] || 'gpt-5-2025-08-07';
+    // Use requested model if provided, otherwise use default for mode/provider
+    const model = requestedModel || modelMap[mode]?.[selectedProvider] || 'gpt-5-2025-08-07';
     
     // Get API key based on provider
     let apiKey: string | undefined;

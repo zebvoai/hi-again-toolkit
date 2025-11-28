@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Markdown styles */
+.prose code {
+  @apply bg-muted;
+}
+
+.prose pre {
+  @apply bg-muted;
+}
+
+.prose pre code {
+  @apply bg-transparent;
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */
