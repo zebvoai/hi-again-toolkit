@@ -204,11 +204,11 @@ export const useChat = () => {
         }
       } else if (selectedMode === 'video') {
         // VIDEO MODE: Filter to only video models
-        const videoModels = ['Runway Gen-2', 'Pika 1.0'];
+        const videoModels = ['Gemini Video 2.0', 'Gemini Video Flash'];
         const filteredModels = selectedModels.filter(m => videoModels.includes(m));
         
         if (filteredModels.length === 0) {
-          throw new Error('No video model selected. Please select Runway Gen-2 or Pika 1.0.');
+          throw new Error('No video model selected. Please select a Gemini video model.');
         }
         
         const selectedModel = filteredModels[0];

@@ -17,19 +17,16 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, model = 'runway-gen-2', provider } = await req.json() as VideoRequest;
+    const { prompt, model = 'gemini-2.0-flash-exp', provider } = await req.json() as VideoRequest;
     
     console.log('Video generation request:', { prompt, model, provider });
 
-    // Note: OpenAI does not have a video generation API as of now
-    // This implementation is a placeholder for Runway and Pika APIs
+    const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
     
-    const openAIKey = Deno.env.get('OPENAI_API_KEY');
-    
-    if (!openAIKey) {
+    if (!googleApiKey) {
       return new Response(
         JSON.stringify({ 
-          error: 'OpenAI API key not configured. Please note that OpenAI does not currently offer video generation. You would need Runway or Pika API keys for video generation.' 
+          error: 'Google API key not configured. Please configure GOOGLE_API_KEY to use video generation.' 
         }),
         { 
           status: 400,
@@ -38,37 +35,95 @@ serve(async (req) => {
       );
     }
 
-    // Check which model is being used
+    // Map frontend model names to Google API model names
+    let apiModel = 'gemini-2.0-flash-exp';
     const modelLower = model.toLowerCase();
     
-    if (modelLower.includes('runway')) {
-      return new Response(
-        JSON.stringify({ 
-          error: 'Runway Gen-2 API integration is not yet implemented. Please add your Runway API key to use this model.' 
-        }),
-        { 
-          status: 501,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
+    if (modelLower.includes('gemini-2.0') || modelLower.includes('gemini-video')) {
+      apiModel = 'gemini-2.0-flash-exp';
     }
-    
-    if (modelLower.includes('pika')) {
+
+    console.log('Using Google Gemini API model:', apiModel);
+
+    // Generate video using Google's Generative AI API
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${apiModel}:generateContent?key=${googleApiKey}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: `Generate a video: ${prompt}`
+            }]
+          }],
+          generationConfig: {
+            temperature: 1,
+            topK: 40,
+            topP: 0.95,
+            maxOutputTokens: 8192,
+          }
+        })
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Google API error:', response.status, errorText);
+      
+      // Check if video generation is not supported
+      if (errorText.includes('not supported') || errorText.includes('modality')) {
+        return new Response(
+          JSON.stringify({ 
+            error: 'Video generation is not yet available in Google\'s Gemini API. Currently available: text and image generation. Video generation support is coming soon.' 
+          }),
+          { 
+            status: 501,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        );
+      }
+      
       return new Response(
         JSON.stringify({ 
-          error: 'Pika 1.0 API integration is not yet implemented. Please add your Pika API key to use this model.' 
+          error: `Google API error: ${errorText}` 
         }),
         { 
-          status: 501,
+          status: response.status,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       );
     }
 
-    // If trying to use OpenAI for video (which doesn't exist)
+    const data = await response.json();
+    console.log('Google API response:', JSON.stringify(data).substring(0, 200));
+
+    // Extract video data from response
+    // Note: The actual response format may vary based on Google's implementation
+    const videoData = data.candidates?.[0]?.content?.parts?.[0];
+    
+    if (videoData?.inlineData?.mimeType?.startsWith('video/')) {
+      // Return base64 encoded video
+      const videoUrl = `data:${videoData.inlineData.mimeType};base64,${videoData.inlineData.data}`;
+      
+      return new Response(
+        JSON.stringify({ 
+          videoUrl,
+          model: apiModel
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    // If no video was generated, return error
     return new Response(
       JSON.stringify({ 
-        error: 'OpenAI does not currently offer a video generation API. For video generation, you need to use:\n- Runway Gen-2 (requires Runway API key)\n- Pika 1.0 (requires Pika API key)\n\nPlease select a video model and provide the appropriate API key.' 
+        error: 'No video generated. The API may not support video generation yet, or the response format is unexpected.',
+        debugInfo: data
       }),
       { 
         status: 501,

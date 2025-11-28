@@ -44,8 +44,8 @@ serve(async (req) => {
         'Gemini 3 Pro Image'
       ],
       video: [
-        'Runway Gen-2',
-        'Pika 1.0'
+        'Gemini Video 2.0',
+        'Gemini Video Flash'
       ],
       build: [
         'GPT-5',
