@@ -1,6 +1,5 @@
 import { Settings, Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 const tabs = ['Text'];
@@ -8,9 +7,8 @@ const tabs = ['Text'];
 export function TopBar() {
   return (
     <header className="h-14 border-b bg-background flex items-center justify-between px-4">
-      {/* Left: Sidebar trigger + Tabs */}
-      <div className="flex items-center gap-4">
-        <SidebarTrigger className="w-6 h-6" />
+      {/* Left: Tabs */}
+      <div className="flex items-center gap-4 ml-2">
         
         <nav className="flex items-center gap-6">
           {tabs.map((tab) => (

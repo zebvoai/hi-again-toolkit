@@ -1,12 +1,14 @@
-import { Plus, User, Calendar } from 'lucide-react';
+import { Plus, User, PanelLeft } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
+  SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useChatStore } from '@/features/chat/store/chatStore';
 import { useConversations } from '@/features/chat/hooks/useConversations';
 import { ConversationItem } from './ConversationItem';
@@ -27,7 +29,8 @@ export function AppSidebar() {
     conversations, 
     isLoading, 
     loadConversation, 
-    deleteConversation 
+    deleteConversation,
+    refreshConversations
   } = useConversations();
 
   const handleNewChat = () => {
@@ -76,23 +79,24 @@ export function AppSidebar() {
 
   if (isCollapsed) {
     return (
-      <Sidebar className="w-14" collapsible="icon">
-        <SidebarHeader className="p-3 border-b">
+      <Sidebar className="w-[90px] border-r bg-background" collapsible="icon">
+        <SidebarHeader className="p-4 flex flex-col items-center gap-4">
+          <SidebarTrigger className="w-8 h-8" />
           <Button
             variant="ghost"
             size="icon"
-            className="w-full h-10 hover:bg-accent"
+            className="w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white"
             onClick={handleNewChat}
           >
             <Plus className="w-5 h-5" />
           </Button>
         </SidebarHeader>
 
-        <SidebarFooter className="p-3 border-t">
+        <SidebarFooter className="p-4">
           <Button
             variant="ghost"
             size="icon"
-            className="w-full h-10 hover:bg-accent"
+            className="w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white"
           >
             <User className="w-5 h-5" />
           </Button>
@@ -102,58 +106,63 @@ export function AppSidebar() {
   }
 
   return (
-    <Sidebar className="w-64" collapsible="icon">
-      <SidebarHeader className="p-4 border-b">
+    <Sidebar className="w-[280px] border-r bg-background" collapsible="icon">
+      <SidebarHeader className="p-4 space-y-4">
+        <div className="flex items-center">
+          <SidebarTrigger className="w-6 h-6" />
+        </div>
+        
         <Button
           variant="ghost"
-          className="w-full h-12 justify-start gap-3 hover:bg-blue-600 hover:text-white transition-colors"
+          className="w-full h-auto py-3 justify-start gap-3 hover:bg-accent rounded-lg"
           onClick={handleNewChat}
         >
           <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
             <Plus className="w-5 h-5 text-white" />
           </div>
-          <span className="text-base font-medium">New Chat</span>
+          <span className="text-base font-semibold">New Chat</span>
         </Button>
       </SidebarHeader>
 
-      <SidebarContent className="p-3 overflow-y-auto">
-        {isLoading ? (
-          <div className="text-sm text-muted-foreground text-center py-8">
-            Loading...
-          </div>
-        ) : conversations.length === 0 ? (
-          <div className="text-sm text-muted-foreground text-center py-8">
-            No conversations yet
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {Object.entries(groupedConversations).map(([label, convs]) => (
-              <div key={label} className="space-y-2">
-                <div className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-muted-foreground">
-                  <Calendar className="w-4 h-4" />
-                  <span>{label}</span>
+      <ScrollArea className="flex-1">
+        <SidebarContent className="px-3 pb-4">
+          {isLoading ? (
+            <div className="text-sm text-muted-foreground text-center py-8">
+              Loading...
+            </div>
+          ) : conversations.length === 0 ? (
+            <div className="text-sm text-muted-foreground text-center py-8">
+              No conversations yet
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {Object.entries(groupedConversations).map(([label, convs]) => (
+                <div key={label} className="space-y-2">
+                  <div className="flex items-center gap-2 px-3 py-1 text-xs font-medium text-muted-foreground uppercase">
+                    <span>{label}</span>
+                  </div>
+                  <div className="space-y-0.5">
+                    {convs.map((conv) => (
+                      <ConversationItem
+                        key={conv.id}
+                        id={conv.id}
+                        title={conv.title}
+                        updatedAt={conv.updated_at}
+                        isActive={currentConversationId === conv.id}
+                        onClick={() => handleLoadConversation(conv.id)}
+                        onDelete={() => handleDeleteConversation(conv.id)}
+                      />
+                    ))}
+                  </div>
                 </div>
-                <div className="space-y-1">
-                  {convs.map((conv) => (
-                    <ConversationItem
-                      key={conv.id}
-                      id={conv.id}
-                      title={conv.title}
-                      updatedAt={conv.updated_at}
-                      isActive={currentConversationId === conv.id}
-                      onClick={() => handleLoadConversation(conv.id)}
-                      onDelete={() => handleDeleteConversation(conv.id)}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </SidebarContent>
+              ))}
+            </div>
+          )}
+        </SidebarContent>
+      </ScrollArea>
 
       <SidebarFooter className="p-4 border-t">
-        <div className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent/50 cursor-pointer transition-colors">
+        <div className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-accent/50 cursor-pointer transition-colors">
           <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
             <User className="w-5 h-5 text-white" />
           </div>
