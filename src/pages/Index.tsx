@@ -41,7 +41,7 @@ const Index = () => {
   };
   
   return (
-    <div className="min-h-screen bg-background flex flex-col relative">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-950 dark:via-blue-950 dark:to-purple-950 flex flex-col relative">
       {/* Messages Area - Only show when there are messages */}
       {messages.length > 0 && (
         <div className="flex-1 overflow-y-auto px-4 pt-8 pb-40">
@@ -79,22 +79,24 @@ const Index = () => {
       )}
       
       {/* Fixed Bottom Input Area */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border">
+      <div className="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-t border-white/20 dark:border-gray-700/30 shadow-2xl">
         <div className="max-w-4xl mx-auto px-4 py-3">
           {/* Model Selector */}
           <div className="flex justify-center mb-2">
-            <ModelSelector 
-              value={selectedModel}
-              onChange={setSelectedModel}
-            />
+            <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-xl p-1 shadow-lg border border-white/20 dark:border-gray-700/30">
+              <ModelSelector 
+                value={selectedModel}
+                onChange={setSelectedModel}
+              />
+            </div>
           </div>
           
           {/* Chat Input */}
           <form onSubmit={handleSubmit} className="mb-3">
-            <div className="relative flex items-center bg-background border border-border rounded-full shadow-lg hover:shadow-xl transition-shadow">
+            <div className="relative flex items-center bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl border border-white/30 dark:border-gray-700/40 rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300">
               <button
                 type="button"
-                className="absolute left-4 text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute left-4 text-muted-foreground hover:text-foreground transition-colors p-2 rounded-full hover:bg-white/30 dark:hover:bg-gray-700/30"
               >
                 <Paperclip className="w-4 h-4" />
               </button>
@@ -105,13 +107,13 @@ const Index = () => {
                 onChange={(e) => setInput(e.target.value)}
                 placeholder={isLoading ? 'AI is thinking...' : getPlaceholder()}
                 disabled={isLoading}
-                className="flex-1 px-12 py-3 bg-transparent outline-none text-sm placeholder:text-muted-foreground disabled:opacity-50"
+                className="flex-1 px-12 py-4 bg-transparent outline-none text-sm placeholder:text-muted-foreground disabled:opacity-50"
               />
               
               <button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className="absolute right-2 p-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95"
+                className="absolute right-2 p-3 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95 shadow-lg disabled:shadow-none"
               >
                 <Send className="w-4 h-4" />
               </button>
@@ -136,7 +138,7 @@ const Index = () => {
       
       {/* Scroll to top button */}
       <button 
-        className="fixed bottom-6 right-6 p-3.5 rounded-full bg-primary text-primary-foreground shadow-lg hover:scale-110 transition-transform z-50"
+        className="fixed bottom-6 right-6 p-3.5 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-2xl hover:scale-110 hover:shadow-3xl transition-all duration-300 z-50 backdrop-blur-xl border border-white/20"
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
       >
         <ChevronUp className="w-5 h-5" />

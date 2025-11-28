@@ -12,22 +12,22 @@ export const ModeSelector = () => {
   const { selectedMode, setMode } = useModeStore();
   
   return (
-    <div className="inline-flex items-center gap-1.5 bg-muted/50 rounded-full p-0.5">
+    <div className="inline-flex items-center gap-1.5 bg-white/50 dark:bg-gray-800/50 backdrop-blur-xl rounded-full p-1 shadow-lg border border-white/20 dark:border-gray-700/30">
       {modes.map((mode) => {
-        const Icon = mode.icon;
+        const IconComponent = mode.icon;
         return (
           <button
             key={mode.id}
             onClick={() => setMode(mode.id)}
             className={`
-              flex items-center gap-2 px-5 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ease-in-out
+              flex items-center gap-2 px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 ease-in-out
               ${selectedMode === mode.id 
-                ? 'bg-background text-foreground shadow-sm scale-105' 
-                : 'text-muted-foreground hover:text-foreground hover:scale-105'
+                ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg scale-105' 
+                : 'text-muted-foreground hover:text-foreground hover:bg-white/30 dark:hover:bg-gray-700/30 hover:scale-105'
               }
             `}
           >
-            <Icon className={`w-4 h-4 transition-transform duration-200 ${selectedMode === mode.id ? 'scale-110' : ''}`} />
+            <IconComponent className={`w-4 h-4 transition-transform duration-200 ${selectedMode === mode.id ? 'scale-110' : ''}`} />
             {mode.label}
           </button>
         );

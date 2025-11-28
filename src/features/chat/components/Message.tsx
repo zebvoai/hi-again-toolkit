@@ -3,7 +3,7 @@ import type { Message as MessageType } from '@/types';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Copy, Check } from 'lucide-react';
+import { Copy, Check, User, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
@@ -41,18 +41,28 @@ export const Message = ({ message, onRetry }: MessageProps) => {
   
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-6 group animate-fade-in`}>
+      {/* Avatar for AI */}
+      {!isUser && (
+        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg mr-3 flex-shrink-0">
+          <Bot className="w-5 h-5 text-white" />
+        </div>
+      )}
+      
       <div
         className={`
-          max-w-[75%] rounded-2xl px-5 py-4 shadow-sm relative
+          max-w-[70%] rounded-2xl px-6 py-4 shadow-xl relative
           ${isUser 
-            ? 'bg-primary text-primary-foreground' 
-            : 'bg-card text-card-foreground border border-border'
+            ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white' 
+            : 'bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 text-foreground'
           }
         `}
       >
         {/* Model badge for AI messages */}
         {!isUser && message.metadata?.model && (
-          <Badge variant="secondary" className="mb-3 text-xs font-medium">
+          <Badge 
+            variant="secondary" 
+            className="mb-3 text-xs font-medium bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border-0"
+          >
             {message.metadata.model}
           </Badge>
         )}
@@ -62,7 +72,7 @@ export const Message = ({ message, onRetry }: MessageProps) => {
             <img 
               src={message.metadata.imageUrl} 
               alt="Generated" 
-              className="rounded-lg w-full max-w-md"
+              className="rounded-xl w-full max-w-md shadow-lg"
             />
             {message.content && (
               <p className="text-sm leading-relaxed">{message.content}</p>
@@ -82,11 +92,11 @@ export const Message = ({ message, onRetry }: MessageProps) => {
                   const codeId = `code-${message.id}-${Math.random()}`;
                   
                   return !inline && match ? (
-                    <div className="relative group/code my-4">
+                    <div className="relative group/code my-4 rounded-xl overflow-hidden shadow-lg">
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="absolute right-2 top-2 opacity-0 group-hover/code:opacity-100 transition-opacity"
+                        className="absolute right-2 top-2 opacity-0 group-hover/code:opacity-100 transition-opacity bg-white/10 backdrop-blur-sm hover:bg-white/20"
                         onClick={() => copyToClipboard(codeString, codeId)}
                       >
                         {copiedCode === codeId ? (
@@ -105,7 +115,7 @@ export const Message = ({ message, onRetry }: MessageProps) => {
                       </SyntaxHighlighter>
                     </div>
                   ) : (
-                    <code className="bg-muted px-1.5 py-0.5 rounded text-sm" {...props}>
+                    <code className="bg-white/30 dark:bg-gray-800/30 px-2 py-1 rounded text-sm backdrop-blur-sm" {...props}>
                       {children}
                     </code>
                   );
@@ -119,11 +129,11 @@ export const Message = ({ message, onRetry }: MessageProps) => {
         
         {/* Copy button for AI messages */}
         {!isUser && (
-          <div className="flex items-center gap-2 mt-4 pt-3 border-t border-border/30">
+          <div className="flex items-center gap-2 mt-4 pt-3 border-t border-white/10 dark:border-gray-700/20">
             <Button
               size="sm"
               variant="ghost"
-              className="h-8 px-3 text-xs"
+              className="h-8 px-3 text-xs hover:bg-white/20 dark:hover:bg-gray-800/20 backdrop-blur-sm"
               onClick={copyMessage}
             >
               {copied ? (
@@ -143,7 +153,7 @@ export const Message = ({ message, onRetry }: MessageProps) => {
               <Button
                 size="sm"
                 variant="outline"
-                className="h-8 px-3 text-xs"
+                className="h-8 px-3 text-xs bg-white/10 backdrop-blur-sm hover:bg-white/20"
                 onClick={onRetry}
               >
                 Retry
@@ -152,6 +162,13 @@ export const Message = ({ message, onRetry }: MessageProps) => {
           </div>
         )}
       </div>
+      
+      {/* Avatar for User */}
+      {isUser && (
+        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg ml-3 flex-shrink-0">
+          <User className="w-5 h-5 text-white" />
+        </div>
+      )}
     </div>
   );
 };
