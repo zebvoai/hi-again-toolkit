@@ -12,13 +12,37 @@ interface ImageRequest {
 }
 
 // Map frontend model names to API model names
-// Only verified working models (OpenAI and Lovable AI)
-const modelMapping: Record<string, { api: string; provider: 'lovable' | 'openai' }> = {
+// Only including verified working models to avoid API errors
+const modelMapping: Record<string, { api: string; provider: 'lovable' | 'openai' | 'wavespeed' }> = {
   'gpt-image-1': { api: 'gpt-image-1', provider: 'openai' },
   'dall-e-3': { api: 'dall-e-3', provider: 'openai' },
   'dall-e-2': { api: 'dall-e-2', provider: 'openai' },
   'gemini-2.5-flash-image': { api: 'google/gemini-2.5-flash-image', provider: 'lovable' },
   'gemini-3-pro-image': { api: 'google/gemini-3-pro-image-preview', provider: 'lovable' },
+  
+  // ByteDance - Seedream (Verified working)
+  'seedream-v4': { api: 'bytedance/seedream-v4', provider: 'wavespeed' },
+  
+  // Ideogram AI (Verified working)
+  'ideogram-v2': { api: 'ideogram-ai/ideogram-v2', provider: 'wavespeed' },
+  'ideogram-v2-turbo': { api: 'ideogram-ai/ideogram-v2-turbo', provider: 'wavespeed' },
+  'ideogram-v2a-turbo': { api: 'ideogram-ai/ideogram-v2a-turbo', provider: 'wavespeed' },
+  'ideogram-v3-turbo': { api: 'ideogram-ai/ideogram-v3-turbo', provider: 'wavespeed' },
+  'ideogram-v3-balanced': { api: 'ideogram-ai/ideogram-v3-balanced', provider: 'wavespeed' },
+  
+  // Recraft AI (Verified working)
+  'recraft-20b': { api: 'recraft-ai/recraft-20b', provider: 'wavespeed' },
+  
+  // Stability AI (Verified working)
+  'stable-diffusion': { api: 'stability-ai/stable-diffusion', provider: 'wavespeed' },
+  'stable-diffusion-3': { api: 'stability-ai/stable-diffusion-3', provider: 'wavespeed' },
+  'stable-diffusion-3.5-large': { api: 'stability-ai/stable-diffusion-3.5-large', provider: 'wavespeed' },
+  
+  // FLUX Family (Verified working)
+  'flux-pro-1.1-ultra': { api: 'black-forest-labs/flux-pro-1.1-ultra', provider: 'wavespeed' },
+  'flux-dev': { api: 'wavespeed-ai/flux-dev', provider: 'wavespeed' },
+  'flux-schnell': { api: 'wavespeed-ai/flux-schnell', provider: 'wavespeed' },
+  'flux-redux-dev': { api: 'wavespeed-ai/flux-redux-dev', provider: 'wavespeed' },
 };
 
 serve(async (req) => {
@@ -42,9 +66,9 @@ serve(async (req) => {
     if (actualProvider === 'lovable') {
       const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
       
-    if (!lovableApiKey) {
-      throw new Error('AI service temporarily unavailable. Please try again later or contact support.');
-    }
+      if (!lovableApiKey) {
+        throw new Error('LOVABLE_API_KEY not configured');
+      }
       
       const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
@@ -67,16 +91,7 @@ serve(async (req) => {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Lovable AI error:', response.status, errorText);
-        
-        if (response.status === 429) {
-          throw new Error(`${actualModel.split('/')[1] || actualModel}: Rate limit reached. Please wait a moment and try again.`);
-        } else if (response.status === 402) {
-          throw new Error(`${actualModel.split('/')[1] || actualModel}: Service quota exceeded. Please check your account status.`);
-        } else if (response.status >= 500) {
-          throw new Error(`${actualModel.split('/')[1] || actualModel}: Server temporarily unavailable. Please try again in a moment.`);
-        } else {
-          throw new Error(`${actualModel.split('/')[1] || actualModel}: Unable to generate image. Please try a different prompt or model.`);
-        }
+        throw new Error(`Image generation failed: ${response.status}`);
       }
       
       const data = await response.json();
@@ -86,7 +101,7 @@ serve(async (req) => {
       const imageBase64 = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
       
       if (!imageBase64) {
-        throw new Error(`${actualModel.split('/')[1] || actualModel}: No image was generated. Please try again with a different prompt.`);
+        throw new Error('No image returned from API');
       }
       
       return new Response(
@@ -106,7 +121,7 @@ serve(async (req) => {
       const apiKey = Deno.env.get('OPENAI_API_KEY');
       
       if (!apiKey) {
-        throw new Error('OpenAI service not configured. Please contact support to enable OpenAI models.');
+        throw new Error('OPENAI_API_KEY not configured');
       }
       
       // Retry logic for transient 500 errors
@@ -133,31 +148,12 @@ serve(async (req) => {
             
             // Retry on 500 errors (server issues)
             if (response.status === 500 && attempt < 3) {
-              lastError = `${actualModel}: OpenAI server temporarily unavailable (attempt ${attempt}/3)`;
+              lastError = `OpenAI server error (${response.status})`;
               await new Promise(resolve => setTimeout(resolve, 1000 * attempt)); // Exponential backoff
               continue;
             }
             
-            // Parse specific error messages
-            let errorDetail = 'Please try again';
-            try {
-              const errorData = JSON.parse(errorText);
-              if (errorData.error?.message) {
-                errorDetail = errorData.error.message;
-              }
-            } catch {}
-            
-            if (response.status === 429) {
-              throw new Error(`${actualModel}: Rate limit exceeded. Please wait a moment before trying again.`);
-            } else if (response.status === 401) {
-              throw new Error(`${actualModel}: Authentication failed. Please contact support.`);
-            } else if (response.status === 400) {
-              throw new Error(`${actualModel}: Invalid request. ${errorDetail.includes('billing') ? 'Please check your OpenAI account billing.' : 'Please try a different prompt.'}`);
-            } else if (response.status === 500) {
-              throw new Error(`${actualModel}: Server temporarily unavailable. Try using Gemini models instead.`);
-            } else {
-              throw new Error(`${actualModel}: ${errorDetail}`);
-            }
+            throw new Error(`OpenAI API error: ${response.status}. ${response.status === 500 ? 'Server temporarily unavailable. Please try again or use Gemini models.' : 'Please check your request.'}`);
           }
       
           const data = await response.json();
@@ -179,10 +175,104 @@ serve(async (req) => {
         }
       }
       
-      throw new Error(lastError || `${actualModel}: Failed to generate image after 3 attempts. Please try again or use a different model.`);
+      throw new Error(lastError || 'OpenAI image generation failed after 3 attempts');
     }
     
-    throw new Error(`${model || 'Selected model'}: This model is not currently supported. Please select a different model.`);
+    // Use Wavespeed for Seedream, Flux, and other models
+    if (actualProvider === 'wavespeed') {
+      const wavespeedApiKey = Deno.env.get('WAVESPEED_API_KEY');
+      
+      if (!wavespeedApiKey) {
+        throw new Error('WAVESPEED_API_KEY not configured');
+      }
+      
+      // Submit the task to Wavespeed
+      const submitResponse = await fetch(`https://api.wavespeed.ai/api/v3/${actualModel}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${wavespeedApiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          prompt,
+          size: '1024*1024',
+          num_images: 1,
+          enable_base64_output: false, // Get URL instead of base64
+          enable_sync_mode: false
+        })
+      });
+      
+      if (!submitResponse.ok) {
+        const errorText = await submitResponse.text();
+        console.error('Wavespeed submit error:', submitResponse.status, errorText);
+        throw new Error(`Wavespeed API error: ${submitResponse.status}`);
+      }
+      
+      const submitData = await submitResponse.json();
+      const requestId = submitData.data?.id;
+      
+      if (!requestId) {
+        console.error('Wavespeed response missing data.id:', submitData);
+        throw new Error('Wavespeed API error: invalid response format');
+      }
+      
+      console.log('Wavespeed task submitted:', requestId);
+      
+      // Poll for results (max 60 seconds for image generation)
+      let imageUrl = null;
+      const maxAttempts = 60;
+      const pollInterval = 1000; // 1 second
+      
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        await new Promise(resolve => setTimeout(resolve, pollInterval));
+        
+        const resultResponse = await fetch(`https://api.wavespeed.ai/api/v3/predictions/${requestId}/result`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${wavespeedApiKey}`
+          }
+        });
+        
+        if (!resultResponse.ok) {
+          const errorText = await resultResponse.text();
+          console.error(`Wavespeed poll error (attempt ${attempt + 1}):`, resultResponse.status, errorText);
+          continue;
+        }
+        
+        const resultData = await resultResponse.json();
+        const status = resultData.data?.status;
+        const outputs = resultData.data?.outputs;
+        const errorMessage = resultData.data?.error;
+        console.log(`Wavespeed status (attempt ${attempt + 1}):`, status);
+        
+        // Check if generation is complete
+        if (status === 'completed' && Array.isArray(outputs) && outputs.length > 0) {
+          imageUrl = outputs[0];
+          console.log('Image generated successfully with Wavespeed');
+          break;
+        } else if (status === 'failed') {
+          throw new Error(`Wavespeed generation failed: ${errorMessage || 'Unknown error'}`);
+        }
+        // Continue polling if status is 'processing' or 'created'
+      }
+      
+      if (!imageUrl) {
+        throw new Error('Image generation timed out after 60 seconds');
+      }
+      
+      return new Response(
+        JSON.stringify({
+          imageUrl,
+          revisedPrompt: prompt,
+          model: model || actualModel
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+    
+    throw new Error('Provider not supported for image generation');
     
   } catch (error) {
     console.error('Image generation error:', error);

@@ -39,9 +39,33 @@ serve(async (req) => {
         'DALL-E 3',
         'DALL-E 2',
         
-        // Google Models (via Lovable AI)
+        // Google Models
         'Gemini 2.5 Flash Image',
-        'Gemini 3 Pro Image'
+        'Gemini 3 Pro Image',
+        
+        // ByteDance - Seedream
+        'Seedream v4',
+        
+        // Ideogram AI
+        'Ideogram V2',
+        'Ideogram V2 Turbo',
+        'Ideogram V2a Turbo',
+        'Ideogram V3 Turbo',
+        'Ideogram V3 Balanced',
+        
+        // Recraft AI
+        'Recraft 20B',
+        
+        // Stability AI
+        'Stable Diffusion',
+        'Stable Diffusion 3',
+        'Stable Diffusion 3.5 Large',
+        
+        // FLUX Family
+        'Flux Pro 1.1 Ultra',
+        'Flux Dev',
+        'Flux Schnell',
+        'Flux Redux Dev'
       ],
       video: [
         'Gemini Video 2.0',

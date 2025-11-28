@@ -97,8 +97,7 @@ export const api = {
     });
     
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Image generation failed' }));
-      throw new Error(errorData.error || `Failed to generate image with ${model || 'selected model'}`);
+      throw new Error('Image generation failed');
     }
     
     return response.json();

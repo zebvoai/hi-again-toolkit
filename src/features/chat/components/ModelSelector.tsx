@@ -98,33 +98,19 @@ const modelInfo: Record<string, { description: string; strengths: string[]; spee
     quality: 'Highest',
     specialization: 'Photorealistic and artistic images'
   },
-  'DALL-E 2': {
-    description: 'Fast and reliable image generation',
-    strengths: ['Good quality', 'Fast', 'Cost effective'],
-    speed: 'Fast',
+  'Flux Pro 1.1 Ultra': {
+    description: 'Premium FLUX model for ultra-high quality image generation',
+    strengths: ['Ultra high quality', 'Professional results', 'Fine details'],
+    speed: 'Slow',
+    quality: 'Highest',
+    specialization: 'Professional photography, art'
+  },
+  'Stable Diffusion 3.5 Large': {
+    description: 'Large-scale stable diffusion model with excellent quality',
+    strengths: ['High quality', 'Versatile', 'Consistent results'],
+    speed: 'Moderate',
     quality: 'High',
     specialization: 'General purpose images'
-  },
-  'gpt-image-1': {
-    description: 'Latest OpenAI image generation model with advanced capabilities',
-    strengths: ['High quality', 'Fast generation', 'Excellent prompt following'],
-    speed: 'Fast',
-    quality: 'Highest',
-    specialization: 'Modern AI image generation'
-  },
-  'Gemini 2.5 Flash Image': {
-    description: 'Fast Gemini model for high-quality image generation',
-    strengths: ['Very fast', 'Good quality', 'Versatile', 'Cost effective'],
-    speed: 'Very Fast',
-    quality: 'High',
-    specialization: 'Quick image generation'
-  },
-  'Gemini 3 Pro Image': {
-    description: 'Next-generation Gemini model for premium image generation',
-    strengths: ['Ultra high quality', 'Creative', 'Advanced AI', 'Best results'],
-    speed: 'Moderate',
-    quality: 'Highest',
-    specialization: 'Premium artistic images'
   }
 };
 
@@ -153,7 +139,7 @@ const builtInPresets: ModelPreset[] = [
     icon: Zap,
     models: {
       text: ['GPT-5 Nano', 'Claude Haiku 3.5', 'Gemini 2.5 Flash Lite'],
-      image: ['Gemini 2.5 Flash Image', 'DALL-E 2'],
+      image: ['Flux Schnell', 'Ideogram V2 Turbo', 'Ideogram V3 Turbo', 'Stable Diffusion'],
       video: ['Gemini Video Flash'],
       build: ['GPT-5 Nano']
     }
@@ -165,7 +151,7 @@ const builtInPresets: ModelPreset[] = [
     icon: Crown,
     models: {
       text: ['GPT-5', 'Claude Sonnet 4.5', 'Gemini 2.5 Pro'],
-      image: ['DALL-E 3', 'gpt-image-1', 'Gemini 3 Pro Image'],
+      image: ['Flux Pro 1.1 Ultra', 'DALL-E 3', 'Ideogram V3 Balanced', 'Stable Diffusion 3.5 Large'],
       video: ['Gemini Video 2.0'],
       build: ['GPT-5', 'Claude Sonnet 4.5']
     }
@@ -177,7 +163,7 @@ const builtInPresets: ModelPreset[] = [
     icon: Scale,
     models: {
       text: ['GPT-5 Mini', 'Claude Sonnet 3.5', 'Gemini 2.5 Flash'],
-      image: ['DALL-E 3', 'Gemini 2.5 Flash Image'],
+      image: ['Flux Dev', 'Ideogram V2', 'Recraft 20B', 'Stable Diffusion 3'],
       video: ['Gemini Video Flash'],
       build: ['GPT-5 Mini']
     }
@@ -189,7 +175,7 @@ const builtInPresets: ModelPreset[] = [
     icon: Wallet,
     models: {
       text: ['GPT-5 Nano', 'Claude Haiku 3.5', 'Gemini 2.5 Flash Lite'],
-      image: ['DALL-E 2', 'Gemini 2.5 Flash Image'],
+      image: ['Flux Schnell', 'DALL-E 2', 'Stable Diffusion'],
       video: ['Gemini Video Flash'],
       build: ['GPT-5 Nano']
     }
@@ -201,7 +187,7 @@ const builtInPresets: ModelPreset[] = [
     icon: Palette,
     models: {
       text: ['GPT-5', 'Claude Sonnet 4.5', 'Gemini 2.5 Pro'],
-      image: ['DALL-E 3', 'gpt-image-1', 'Gemini 3 Pro Image'],
+      image: ['Flux Pro 1.1 Ultra', 'Flux Dev', 'DALL-E 3', 'Ideogram V3 Balanced'],
       video: ['Gemini Video 2.0'],
       build: ['GPT-5', 'Claude Sonnet 4.5']
     }
