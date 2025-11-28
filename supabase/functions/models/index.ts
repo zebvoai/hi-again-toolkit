@@ -26,8 +26,6 @@ serve(async (req) => {
         'Claude Sonnet 4.5',
         'Claude Opus 4.1',
         'Claude Sonnet 4',
-        'Claude 3.7 Sonnet',
-        'Claude 3.5 Haiku',
         
         // Google Models
         'Gemini 2.5 Pro',
