@@ -3,16 +3,56 @@
 @tailwind utilities;
 
 /* Markdown styles */
+.prose {
+  @apply text-foreground;
+}
+
 .prose code {
-  @apply bg-muted;
+  @apply bg-muted px-1.5 py-0.5 rounded text-sm;
 }
 
 .prose pre {
-  @apply bg-muted;
+  @apply bg-muted rounded-lg p-4 my-4 overflow-x-auto;
 }
 
 .prose pre code {
-  @apply bg-transparent;
+  @apply bg-transparent p-0;
+}
+
+.prose p {
+  @apply mb-4 leading-relaxed;
+}
+
+.prose ul, .prose ol {
+  @apply mb-4 pl-6;
+}
+
+.prose li {
+  @apply mb-2;
+}
+
+.prose h1, .prose h2, .prose h3, .prose h4 {
+  @apply font-semibold mb-3 mt-6;
+}
+
+.prose h1 {
+  @apply text-2xl;
+}
+
+.prose h2 {
+  @apply text-xl;
+}
+
+.prose h3 {
+  @apply text-lg;
+}
+
+.prose strong {
+  @apply font-semibold;
+}
+
+.prose a {
+  @apply text-primary hover:underline;
 }
 
 /* Smooth scrolling */

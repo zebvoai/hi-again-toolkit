@@ -6,6 +6,7 @@ import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
 
 interface MessageProps {
   message: MessageType;
@@ -15,6 +16,7 @@ interface MessageProps {
 export const Message = ({ message, onRetry }: MessageProps) => {
   const isUser = message.role === 'user';
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const { toast } = useToast();
   
   const copyToClipboard = (text: string, id: string) => {
@@ -29,10 +31,12 @@ export const Message = ({ message, onRetry }: MessageProps) => {
   
   const copyMessage = () => {
     navigator.clipboard.writeText(message.content);
+    setCopied(true);
     toast({
       title: 'Copied!',
       description: 'Message copied to clipboard',
     });
+    setTimeout(() => setCopied(false), 2000);
   };
   
   return (
@@ -46,6 +50,13 @@ export const Message = ({ message, onRetry }: MessageProps) => {
           }
         `}
       >
+        {/* Model badge for AI messages */}
+        {!isUser && message.metadata?.model && (
+          <Badge variant="secondary" className="mb-3 text-xs font-medium">
+            {message.metadata.model}
+          </Badge>
+        )}
+        
         {message.metadata?.imageUrl ? (
           <div className="space-y-3">
             <img 
@@ -71,7 +82,7 @@ export const Message = ({ message, onRetry }: MessageProps) => {
                   const codeId = `code-${message.id}-${Math.random()}`;
                   
                   return !inline && match ? (
-                    <div className="relative group/code">
+                    <div className="relative group/code my-4">
                       <Button
                         size="sm"
                         variant="ghost"
@@ -106,32 +117,39 @@ export const Message = ({ message, onRetry }: MessageProps) => {
           </div>
         )}
         
+        {/* Copy button for AI messages */}
         {!isUser && (
-          <div className="flex items-center justify-between mt-3 pt-2 border-t border-border/50">
-            <p className="text-xs opacity-60">
-              {message.metadata?.model || 'AI'}
-            </p>
+          <div className="flex items-center gap-2 mt-4 pt-3 border-t border-border/30">
             <Button
               size="sm"
               variant="ghost"
-              className="h-6 px-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+              className="h-8 px-3 text-xs"
               onClick={copyMessage}
             >
-              <Copy className="w-3 h-3 mr-1" />
-              Copy
+              {copied ? (
+                <>
+                  <Check className="w-3 h-3 mr-1.5" />
+                  Copied
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3 h-3 mr-1.5" />
+                  Copy
+                </>
+              )}
             </Button>
+            
+            {message.metadata?.error && onRetry && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 px-3 text-xs"
+                onClick={onRetry}
+              >
+                Retry
+              </Button>
+            )}
           </div>
-        )}
-        
-        {message.metadata?.error && onRetry && (
-          <Button
-            size="sm"
-            variant="outline"
-            className="mt-3"
-            onClick={onRetry}
-          >
-            Retry
-          </Button>
         )}
       </div>
     </div>
