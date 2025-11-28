@@ -12,12 +12,17 @@ interface ImageRequest {
 }
 
 // Map frontend model names to API model names
-const modelMapping: Record<string, { api: string; provider: 'lovable' | 'openai' }> = {
+const modelMapping: Record<string, { api: string; provider: 'lovable' | 'openai' | 'wavespeed' }> = {
   'gpt-image-1': { api: 'gpt-image-1', provider: 'openai' },
   'dall-e-3': { api: 'dall-e-3', provider: 'openai' },
   'dall-e-2': { api: 'dall-e-2', provider: 'openai' },
   'gemini-2.5-flash-image': { api: 'google/gemini-2.5-flash-image', provider: 'lovable' },
   'gemini-3-pro-image': { api: 'google/gemini-3-pro-image-preview', provider: 'lovable' },
+  // Wavespeed models
+  'seedream-v4': { api: 'bytedance/seedream-v4', provider: 'wavespeed' },
+  'flux-pro-1.1-ultra': { api: 'black-forest-labs/flux-pro-1.1-ultra', provider: 'wavespeed' },
+  'flux-dev': { api: 'wavespeed-ai/flux-dev', provider: 'wavespeed' },
+  'flux-schnell': { api: 'wavespeed-ai/flux-schnell', provider: 'wavespeed' },
 };
 
 serve(async (req) => {
@@ -151,6 +156,96 @@ serve(async (req) => {
       }
       
       throw new Error(lastError || 'OpenAI image generation failed after 3 attempts');
+    }
+    
+    // Use Wavespeed for Seedream, Flux, and other models
+    if (actualProvider === 'wavespeed') {
+      const wavespeedApiKey = Deno.env.get('WAVESPEED_API_KEY');
+      
+      if (!wavespeedApiKey) {
+        throw new Error('WAVESPEED_API_KEY not configured');
+      }
+      
+      // Submit the task to Wavespeed
+      const submitResponse = await fetch(`https://api.wavespeed.ai/api/v3/${actualModel}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${wavespeedApiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          prompt,
+          size: '1024*1024',
+          num_images: 1,
+          enable_base64_output: false, // Get URL instead of base64
+          enable_sync_mode: false
+        })
+      });
+      
+      if (!submitResponse.ok) {
+        const errorText = await submitResponse.text();
+        console.error('Wavespeed submit error:', submitResponse.status, errorText);
+        throw new Error(`Wavespeed API error: ${submitResponse.status}`);
+      }
+      
+      const submitData = await submitResponse.json();
+      const requestId = submitData.id;
+      
+      if (!requestId) {
+        throw new Error('No request ID returned from Wavespeed');
+      }
+      
+      console.log('Wavespeed task submitted:', requestId);
+      
+      // Poll for results (max 60 seconds for image generation)
+      let imageUrl = null;
+      const maxAttempts = 60;
+      const pollInterval = 1000; // 1 second
+      
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        await new Promise(resolve => setTimeout(resolve, pollInterval));
+        
+        const resultResponse = await fetch(`https://api.wavespeed.ai/api/v3/predictions/${requestId}/result`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${wavespeedApiKey}`
+          }
+        });
+        
+        if (!resultResponse.ok) {
+          const errorText = await resultResponse.text();
+          console.error(`Wavespeed poll error (attempt ${attempt + 1}):`, resultResponse.status, errorText);
+          continue;
+        }
+        
+        const resultData = await resultResponse.json();
+        console.log(`Wavespeed status (attempt ${attempt + 1}):`, resultData.status);
+        
+        // Check if generation is complete
+        if (resultData.status === 'succeeded' && resultData.output?.length > 0) {
+          imageUrl = resultData.output[0];
+          console.log('Image generated successfully with Wavespeed');
+          break;
+        } else if (resultData.status === 'failed') {
+          throw new Error(`Wavespeed generation failed: ${resultData.error || 'Unknown error'}`);
+        }
+        // Continue polling if status is 'processing' or 'starting'
+      }
+      
+      if (!imageUrl) {
+        throw new Error('Image generation timed out after 60 seconds');
+      }
+      
+      return new Response(
+        JSON.stringify({
+          imageUrl,
+          revisedPrompt: prompt,
+          model: model || actualModel
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
     }
     
     throw new Error('Provider not supported for image generation');
