@@ -95,7 +95,8 @@ async function handleMultiModelRequest(
                 { role: 'user', content: message }
               ];
               
-              body = { model: apiModel, messages, max_tokens: mode === 'build' ? 8192 : 4096, stream: true };
+              body = { model: apiModel, messages, max_tokens: mode === 'build' ? 8192 : 4096 };
+              // Note: Anthropic streaming not implemented in multi-model yet
             } else if (provider === 'google') {
               apiKey = Deno.env.get('GOOGLE_API_KEY') || '';
               if (!apiKey) throw new Error('GOOGLE_API_KEY not configured');
@@ -354,8 +355,8 @@ serve(async (req) => {
       body = {
         model,
         messages,
-        max_tokens: mode === 'build' ? 8192 : 4096, // More tokens for code generation
-        stream
+        max_tokens: mode === 'build' ? 8192 : 4096 // More tokens for code generation
+        // Note: Anthropic streaming not implemented yet, keep non-streaming
       };
     } else if (selectedProvider === 'google') {
       apiKey = Deno.env.get('GOOGLE_API_KEY');
