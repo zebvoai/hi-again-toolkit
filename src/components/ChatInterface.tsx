@@ -15,10 +15,12 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 export function ChatInterface() {
   const [input, setInput] = useState('');
   const [isTemporaryMode, setIsTemporaryMode] = useState(false);
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const { messages, sendMessage, isLoading, retryMessage } = useChat();
   const { selectedMode } = useModeStore();
   const { selectedModels, isModelLocked, setSelectedModels } = useChatStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Reset selected models when mode changes (unless models are locked)
   useEffect(() => {
@@ -51,7 +53,27 @@ export function ChatInterface() {
     if (input.trim() && !isLoading && selectedModels.length > 0) {
       sendMessage(input);
       setInput('');
+      setAttachedFiles([]);
     }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      setAttachedFiles(prev => [...prev, ...Array.from(files)]);
+    }
+    // Reset input so same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
   };
 
   const handleTemporaryModeToggle = () => {
@@ -155,6 +177,42 @@ export function ChatInterface() {
                 />
               </div>
 
+              {/* File Attachments Preview */}
+              {attachedFiles.length > 0 && (
+                <div className="px-4 pt-3 pb-2 border-b border-gray-100">
+                  <div className="flex flex-wrap gap-2">
+                    {attachedFiles.map((file, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 text-sm"
+                      >
+                        <span className="text-gray-700 truncate max-w-[200px]">{file.name}</span>
+                        <span className="text-gray-400 text-xs">
+                          ({(file.size / 1024).toFixed(1)} KB)
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveFile(index)}
+                          className="text-gray-400 hover:text-gray-600 ml-1"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Hidden File Input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="*/*"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+
               {/* Input Row */}
               <div className="flex items-center gap-2 p-4">
                 <Button
@@ -200,6 +258,7 @@ export function ChatInterface() {
                     variant="ghost"
                     size="icon"
                     className="w-9 h-9"
+                    onClick={triggerFileInput}
                   >
                     <Paperclip className="w-5 h-5 text-muted-foreground" />
                   </Button>
