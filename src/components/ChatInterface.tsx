@@ -44,6 +44,8 @@ export function ChatInterface() {
       build: 'GPT-5'
     };
     const defaultModel = defaultModels[selectedMode] || 'GPT-5';
+    
+    // Completely clear and reset to only the default model for this mode
     setSelectedModels([defaultModel]);
   }, [selectedMode, isModelLocked, setSelectedModels]);
 
@@ -84,10 +86,6 @@ export function ChatInterface() {
   };
   const handleTemporaryModeToggle = () => {
     setIsTemporaryMode(!isTemporaryMode);
-    // Clear messages when entering temporary mode
-    if (!isTemporaryMode) {
-      // You can add logic to clear messages here if needed
-    }
   };
   const getPlaceholder = () => {
     const basePlaceholder = (() => {
