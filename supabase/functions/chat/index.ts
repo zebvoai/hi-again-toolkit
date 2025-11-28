@@ -28,27 +28,57 @@ serve(async (req) => {
     
     console.log('Chat request:', { message, mode, provider, requestedModel, historyLength: conversationHistory.length });
     
-    // Select model based on mode and provider
-    const modelMap: Record<string, Record<string, string>> = {
-      text: {
-        openai: 'gpt-5-2025-08-07',
-        anthropic: 'claude-sonnet-4-20250514',
-        google: 'gemini-pro'
-      },
-      build: {
-        openai: 'gpt-5-2025-08-07',
-        anthropic: 'claude-sonnet-4-20250514',
-        google: 'gemini-pro'
-      },
-      video: {
-        runway: 'gen-2',
-        pika: 'pika-1.0'
-      }
+    // Map display names to actual API model names
+    const modelMapping: Record<string, { api: string, provider: string }> = {
+      // OpenAI Models
+      'GPT-5': { api: 'gpt-5-2025-08-07', provider: 'openai' },
+      'GPT-5 Mini': { api: 'gpt-5-mini-2025-08-07', provider: 'openai' },
+      'GPT-5 Nano': { api: 'gpt-5-nano-2025-08-07', provider: 'openai' },
+      'GPT-4.1': { api: 'gpt-4.1-2025-04-14', provider: 'openai' },
+      'GPT-4.1 Mini': { api: 'gpt-4.1-mini-2025-04-14', provider: 'openai' },
+      'O3': { api: 'o3-2025-04-16', provider: 'openai' },
+      'O4 Mini': { api: 'o4-mini-2025-04-16', provider: 'openai' },
+      
+      // Anthropic Models
+      'Claude Sonnet 4.5': { api: 'claude-sonnet-4-5', provider: 'anthropic' },
+      'Claude Opus 4.1': { api: 'claude-opus-4-1-20250805', provider: 'anthropic' },
+      'Claude Sonnet 4': { api: 'claude-sonnet-4-20250514', provider: 'anthropic' },
+      'Claude 3.7 Sonnet': { api: 'claude-3-7-sonnet-20250219', provider: 'anthropic' },
+      'Claude 3.5 Haiku': { api: 'claude-3-5-haiku-20241022', provider: 'anthropic' },
+      
+      // Google Models
+      'Gemini 2.5 Pro': { api: 'gemini-2.5-pro', provider: 'google' },
+      'Gemini 3 Pro': { api: 'gemini-3-pro-preview', provider: 'google' },
+      'Gemini 2.5 Flash': { api: 'gemini-2.5-flash', provider: 'google' },
+      'Gemini 2.5 Flash Lite': { api: 'gemini-2.5-flash-lite', provider: 'google' }
     };
     
-    const selectedProvider = provider || 'openai';
-    // Use requested model if provided, otherwise use default for mode/provider
-    const model = requestedModel || modelMap[mode]?.[selectedProvider] || 'gpt-5-2025-08-07';
+    // Determine actual model and provider
+    let model: string;
+    let selectedProvider: string;
+    
+    if (requestedModel && modelMapping[requestedModel]) {
+      // Use the mapping for display names
+      model = modelMapping[requestedModel].api;
+      selectedProvider = modelMapping[requestedModel].provider;
+    } else if (requestedModel) {
+      // Fallback: use the model name directly (for backward compatibility)
+      model = requestedModel;
+      // Determine provider from model name
+      if (requestedModel.startsWith('gpt') || requestedModel.startsWith('o')) {
+        selectedProvider = 'openai';
+      } else if (requestedModel.startsWith('claude')) {
+        selectedProvider = 'anthropic';
+      } else if (requestedModel.includes('gemini')) {
+        selectedProvider = 'google';
+      } else {
+        selectedProvider = provider || 'openai';
+      }
+    } else {
+      // Default fallback
+      selectedProvider = provider || 'openai';
+      model = 'gpt-5-2025-08-07';
+    }
     
     // Get API key based on provider
     let apiKey: string | undefined;

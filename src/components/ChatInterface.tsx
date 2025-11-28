@@ -10,7 +10,7 @@ import { ModeDropdown } from '@/features/modes/components/ModeDropdown';
 
 export function ChatInterface() {
   const [input, setInput] = useState('');
-  const [selectedModel, setSelectedModel] = useState('gpt-5-2025-08-07');
+  const [selectedModel, setSelectedModel] = useState('GPT-5');
   const { messages, sendMessage, isLoading, retryMessage } = useChat();
   const { selectedMode } = useModeStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);

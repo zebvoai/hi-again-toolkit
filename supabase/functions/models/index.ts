@@ -13,21 +13,39 @@ serve(async (req) => {
   try {
     const availableModels = {
       text: [
-        'gpt-5-2025-08-07',
-        'claude-sonnet-4-20250514',
-        'gemini-pro'
+        // OpenAI Models
+        'GPT-5',
+        'GPT-5 Mini',
+        'GPT-5 Nano',
+        'GPT-4.1',
+        'GPT-4.1 Mini',
+        'O3',
+        'O4 Mini',
+        
+        // Anthropic Models
+        'Claude Sonnet 4.5',
+        'Claude Opus 4.1',
+        'Claude Sonnet 4',
+        'Claude 3.7 Sonnet',
+        'Claude 3.5 Haiku',
+        
+        // Google Models
+        'Gemini 2.5 Pro',
+        'Gemini 3 Pro',
+        'Gemini 2.5 Flash',
+        'Gemini 2.5 Flash Lite'
       ],
       image: [
-        'dall-e-3',
-        'stable-diffusion-xl'
+        'DALL-E 3',
+        'Stable Diffusion XL'
       ],
       video: [
-        'gen-2',
-        'pika-1.0'
+        'Runway Gen-2',
+        'Pika 1.0'
       ],
       build: [
-        'gpt-5-2025-08-07',
-        'claude-sonnet-4-20250514'
+        'GPT-5',
+        'Claude Sonnet 4.5'
       ]
     };
     
