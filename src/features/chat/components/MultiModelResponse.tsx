@@ -6,6 +6,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import type { MultiModelContent } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import { formatModelName } from '@/lib/utils';
 
 interface MultiModelResponseProps {
   content: MultiModelContent;
@@ -49,9 +50,9 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
           {models.map((model) => (
-            <div key={model} className="bg-white/80 backdrop-blur-sm rounded-xl border border-border/30 p-3.5 space-y-2 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between gap-2 mb-1">
-                <span className="text-xs font-medium text-primary/90 tracking-wide">{model}</span>
+            <div key={model} className="bg-white/80 backdrop-blur-sm rounded-lg border border-border/30 p-3 space-y-1.5 shadow-sm">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-medium text-muted-foreground">{formatModelName(model)}</span>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -61,7 +62,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
                   <Copy className="w-3.5 h-3.5" />
                 </Button>
               </div>
-              <div className="text-sm text-foreground/90 prose prose-sm max-w-none leading-relaxed">
+              <div className="text-sm text-foreground prose prose-sm max-w-none leading-[1.6]">
                 <ReactMarkdown
                   components={{
                     code({ inline, className, children, ...props }: any) {
@@ -111,10 +112,10 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
         </Button>
       </div>
 
-      <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-border/30 p-4 space-y-2.5 shadow-sm hover:shadow-md transition-shadow">
-        <div className="flex items-center justify-between gap-3 mb-1">
-          <span className="text-xs font-medium text-primary/90 tracking-wide">
-            {currentModel}
+      <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-border/30 p-3 space-y-2 shadow-sm">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs font-medium text-muted-foreground">
+            {formatModelName(currentModel)}
           </span>
           <div className="flex items-center gap-1.5">
             <Button
@@ -141,7 +142,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
           </div>
         </div>
 
-        <div className="prose prose-sm max-w-none text-foreground/90 leading-relaxed">
+        <div className="prose prose-sm max-w-none text-foreground leading-[1.6]">
           <ReactMarkdown
             components={{
               code({ inline, className, children, ...props }: any) {
@@ -167,14 +168,14 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
           </ReactMarkdown>
         </div>
 
-        <div className="flex items-center justify-end pt-1">
+        <div className="flex items-center justify-start">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => handleCopy(currentContent)}
-            className="h-7 px-2 text-xs hover:bg-muted/50 text-muted-foreground hover:text-foreground"
+            className="h-6 px-2 text-xs hover:bg-muted/50 text-muted-foreground hover:text-foreground -ml-1"
           >
-            <Copy className="w-3.5 h-3.5 mr-1.5" />
+            <Copy className="w-3 h-3 mr-1" />
             Copy
           </Button>
         </div>
