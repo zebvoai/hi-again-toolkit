@@ -43,29 +43,113 @@ serve(async (req) => {
         'Gemini 2.5 Flash Image',
         'Gemini 3 Pro Image',
         
-        // Wavespeed Models - Seedream
+        // Alibaba
+        'WAN 2.5',
+        
+        // ByteDance - Seedream
+        'Seedream v3',
+        'Seedream v3.1',
         'Seedream v4',
+        'Seedream v4 Sequential',
+        'Dreamina v3.0',
+        'Dreamina v3.1',
         
-        // Wavespeed Models - Flux
-        'Flux Pro 1.1 Ultra',
-        'Flux Dev',
-        'Flux Schnell',
-        'Flux Redux Dev',
+        // Bria
+        'Bria 3.2',
+        'Bria Fibo',
         
-        // Wavespeed Models - Ideogram
-        'Ideogram V3 Turbo',
-        'Ideogram V3 Balanced',
+        // Ideogram AI
         'Ideogram V2',
-        'Ideogram V2 Turbo',
+        'Ideogram V2a',
         'Ideogram V2a Turbo',
+        'Ideogram V2 Turbo',
+        'Ideogram V3 Balanced',
+        'Ideogram V3 Quality',
+        'Ideogram V3 Turbo',
         
-        // Wavespeed Models - Recraft
+        // Leonardo AI
+        'Leonardo Lucid Origin',
+        'Leonardo Phoenix 1.0',
+        
+        // Luma
+        'Luma Photon',
+        'Luma Photon Flash',
+        
+        // Neta.art
+        'Neta Lumina',
+        
+        // Recraft AI
         'Recraft 20B',
+        'Recraft 20B SVG',
+        'Recraft V3',
+        'Recraft V3 SVG',
         
-        // Wavespeed Models - Stable Diffusion
+        // Reve
+        'Reve Image',
+        
+        // RunwayML
+        'Runway Gen4',
+        'Runway Gen4 Turbo',
+        
+        // Stability AI
+        'SDXL',
+        'SDXL LoRA',
         'Stable Diffusion',
         'Stable Diffusion 3',
-        'Stable Diffusion 3.5 Large'
+        'Stable Diffusion 3.5 Medium',
+        'Stable Diffusion 3.5 Large',
+        'Stable Diffusion 3.5 Large Turbo',
+        
+        // FLUX Family
+        'FLUX 1 SRPO',
+        'FLUX 1.1 Pro',
+        'Flux Pro 1.1 Ultra',
+        'FLUX 2 Dev',
+        'FLUX 2 Dev LoRA',
+        'FLUX 2 Flex',
+        'FLUX 2 Pro',
+        'Flux Dev',
+        'FLUX Dev LoRA',
+        'FLUX Dev LoRA Ultra Fast',
+        'FLUX Dev Ultra Fast',
+        'FLUX Krea Dev LoRA',
+        'FLUX Kontext Max',
+        'FLUX Kontext Pro',
+        'Flux Schnell',
+        'FLUX Schnell LoRA',
+        'FLUX SRPO',
+        'Flux Redux Dev',
+        
+        // WAN Models
+        'WAN 2.1',
+        'WAN 2.1 LoRA',
+        'WAN 2.2 LoRA',
+        'WAN 2.2 Realism',
+        'WAN 2.5 WaveSpeed',
+        
+        // Qwen / Jib Mix
+        'Qwen Image',
+        'Qwen Image LoRA',
+        'Jib Mix Qwen',
+        'Jib Mix Qwen LoRA',
+        
+        // Hunyuan
+        'Hunyuan 2.1',
+        'Hunyuan 3',
+        
+        // Z-Image
+        'Z-Image Turbo',
+        'Z-Image Turbo LoRA',
+        
+        // HiDream
+        'HiDream i1 Dev',
+        'HiDream i1 Full',
+        
+        // Other WaveSpeed Models
+        'Chroma',
+        'Female Human',
+        'Step1X Edit',
+        'Any LLM Vision'
       ],
       video: [
         'Gemini Video 2.0',
