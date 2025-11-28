@@ -231,6 +231,7 @@ export const useChat = () => {
         let streamingContent = '';
         let hasCreatedMessage = false;
         const selectedModel = selectedModels[0];
+        const isOpenAIModel = selectedModel?.startsWith('GPT') || selectedModel?.startsWith('O');
 
         const response = await api.sendMessage(
           content,
@@ -238,26 +239,28 @@ export const useChat = () => {
           messages,
           undefined,
           selectedModel,
-          (chunk: string) => {
-            streamingContent += chunk;
-            
-            if (!hasCreatedMessage) {
-              const streamingMessage = {
-                id: assistantId,
-                role: 'assistant' as const,
-                content: streamingContent,
-                timestamp: Date.now(),
-                metadata: {
-                  model: selectedModel || 'AI',
-                  provider: 'openai'
+          isOpenAIModel
+            ? (chunk: string) => {
+                streamingContent += chunk;
+                
+                if (!hasCreatedMessage) {
+                  const streamingMessage = {
+                    id: assistantId,
+                    role: 'assistant' as const,
+                    content: streamingContent,
+                    timestamp: Date.now(),
+                    metadata: {
+                      model: selectedModel || 'AI',
+                      provider: 'openai'
+                    }
+                  };
+                  addMessage(streamingMessage);
+                  hasCreatedMessage = true;
+                } else {
+                  updateMessage(assistantId, { content: streamingContent });
                 }
-              };
-              addMessage(streamingMessage);
-              hasCreatedMessage = true;
-            } else {
-              updateMessage(assistantId, { content: streamingContent });
-            }
-          }
+              }
+            : undefined
         );
         
         if (hasCreatedMessage) {
