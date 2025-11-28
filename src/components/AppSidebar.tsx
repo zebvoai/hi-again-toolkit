@@ -79,24 +79,28 @@ export function AppSidebar() {
 
   if (isCollapsed) {
     return (
-      <Sidebar className="w-[90px] border-r bg-background" collapsible="icon">
-        <SidebarHeader className="p-4 flex flex-col items-center gap-4">
-          <SidebarTrigger className="w-8 h-8" />
-          <Button
-            variant="ghost"
-            size="icon"
-            className="w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white"
-            onClick={handleNewChat}
-          >
-            <Plus className="w-5 h-5" />
-          </Button>
-        </SidebarHeader>
+      <Sidebar className="w-[60px] border-r bg-background flex flex-col h-screen fixed" collapsible="icon">
+        <div className="flex-none">
+          <SidebarHeader className="p-4 flex flex-col items-center gap-4">
+            <SidebarTrigger className="w-8 h-8" />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white"
+              onClick={handleNewChat}
+            >
+              <Plus className="w-5 h-5" />
+            </Button>
+          </SidebarHeader>
+        </div>
 
-        <SidebarFooter className="p-4">
+        <div className="flex-grow" />
+
+        <SidebarFooter className="flex-none p-4 flex items-center justify-center mb-5">
           <Button
             variant="ghost"
             size="icon"
-            className="w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white"
+            className="w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 hover:scale-105 text-white transition-all duration-150"
           >
             <User className="w-5 h-5" />
           </Button>
@@ -106,25 +110,27 @@ export function AppSidebar() {
   }
 
   return (
-    <Sidebar className="w-[280px] border-r bg-background" collapsible="icon">
-      <SidebarHeader className="p-4 space-y-4">
-        <div className="flex items-center">
-          <SidebarTrigger className="w-6 h-6" />
-        </div>
-        
-        <Button
-          variant="ghost"
-          className="w-full h-auto py-3 justify-start gap-3 hover:bg-accent rounded-lg"
-          onClick={handleNewChat}
-        >
-          <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
-            <Plus className="w-5 h-5 text-white" />
+    <Sidebar className="w-[280px] border-r bg-background flex flex-col h-screen fixed" collapsible="icon">
+      <div className="flex-none">
+        <SidebarHeader className="p-4 space-y-4">
+          <div className="flex items-center">
+            <SidebarTrigger className="w-6 h-6" />
           </div>
-          <span className="text-base font-semibold">New Chat</span>
-        </Button>
-      </SidebarHeader>
+          
+          <Button
+            variant="ghost"
+            className="w-full h-auto py-3 justify-start gap-3 hover:bg-accent rounded-lg"
+            onClick={handleNewChat}
+          >
+            <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+              <Plus className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-base font-semibold">New Chat</span>
+          </Button>
+        </SidebarHeader>
+      </div>
 
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 min-h-0">
         <SidebarContent className="px-3 pb-4">
           {isLoading ? (
             <div className="text-sm text-muted-foreground text-center py-8">
@@ -161,8 +167,8 @@ export function AppSidebar() {
         </SidebarContent>
       </ScrollArea>
 
-      <SidebarFooter className="p-4 border-t">
-        <div className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-accent/50 cursor-pointer transition-colors">
+      <SidebarFooter className="flex-none p-4 border-t mt-auto mb-5">
+        <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-accent/50 cursor-pointer transition-all duration-150 bg-white shadow-sm">
           <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
             <User className="w-5 h-5 text-white" />
           </div>
