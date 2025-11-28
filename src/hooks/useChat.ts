@@ -23,14 +23,14 @@ export function useChatActions() {
       clearError();
       addMessage('user', userMessage);
 
-      const model = currentModel || ModelFactory.getDefaultModelForMode(currentMode);
+      const model = currentModel || await ModelFactory.getDefaultModelForMode(currentMode);
       
       if (!model) {
         setError('No model selected. Please configure your API keys in settings.');
         return;
       }
 
-      const service = ModelFactory.getServiceForProvider(model.provider);
+      const service = await ModelFactory.getServiceForProvider(model.provider);
       if (!service) {
         setError('Service not available. Please check your API keys.');
         return;
@@ -97,14 +97,14 @@ export function useChatActions() {
       clearError();
       addMessage('user', prompt);
 
-      const model = currentModel || ModelFactory.getDefaultModelForMode('image');
+      const model = currentModel || await ModelFactory.getDefaultModelForMode('image');
       
       if (!model) {
         setError('No image model available. Please configure OpenAI API key.');
         return;
       }
 
-      const service = ModelFactory.getServiceForProvider(model.provider);
+      const service = await ModelFactory.getServiceForProvider(model.provider);
       if (!(service instanceof OpenAIService)) {
         setError('Image generation requires OpenAI API key.');
         return;
