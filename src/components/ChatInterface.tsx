@@ -68,8 +68,8 @@ export function ChatInterface() {
         </div>
       ) : (
         /* Empty State */
-        <div className="flex-1 flex items-center justify-center mt-64 animate-scale-fade-in">
-          <div className="text-center space-y-4">
+        <div className="flex-1 flex items-center justify-center px-4">
+          <div className="text-center">
             <h1
               className="
 text-7xl font-bold 
@@ -81,18 +81,11 @@ animate-float animate-pulse
             >
               Zebvo AI
             </h1>
-
-            <p
-              className="text-xl text-muted-foreground font-light tracking-wide animate-slide-up-fade"
-              style={{ animationDelay: "150ms" }}
-            >
-              The World's Greatest AI Platform
-            </p>
-
-            <div className="flex justify-center gap-2 mt-6 animate-slide-up-fade" style={{ animationDelay: "300ms" }}>
-              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: "0s" }} />
-              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: "200ms" }} />
-              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: "400ms" }} />
+            <p className="text-muted-foreground text-base mb-6">The World's Greatest AI Platform</p>
+            <div className="flex items-center justify-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+              <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" style={{ animationDelay: "0.2s" }} />
+              <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" style={{ animationDelay: "0.4s" }} />
             </div>
           </div>
         </div>
@@ -167,9 +160,7 @@ animate-float animate-pulse
           <div className="flex items-center justify-between mt-2 px-4 text-xs text-muted-foreground">
             <div className="flex items-center gap-3">
               <span>~0 tokens</span>
-              <span>
-                • {selectedModels.length} {selectedModels.length === 1 ? "model" : "models"}
-              </span>
+              <span>• {selectedModels.length} {selectedModels.length === 1 ? "model" : "models"}</span>
             </div>
             <span>{input.length}/4000</span>
           </div>
