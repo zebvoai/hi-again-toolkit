@@ -5,6 +5,8 @@ export const useChatStore = create<ChatState>((set) => ({
   messages: [],
   isLoading: false,
   error: null,
+  selectedModels: [],
+  isModelLocked: false,
   addMessage: (message) => set((state) => ({ 
     messages: [...state.messages, message] 
   })),
@@ -15,5 +17,8 @@ export const useChatStore = create<ChatState>((set) => ({
   })),
   setLoading: (loading) => set({ isLoading: loading }),
   setError: (error) => set({ error }),
-  clearMessages: () => set({ messages: [] })
+  clearMessages: () => set({ messages: [] }),
+  setSelectedModels: (models) => set({ selectedModels: models }),
+  lockModels: () => set({ isModelLocked: true }),
+  unlockModels: () => set({ isModelLocked: false })
 }));

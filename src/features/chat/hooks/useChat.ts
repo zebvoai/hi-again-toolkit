@@ -1,17 +1,19 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { api } from '@/lib/api';
+import { multiModelApi } from '@/lib/multiModelApi';
 import { useChatStore } from '../store/chatStore';
 import { useModeStore } from '@/features/modes/store/modeStore';
 import { useToast } from '@/hooks/use-toast';
+import type { MultiModelContent } from '@/types';
 
 export const useChat = () => {
-  const { messages, addMessage, updateMessage, setLoading, setError, isLoading } = useChatStore();
+  const { messages, addMessage, updateMessage, setLoading, setError, isLoading, selectedModels, isModelLocked, lockModels } = useChatStore();
   const { selectedMode } = useModeStore();
   const { toast } = useToast();
   const [lastRequestTime, setLastRequestTime] = useState(0);
   const cooldownMs = 2000; // 2 second cooldown
   
-  const sendMessage = async (content: string, selectedModel?: string) => {
+  const sendMessage = async (content: string) => {
     // Rate limiting check
     const now = Date.now();
     const timeSinceLastRequest = now - lastRequestTime;
@@ -37,11 +39,14 @@ export const useChat = () => {
     addMessage(userMessage);
     setLoading(true);
     setError(null);
+
+    // Lock models after first message
+    if (!isModelLocked && messages.length === 0) {
+      lockModels();
+    }
     
     // Add placeholder for assistant response
     const assistantId = (Date.now() + 1).toString();
-    let streamingContent = '';
-    let hasCreatedMessage = false;
     
     try {
       if (selectedMode === 'image') {
@@ -64,7 +69,67 @@ export const useChat = () => {
           title: 'Image generated',
           description: 'Your image has been created successfully',
         });
+      } else if (selectedModels.length > 1) {
+        // Multi-model handling
+        let multiModelContent: MultiModelContent = {};
+        let hasCreatedMessage = false;
+
+        selectedModels.forEach(model => {
+          multiModelContent[model] = '';
+        });
+
+        const response = await multiModelApi.sendMessageMultiModel(
+          content,
+          selectedMode,
+          messages,
+          selectedModels,
+          (modelName: string, chunk: string) => {
+            // Update content for specific model
+            multiModelContent[modelName] += chunk;
+
+            if (!hasCreatedMessage) {
+              const streamingMessage = {
+                id: assistantId,
+                role: 'assistant' as const,
+                content: { ...multiModelContent },
+                timestamp: Date.now(),
+                metadata: {
+                  models: selectedModels
+                }
+              };
+              addMessage(streamingMessage);
+              hasCreatedMessage = true;
+            } else {
+              updateMessage(assistantId, { content: { ...multiModelContent } });
+            }
+          }
+        );
+
+        // Final update after all models complete
+        if (hasCreatedMessage) {
+          updateMessage(assistantId, {
+            content: response.content,
+            metadata: {
+              models: response.models
+            }
+          });
+        } else {
+          addMessage({
+            id: assistantId,
+            role: 'assistant' as const,
+            content: response.content,
+            timestamp: Date.now(),
+            metadata: {
+              models: response.models
+            }
+          });
+        }
       } else {
+        // Single model handling
+        let streamingContent = '';
+        let hasCreatedMessage = false;
+        const selectedModel = selectedModels[0];
+
         const response = await api.sendMessage(
           content,
           selectedMode,
@@ -72,10 +137,8 @@ export const useChat = () => {
           undefined,
           selectedModel,
           (chunk: string) => {
-            // Accumulate streaming content
             streamingContent += chunk;
             
-            // Create or update message
             if (!hasCreatedMessage) {
               const streamingMessage = {
                 id: assistantId,
@@ -95,7 +158,6 @@ export const useChat = () => {
           }
         );
         
-        // Update with final metadata after streaming completes
         if (hasCreatedMessage) {
           updateMessage(assistantId, {
             content: response.content || streamingContent,
@@ -105,7 +167,6 @@ export const useChat = () => {
             }
           });
         } else {
-          // Fallback if no streaming occurred
           addMessage({
             id: assistantId,
             role: 'assistant' as const,
@@ -144,8 +205,8 @@ export const useChat = () => {
     }
   };
   
-  const retryMessage = async (content: string, selectedModel?: string) => {
-    await sendMessage(content, selectedModel);
+  const retryMessage = async (content: string) => {
+    await sendMessage(content);
   };
   
   return { messages, sendMessage, isLoading, retryMessage };

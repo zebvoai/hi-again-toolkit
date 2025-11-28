@@ -3,17 +3,26 @@ import { ChevronDown, Mic, Volume2, Paperclip, Send, ChevronUp } from 'lucide-re
 import { Button } from '@/components/ui/button';
 import { useChat } from '@/features/chat/hooks/useChat';
 import { useModeStore } from '@/features/modes/store/modeStore';
+import { useChatStore } from '@/features/chat/store/chatStore';
 import { Message } from '@/features/chat/components/Message';
 import { TypingIndicator } from '@/features/chat/components/TypingIndicator';
 import { ModelSelector } from '@/features/chat/components/ModelSelector';
 import { ModeDropdown } from '@/features/modes/components/ModeDropdown';
+import { Badge } from '@/components/ui/badge';
 
 export function ChatInterface() {
   const [input, setInput] = useState('');
-  const [selectedModel, setSelectedModel] = useState('GPT-5');
   const { messages, sendMessage, isLoading, retryMessage } = useChat();
   const { selectedMode } = useModeStore();
+  const { selectedModels, isModelLocked, setSelectedModels } = useChatStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Initialize with default model if none selected
+  useEffect(() => {
+    if (selectedModels.length === 0) {
+      setSelectedModels(['GPT-5']);
+    }
+  }, [selectedModels.length, setSelectedModels]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -21,8 +30,8 @@ export function ChatInterface() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (input.trim() && !isLoading) {
-      sendMessage(input, selectedModel);
+    if (input.trim() && !isLoading && selectedModels.length > 0) {
+      sendMessage(input);
       setInput('');
     }
   };
@@ -50,10 +59,10 @@ export function ChatInterface() {
               <Message
                 key={message.id}
                 message={message}
-                onRetry={() => retryMessage(message.content, selectedModel)}
+                onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')}
               />
             ))}
-            {isLoading && <TypingIndicator model={selectedModel} />}
+            {isLoading && <TypingIndicator model={selectedModels.join(', ')} />}
             <div ref={messagesEndRef} />
           </div>
         </div>
@@ -79,6 +88,14 @@ export function ChatInterface() {
       {/* Chat Input Area */}
       <div className="p-4 pb-6">
         <div className="max-w-4xl mx-auto">
+          {isModelLocked && (
+            <div className="flex justify-center mb-3">
+              <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200 px-4 py-1.5">
+                <div className="w-2 h-2 rounded-full bg-blue-500 mr-2" />
+                Model locked for this conversation
+              </Badge>
+            </div>
+          )}
           <form onSubmit={handleSubmit}>
             <div className="relative bg-white rounded-3xl shadow-lg border border-gray-200">
               {/* Dropdowns Row */}
@@ -87,7 +104,11 @@ export function ChatInterface() {
                   <ModeDropdown />
                 </div>
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                  <ModelSelector value={selectedModel} onChange={setSelectedModel} />
+                  <ModelSelector 
+                    values={selectedModels} 
+                    onChange={setSelectedModels}
+                    disabled={isModelLocked}
+                  />
                 </div>
               </div>
 
@@ -142,7 +163,7 @@ export function ChatInterface() {
 
                   <Button
                     type="submit"
-                    disabled={!input.trim() || isLoading}
+                    disabled={!input.trim() || isLoading || selectedModels.length === 0}
                     size="icon"
                     className="w-9 h-9 bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
                   >
@@ -157,7 +178,7 @@ export function ChatInterface() {
           <div className="flex items-center justify-between mt-2 px-4 text-xs text-muted-foreground">
             <div className="flex items-center gap-3">
               <span>~0 tokens</span>
-              <span>• 1 model</span>
+              <span>• {selectedModels.length} {selectedModels.length === 1 ? 'model' : 'models'}</span>
             </div>
             <span>{input.length}/4000</span>
           </div>
