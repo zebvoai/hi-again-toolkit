@@ -41,6 +41,7 @@ export const useChat = () => {
     // Add placeholder for assistant response
     const assistantId = (Date.now() + 1).toString();
     let streamingContent = '';
+    let hasCreatedMessage = false;
     
     try {
       if (selectedMode === 'image') {
@@ -64,19 +65,6 @@ export const useChat = () => {
           description: 'Your image has been created successfully',
         });
       } else {
-        // Create streaming message placeholder
-        const streamingMessage = {
-          id: assistantId,
-          role: 'assistant' as const,
-          content: '',
-          timestamp: Date.now(),
-          metadata: {
-            model: selectedModel || 'AI',
-            provider: 'openai'
-          }
-        };
-        addMessage(streamingMessage);
-        
         const response = await api.sendMessage(
           content,
           selectedMode,
@@ -84,20 +72,51 @@ export const useChat = () => {
           undefined,
           selectedModel,
           (chunk: string) => {
-            // Update message with streaming content
+            // Accumulate streaming content
             streamingContent += chunk;
-            updateMessage(assistantId, { content: streamingContent });
+            
+            // Create or update message
+            if (!hasCreatedMessage) {
+              const streamingMessage = {
+                id: assistantId,
+                role: 'assistant' as const,
+                content: streamingContent,
+                timestamp: Date.now(),
+                metadata: {
+                  model: selectedModel || 'AI',
+                  provider: 'openai'
+                }
+              };
+              addMessage(streamingMessage);
+              hasCreatedMessage = true;
+            } else {
+              updateMessage(assistantId, { content: streamingContent });
+            }
           }
         );
         
-        // Update with final metadata
-        updateMessage(assistantId, {
-          content: response.content || streamingContent,
-          metadata: {
-            model: response.model,
-            provider: response.provider
-          }
-        });
+        // Update with final metadata after streaming completes
+        if (hasCreatedMessage) {
+          updateMessage(assistantId, {
+            content: response.content || streamingContent,
+            metadata: {
+              model: response.model,
+              provider: response.provider
+            }
+          });
+        } else {
+          // Fallback if no streaming occurred
+          addMessage({
+            id: assistantId,
+            role: 'assistant' as const,
+            content: response.content,
+            timestamp: Date.now(),
+            metadata: {
+              model: response.model,
+              provider: response.provider
+            }
+          });
+        }
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Something went wrong';
