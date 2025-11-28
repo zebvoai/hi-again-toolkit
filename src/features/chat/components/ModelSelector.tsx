@@ -3,11 +3,12 @@ import { useModels } from '../hooks/useModels';
 import { useModeStore } from '@/features/modes/store/modeStore';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Check, ChevronDown, Sparkles, Info, Search, Star, X } from 'lucide-react';
+import { Check, ChevronDown, Sparkles, Info, Search, Star, X, Clock, ArrowUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface ModelSelectorProps {
   values: string[];
@@ -113,6 +114,7 @@ const modelInfo: Record<string, { description: string; strengths: string[]; spee
 
 // Favorites management
 const FAVORITES_STORAGE_KEY = 'model-selector-favorites';
+const RECENT_MODELS_STORAGE_KEY = 'model-selector-recent';
 
 const getFavorites = (): string[] => {
   try {
@@ -128,6 +130,69 @@ const saveFavorites = (favorites: string[]) => {
     localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(favorites));
   } catch {
     // Ignore storage errors
+  }
+};
+
+// Recent models management
+const getRecentModels = (): string[] => {
+  try {
+    const stored = localStorage.getItem(RECENT_MODELS_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveRecentModels = (models: string[]) => {
+  try {
+    localStorage.setItem(RECENT_MODELS_STORAGE_KEY, JSON.stringify(models));
+  } catch {
+    // Ignore storage errors
+  }
+};
+
+const addToRecentModels = (model: string) => {
+  const recent = getRecentModels();
+  const filtered = recent.filter(m => m !== model);
+  const updated = [model, ...filtered].slice(0, 5); // Keep only last 5
+  saveRecentModels(updated);
+};
+
+// Sorting types
+type SortOption = 'alphabetical' | 'speed' | 'quality' | 'provider';
+
+const sortModels = (models: string[], sortBy: SortOption): string[] => {
+  const modelsCopy = [...models];
+  
+  switch (sortBy) {
+    case 'alphabetical':
+      return modelsCopy.sort((a, b) => a.localeCompare(b));
+    
+    case 'speed':
+      return modelsCopy.sort((a, b) => {
+        const speedOrder = { 'Very Fast': 0, 'Fast': 1, 'Moderate': 2, 'Slow': 3 };
+        const speedA = modelInfo[a]?.speed || 'Moderate';
+        const speedB = modelInfo[b]?.speed || 'Moderate';
+        return (speedOrder[speedA as keyof typeof speedOrder] || 2) - (speedOrder[speedB as keyof typeof speedOrder] || 2);
+      });
+    
+    case 'quality':
+      return modelsCopy.sort((a, b) => {
+        const qualityOrder = { 'Highest': 0, 'High': 1, 'Good': 2 };
+        const qualityA = modelInfo[a]?.quality || 'Good';
+        const qualityB = modelInfo[b]?.quality || 'Good';
+        return (qualityOrder[qualityA as keyof typeof qualityOrder] || 2) - (qualityOrder[qualityB as keyof typeof qualityOrder] || 2);
+      });
+    
+    case 'provider':
+      return modelsCopy.sort((a, b) => {
+        const providerA = getModelProvider(a);
+        const providerB = getModelProvider(b);
+        return providerA.localeCompare(providerB);
+      });
+    
+    default:
+      return modelsCopy;
   }
 };
 
@@ -175,10 +240,13 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [recentModels, setRecentModels] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState<SortOption>('provider');
   
-  // Load favorites on mount
+  // Load favorites and recent models on mount
   useEffect(() => {
     setFavorites(getFavorites());
+    setRecentModels(getRecentModels());
   }, []);
   
   const availableModels = models ? models[selectedMode] : [];
@@ -197,17 +265,27 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
     saveFavorites(newFavorites);
   };
   
-  // Separate favorites and non-favorites
+  // Separate favorites, recent, and other models
   const favoriteModels = filteredModels.filter(m => favorites.includes(m));
-  const nonFavoriteModels = filteredModels.filter(m => !favorites.includes(m));
+  const recentFilteredModels = filteredModels.filter(m => 
+    recentModels.includes(m) && !favorites.includes(m)
+  );
+  const nonFavoriteNonRecentModels = filteredModels.filter(m => 
+    !favorites.includes(m) && !recentModels.includes(m)
+  );
   
-  // Group non-favorite models by provider
-  const groupedModels = nonFavoriteModels.reduce((acc, model) => {
-    const provider = getModelProvider(model);
-    if (!acc[provider]) acc[provider] = [];
-    acc[provider].push(model);
-    return acc;
-  }, {} as Record<string, string[]>);
+  // Sort and group non-favorite, non-recent models
+  const sortedNonFavoriteNonRecentModels = sortModels(nonFavoriteNonRecentModels, sortBy);
+  
+  // Group by provider only if sorting by provider
+  const groupedModels = sortBy === 'provider' 
+    ? sortedNonFavoriteNonRecentModels.reduce((acc, model) => {
+        const provider = getModelProvider(model);
+        if (!acc[provider]) acc[provider] = [];
+        acc[provider].push(model);
+        return acc;
+      }, {} as Record<string, string[]>)
+    : { 'All Models': sortedNonFavoriteNonRecentModels };
   
   const handleToggle = (model: string) => {
     if (values.includes(model)) {
@@ -215,6 +293,9 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
     } else {
       if (values.length < 4) {
         onChange([...values, model]);
+        // Add to recent models
+        addToRecentModels(model);
+        setRecentModels(getRecentModels());
       }
     }
   };
@@ -258,23 +339,42 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
             </div>
           </div>
           
-          {/* Search Input */}
-          <div className="relative px-2">
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Input
-              placeholder="Search models..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 pr-9 h-9 bg-white/50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 focus:ring-blue-500 rounded-lg"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
+          {/* Search and Sort Controls */}
+          <div className="space-y-2 px-2">
+            {/* Search Input */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input
+                placeholder="Search models..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 pr-9 h-9 bg-white/50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 focus:ring-blue-500 rounded-lg"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+            
+            {/* Sort Selector */}
+            <div className="flex items-center gap-2">
+              <ArrowUpDown className="w-4 h-4 text-gray-400" />
+              <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
+                <SelectTrigger className="h-8 text-xs bg-white/50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 rounded-lg">
+                  <SelectValue placeholder="Sort by..." />
+                </SelectTrigger>
+                <SelectContent className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-gray-200 dark:border-gray-700">
+                  <SelectItem value="provider">By Provider</SelectItem>
+                  <SelectItem value="alphabetical">Alphabetical</SelectItem>
+                  <SelectItem value="speed">By Speed</SelectItem>
+                  <SelectItem value="quality">By Quality</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           
           {/* Models List with ScrollArea */}
@@ -307,17 +407,46 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
                 </div>
               )}
               
-              {/* Regular models grouped by provider */}
+              {/* Recently Used Section */}
+              {recentFilteredModels.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 px-2">
+                    <Clock className="w-3.5 h-3.5 text-blue-500" />
+                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Recently Used
+                    </span>
+                    <div className="h-px flex-1 bg-gradient-to-r from-blue-300/50 via-transparent to-transparent" />
+                  </div>
+                  
+                  <div className="space-y-1">
+                    {recentFilteredModels.map((model) => (
+                      <ModelItem
+                        key={model}
+                        model={model}
+                        isSelected={values.includes(model)}
+                        isDisabled={!values.includes(model) && values.length >= 4}
+                        isFavorite={favorites.includes(model)}
+                        onToggle={handleToggle}
+                        onToggleFavorite={toggleFavorite}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Regular models grouped by provider or sorted */}
               {Object.entries(groupedModels).map(([provider, providerModels]) => (
                 <div key={provider} className="space-y-2">
-                  {/* Provider Label */}
-                  <div className="flex items-center gap-2 px-2">
-                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-700 to-transparent" />
-                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      {provider}
-                    </span>
-                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-700 to-transparent" />
-                  </div>
+                  {/* Provider Label - only show if grouping by provider */}
+                  {sortBy === 'provider' && (
+                    <div className="flex items-center gap-2 px-2">
+                      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-700 to-transparent" />
+                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        {provider}
+                      </span>
+                      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-700 to-transparent" />
+                    </div>
+                  )}
                   
                   {/* Models in this provider */}
                   <div className="space-y-1">
