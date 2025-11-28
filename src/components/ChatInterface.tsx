@@ -9,9 +9,12 @@ import { TypingIndicator } from '@/features/chat/components/TypingIndicator';
 import { ModelSelector } from '@/features/chat/components/ModelSelector';
 import { ModeDropdown } from '@/features/modes/components/ModeDropdown';
 import { Badge } from '@/components/ui/badge';
+import { TopActions } from '@/components/TopActions';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export function ChatInterface() {
   const [input, setInput] = useState('');
+  const [isTemporaryMode, setIsTemporaryMode] = useState(false);
   const { messages, sendMessage, isLoading, retryMessage } = useChat();
   const { selectedMode } = useModeStore();
   const { selectedModels, isModelLocked, setSelectedModels } = useChatStore();
@@ -36,21 +39,50 @@ export function ChatInterface() {
     }
   };
 
-  const getPlaceholder = () => {
-    switch (selectedMode) {
-      case 'image':
-        return 'Describe the image you want to generate...';
-      case 'video':
-        return 'Describe the video you want to create...';
-      case 'build':
-        return 'Describe what you want to build...';
-      default:
-        return 'Ask anything...';
+  const handleTemporaryModeToggle = () => {
+    setIsTemporaryMode(!isTemporaryMode);
+    // Clear messages when entering temporary mode
+    if (!isTemporaryMode) {
+      // You can add logic to clear messages here if needed
     }
+  };
+
+  const getPlaceholder = () => {
+    const basePlaceholder = (() => {
+      switch (selectedMode) {
+        case 'image':
+          return 'Describe the image you want to generate...';
+        case 'video':
+          return 'Describe the video you want to create...';
+        case 'build':
+          return 'Describe what you want to build...';
+        default:
+          return 'Ask anything...';
+      }
+    })();
+    
+    return isTemporaryMode ? `${basePlaceholder} (Temporary Mode)` : basePlaceholder;
   };
 
   return (
     <div className="flex flex-col h-full relative bg-gray-50/50">
+      {/* Top Actions */}
+      <TopActions 
+        isTemporaryMode={isTemporaryMode}
+        onTemporaryModeToggle={handleTemporaryModeToggle}
+      />
+
+      {/* Temporary Mode Banner */}
+      {isTemporaryMode && (
+        <div className="px-4 pt-4">
+          <Alert className="bg-blue-50 border-blue-200 max-w-4xl mx-auto">
+            <AlertDescription className="text-blue-900 text-sm flex items-center gap-2">
+              🕶️ <span className="font-medium">Temporary Chat Mode</span> — This conversation is private and won't be saved
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
+
       {/* Messages Area */}
       {messages.length > 0 ? (
         <div className="flex-1 overflow-y-auto px-4 py-8">
