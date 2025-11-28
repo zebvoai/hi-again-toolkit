@@ -101,8 +101,11 @@ async function handleMultiModelRequest(
               apiKey = Deno.env.get('GOOGLE_API_KEY') || '';
               if (!apiKey) throw new Error('GOOGLE_API_KEY not configured');
               
-              apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${apiModel}:streamGenerateContent?key=${apiKey}&alt=sse`;
-              headers = { 'Content-Type': 'application/json' };
+              apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${apiModel}:streamGenerateContent?alt=sse`;
+              headers = { 
+                'Content-Type': 'application/json',
+                'x-goog-api-key': apiKey
+              };
               
               const contents = conversationHistory.map(m => ({
                 role: m.role === 'assistant' ? 'model' : 'user',
@@ -364,9 +367,10 @@ serve(async (req) => {
         throw new Error('GOOGLE_API_KEY not configured');
       }
       
-      apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
       headers = {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey
       };
       
       const contents = conversationHistory.map(m => ({
