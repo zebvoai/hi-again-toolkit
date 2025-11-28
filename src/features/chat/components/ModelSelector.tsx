@@ -514,8 +514,9 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
           </Button>
         </PopoverTrigger>
         <PopoverContent 
-          className="w-[320px] bg-white/95 dark:bg-gray-900/95 backdrop-blur-2xl border border-white/20 dark:border-gray-700/30 shadow-2xl rounded-2xl p-3 z-[100]" 
+          className="w-[400px] max-w-[95vw] bg-white/95 dark:bg-gray-900/95 backdrop-blur-2xl border border-white/20 dark:border-gray-700/30 shadow-2xl rounded-2xl p-3 z-[100]" 
           align="start"
+          sideOffset={8}
         >
         <div className="space-y-3">
           {/* Header */}
@@ -569,7 +570,7 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
               </div>
             )}
             
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {allPresets.map((preset) => {
                 const Icon = preset.icon;
                 const presetModels = preset.models[selectedMode] || [];
@@ -696,7 +697,7 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
           </div>
           
           {/* Models List with ScrollArea */}
-          <ScrollArea className="h-[320px] pr-2">
+          <ScrollArea className="h-[380px] pr-2">
             <div className="space-y-4">
               {/* Favorites Section */}
               {favoriteModels.length > 0 && (
