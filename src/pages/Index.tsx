@@ -53,7 +53,7 @@ const Index = () => {
                 onRetry={() => retryMessage(message.content, selectedModel)}
               />
             ))}
-            {isLoading && <TypingIndicator />}
+            {isLoading && <TypingIndicator model={selectedModel} />}
             <div ref={messagesEndRef} />
           </div>
         </div>
@@ -103,7 +103,7 @@ const Index = () => {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder={getPlaceholder()}
+                placeholder={isLoading ? 'AI is thinking...' : getPlaceholder()}
                 disabled={isLoading}
                 className="flex-1 px-12 py-3 bg-transparent outline-none text-sm placeholder:text-muted-foreground disabled:opacity-50"
               />
