@@ -42,7 +42,7 @@ export function ChatInterface() {
     const defaultModels: Record<string, string> = {
       text: 'GPT-5',
       image: 'DALL-E 3',
-      video: 'Runway Gen-2',
+      video: 'Gemini Video 2.0',
       build: 'GPT-5'
     };
     
@@ -172,7 +172,9 @@ export function ChatInterface() {
               {/* Dropdowns Row */}
               <div className="absolute -top-11 left-4 flex items-center gap-2.5">
                 <ModeDropdown />
-                <ModelSelector values={selectedModels} onChange={setSelectedModels} disabled={isModelLocked} />
+                {selectedMode !== 'video' && (
+                  <ModelSelector values={selectedModels} onChange={setSelectedModels} disabled={isModelLocked} />
+                )}
               </div>
 
               {/* File Attachments Preview */}
