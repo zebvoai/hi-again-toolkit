@@ -20,6 +20,21 @@ export function ChatInterface() {
   const { selectedModels, isModelLocked, setSelectedModels } = useChatStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Reset selected models when mode changes (unless models are locked)
+  useEffect(() => {
+    if (isModelLocked) return; // Don't reset if models are locked in a conversation
+    
+    const defaultModels: Record<string, string> = {
+      text: 'GPT-5',
+      image: 'DALL-E 3',
+      video: 'Runway Gen-2',
+      build: 'GPT-5'
+    };
+    
+    const defaultModel = defaultModels[selectedMode] || 'GPT-5';
+    setSelectedModels([defaultModel]);
+  }, [selectedMode, isModelLocked, setSelectedModels]);
+
   // Initialize with default model if none selected
   useEffect(() => {
     if (selectedModels.length === 0) {
