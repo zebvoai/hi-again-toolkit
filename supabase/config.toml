@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.models]
 verify_jwt = false
+
+[functions.video]
+verify_jwt = false

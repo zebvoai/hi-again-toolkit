@@ -211,13 +211,46 @@ export const useChat = () => {
           throw new Error('No video model selected. Please select Runway Gen-2 or Pika 1.0.');
         }
         
-        toast({
-          title: 'Video generation not available',
-          description: 'Video generation requires Runway or Pika API integration which is not yet implemented.',
-          variant: 'destructive',
-        });
+        const selectedModel = filteredModels[0];
+        const response = await api.generateVideo(
+          content,
+          undefined,
+          selectedModel.toLowerCase().replace(/\s+/g, '-'),
+          abortControllerRef.current?.signal
+        );
         
-        throw new Error('Video generation API not yet implemented');
+        const assistantMessage: Message = {
+          id: assistantId,
+          role: 'assistant' as const,
+          content: `Video generated with ${selectedModel}`,
+          timestamp: Date.now(),
+          metadata: {
+            videoUrl: response.videoUrl,
+            model: selectedModel
+          }
+        };
+        
+        addMessage(assistantMessage);
+        
+        // Save to database
+        if (convId) {
+          await supabase.from('messages').insert({
+            conversation_id: convId,
+            role: assistantMessage.role,
+            content: assistantMessage.content,
+            metadata: assistantMessage.metadata
+          });
+          
+          await supabase
+            .from('conversations')
+            .update({ updated_at: new Date().toISOString() })
+            .eq('id', convId);
+        }
+        
+        toast({
+          title: 'Video generated',
+          description: 'Your video has been created successfully',
+        });
       } else if (selectedModels.length > 1) {
         // Multi-model handling
         let multiModelContent: MultiModelContent = {};

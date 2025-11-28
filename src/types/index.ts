@@ -15,6 +15,7 @@ export interface Message {
     models?: string[];
     provider?: string;
     imageUrl?: string;
+    videoUrl?: string;
     error?: string;
     isImage?: boolean;
   };
