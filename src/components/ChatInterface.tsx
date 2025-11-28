@@ -131,6 +131,7 @@ export function ChatInterface() {
                 onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')}
               />
             ))}
+            {isLoading && <TypingIndicator models={selectedModels} />}
             <div ref={messagesEndRef} />
           </div>
         </div>
@@ -227,7 +228,7 @@ export function ChatInterface() {
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder={isLoading ? 'AI is thinking...' : getPlaceholder()}
+                  placeholder={getPlaceholder()}
                   disabled={isLoading}
                   className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted-foreground disabled:opacity-50"
                   maxLength={4000}
