@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ChevronDown, Mic, Volume2, Paperclip, Send, ChevronUp, Square } from 'lucide-react';
+import { ChevronDown, Mic, Volume2, Paperclip, Send, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useChat } from '@/features/chat/hooks/useChat';
 import { useModeStore } from '@/features/modes/store/modeStore';
@@ -11,28 +11,38 @@ import { ModeDropdown } from '@/features/modes/components/ModeDropdown';
 import { Badge } from '@/components/ui/badge';
 import { TopActions } from '@/components/TopActions';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-
 export function ChatInterface() {
   const [input, setInput] = useState('');
   const [isTemporaryMode, setIsTemporaryMode] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
-  const { messages, sendMessage, isLoading, retryMessage, cancelGeneration } = useChat();
-  const { selectedMode } = useModeStore();
-  const { selectedModels, isModelLocked, setSelectedModels } = useChatStore();
+  const {
+    messages,
+    sendMessage,
+    isLoading,
+    retryMessage,
+    cancelGeneration
+  } = useChat();
+  const {
+    selectedMode
+  } = useModeStore();
+  const {
+    selectedModels,
+    isModelLocked,
+    setSelectedModels
+  } = useChatStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Reset selected models when mode changes (unless models are locked)
   useEffect(() => {
     if (isModelLocked) return; // Don't reset if models are locked in a conversation
-    
+
     const defaultModels: Record<string, string> = {
       text: 'GPT-5',
       image: 'DALL-E 3',
       video: 'Runway Gen-2',
       build: 'GPT-5'
     };
-    
     const defaultModel = defaultModels[selectedMode] || 'GPT-5';
     setSelectedModels([defaultModel]);
   }, [selectedMode, isModelLocked, setSelectedModels]);
@@ -43,11 +53,11 @@ export function ChatInterface() {
       setSelectedModels(['GPT-5']);
     }
   }, [selectedModels.length, setSelectedModels]);
-
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({
+      behavior: 'smooth'
+    });
   }, [messages, isLoading]);
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim() && !isLoading && selectedModels.length > 0) {
@@ -56,7 +66,6 @@ export function ChatInterface() {
       setAttachedFiles([]);
     }
   };
-
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
@@ -67,15 +76,12 @@ export function ChatInterface() {
       fileInputRef.current.value = '';
     }
   };
-
   const handleRemoveFile = (index: number) => {
     setAttachedFiles(prev => prev.filter((_, i) => i !== index));
   };
-
   const triggerFileInput = () => {
     fileInputRef.current?.click();
   };
-
   const handleTemporaryModeToggle = () => {
     setIsTemporaryMode(!isTemporaryMode);
     // Clear messages when entering temporary mode
@@ -83,7 +89,6 @@ export function ChatInterface() {
       // You can add logic to clear messages here if needed
     }
   };
-
   const getPlaceholder = () => {
     const basePlaceholder = (() => {
       switch (selectedMode) {
@@ -97,47 +102,30 @@ export function ChatInterface() {
           return 'Ask anything...';
       }
     })();
-    
     return isTemporaryMode ? `${basePlaceholder} (Temporary Mode)` : basePlaceholder;
   };
-
-  return (
-    <div className="flex flex-col h-full relative bg-gray-50/50">
+  return <div className="flex flex-col h-full relative bg-gray-50/50">
       {/* Top Actions */}
-      <TopActions 
-        isTemporaryMode={isTemporaryMode}
-        onTemporaryModeToggle={handleTemporaryModeToggle}
-      />
+      <TopActions isTemporaryMode={isTemporaryMode} onTemporaryModeToggle={handleTemporaryModeToggle} />
 
       {/* Temporary Mode Banner */}
-      {isTemporaryMode && (
-        <div className="px-4 pt-4">
+      {isTemporaryMode && <div className="px-4 pt-4">
           <Alert className="bg-blue-50 border-blue-200 max-w-4xl mx-auto">
             <AlertDescription className="text-blue-900 text-sm flex items-center gap-2">
               🕶️ <span className="font-medium">Temporary Chat Mode</span> — This conversation is private and won't be saved
             </AlertDescription>
           </Alert>
-        </div>
-      )}
+        </div>}
 
       {/* Messages Area */}
-      {messages.length > 0 ? (
-        <div className="flex-1 overflow-y-auto px-4 py-8">
+      {messages.length > 0 ? <div className="flex-1 overflow-y-auto px-4 py-8">
           <div className="max-w-4xl mx-auto">
-            {messages.map((message) => (
-              <Message
-                key={message.id}
-                message={message}
-                onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')}
-              />
-            ))}
+            {messages.map(message => <Message key={message.id} message={message} onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')} />)}
             {isLoading && <TypingIndicator models={selectedModels} />}
             <div ref={messagesEndRef} />
           </div>
-        </div>
-      ) : (
-        /* Empty State */
-        <div className="flex-1 flex items-center justify-center px-4">
+        </div> : (/* Empty State */
+    <div className="flex-1 flex items-center justify-center px-4">
           <div className="text-center">
             <h1 className="text-6xl font-bold text-blue-500 mb-3">
               Zebvo AI
@@ -147,138 +135,74 @@ export function ChatInterface() {
             </p>
             <div className="flex items-center justify-center gap-1.5">
               <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-              <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" style={{ animationDelay: '0.2s' }} />
-              <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" style={{ animationDelay: '0.4s' }} />
+              <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" style={{
+            animationDelay: '0.2s'
+          }} />
+              <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" style={{
+            animationDelay: '0.4s'
+          }} />
             </div>
           </div>
-        </div>
-      )}
+        </div>)}
 
       {/* Chat Input Area */}
       <div className="p-4 pb-6">
         <div className="max-w-4xl mx-auto">
-          {isModelLocked && (
-            <div className="flex justify-center mb-3">
+          {isModelLocked && <div className="flex justify-center mb-3">
               <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200 px-4 py-1.5">
                 <div className="w-2 h-2 rounded-full bg-blue-500 mr-2" />
                 Model locked for this conversation
               </Badge>
-            </div>
-          )}
+            </div>}
           <form onSubmit={handleSubmit}>
             <div className="relative bg-white rounded-3xl shadow-lg border border-gray-200">
               {/* Dropdowns Row */}
               <div className="absolute -top-11 left-4 flex items-center gap-2.5">
                 <ModeDropdown />
-                <ModelSelector 
-                  values={selectedModels} 
-                  onChange={setSelectedModels}
-                  disabled={isModelLocked}
-                />
+                <ModelSelector values={selectedModels} onChange={setSelectedModels} disabled={isModelLocked} />
               </div>
 
               {/* File Attachments Preview */}
-              {attachedFiles.length > 0 && (
-                <div className="px-4 pt-3 pb-2 border-b border-gray-100">
+              {attachedFiles.length > 0 && <div className="px-4 pt-3 pb-2 border-b border-gray-100">
                   <div className="flex flex-wrap gap-2">
-                    {attachedFiles.map((file, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 text-sm"
-                      >
+                    {attachedFiles.map((file, index) => <div key={index} className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 text-sm">
                         <span className="text-gray-700 truncate max-w-[200px]">{file.name}</span>
                         <span className="text-gray-400 text-xs">
                           ({(file.size / 1024).toFixed(1)} KB)
                         </span>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveFile(index)}
-                          className="text-gray-400 hover:text-gray-600 ml-1"
-                        >
+                        <button type="button" onClick={() => handleRemoveFile(index)} className="text-gray-400 hover:text-gray-600 ml-1">
                           ×
                         </button>
-                      </div>
-                    ))}
+                      </div>)}
                   </div>
-                </div>
-              )}
+                </div>}
 
               {/* Hidden File Input */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                accept="*/*"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
+              <input ref={fileInputRef} type="file" multiple accept="*/*" onChange={handleFileSelect} className="hidden" />
 
               {/* Input Row */}
               <div className="flex items-center gap-2 p-4">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="w-9 h-9 flex-shrink-0"
-                >
+                <Button type="button" variant="ghost" size="icon" className="w-9 h-9 flex-shrink-0">
                   <ChevronDown className="w-5 h-5 text-muted-foreground" />
                 </Button>
 
-                <input
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder={getPlaceholder()}
-                  disabled={isLoading}
-                  className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted-foreground disabled:opacity-50"
-                  maxLength={4000}
-                />
+                <input type="text" value={input} onChange={e => setInput(e.target.value)} placeholder={getPlaceholder()} disabled={isLoading} className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted-foreground disabled:opacity-50" maxLength={4000} />
 
                 <div className="flex items-center gap-1 flex-shrink-0">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="w-9 h-9"
-                  >
+                  <Button type="button" variant="ghost" size="icon" className="w-9 h-9">
                     <Mic className="w-5 h-5 text-muted-foreground" />
                   </Button>
 
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="w-9 h-9"
-                  >
+                  <Button type="button" variant="ghost" size="icon" className="w-9 h-9">
                     <Volume2 className="w-5 h-5 text-muted-foreground" />
                   </Button>
 
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="w-9 h-9"
-                    onClick={triggerFileInput}
-                  >
+                  <Button type="button" variant="ghost" size="icon" className="w-9 h-9" onClick={triggerFileInput}>
                     <Paperclip className="w-5 h-5 text-muted-foreground" />
                   </Button>
 
-                  <Button
-                    type={isLoading ? "button" : "submit"}
-                    onClick={isLoading ? cancelGeneration : undefined}
-                    disabled={!isLoading && (!input.trim() || selectedModels.length === 0)}
-                    size="icon"
-                    className={`${
-                      isLoading 
-                        ? 'w-8 h-8 rounded-full bg-gray-700 hover:bg-gray-800 animate-pulse' 
-                        : 'w-9 h-9 bg-blue-600 hover:bg-blue-700'
-                    } text-white transition-all duration-200 disabled:opacity-50`}
-                  >
-                    {isLoading ? (
-                      <Square className="w-3.5 h-3.5 fill-current" />
-                    ) : (
-                      <Send className="w-4 h-4" />
-                    )}
+                  <Button type={isLoading ? "button" : "submit"} onClick={isLoading ? cancelGeneration : undefined} disabled={!isLoading && (!input.trim() || selectedModels.length === 0)} size="icon" className={`${isLoading ? 'w-8 h-8 rounded-full bg-gray-700 hover:bg-gray-800 animate-pulse' : 'w-9 h-9 bg-blue-600 hover:bg-blue-700'} text-white transition-all duration-200 disabled:opacity-50`}>
+                    {isLoading ? <Square className="w-3.5 h-3.5 fill-current" /> : <Send className="w-4 h-4" />}
                   </Button>
                 </div>
               </div>
@@ -297,12 +221,11 @@ export function ChatInterface() {
       </div>
 
       {/* Scroll to Top Button */}
-      <Button
-        className="fixed bottom-6 right-6 w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg z-50"
-        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-      >
-        <ChevronUp className="w-5 h-5" />
+      <Button className="fixed bottom-6 right-6 w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg z-50" onClick={() => window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    })}>
+        
       </Button>
-    </div>
-  );
+    </div>;
 }
