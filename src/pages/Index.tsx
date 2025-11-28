@@ -111,7 +111,7 @@ const Index = () => {
               <button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className="absolute right-2 p-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="absolute right-2 p-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95"
               >
                 <Send className="w-4 h-4" />
               </button>

@@ -1,3 +1,4 @@
+import { useState, useRef } from 'react';
 import { api } from '@/lib/api';
 import { useChatStore } from '../store/chatStore';
 import { useModeStore } from '@/features/modes/store/modeStore';
@@ -7,8 +8,25 @@ export const useChat = () => {
   const { messages, addMessage, updateMessage, setLoading, setError, isLoading } = useChatStore();
   const { selectedMode } = useModeStore();
   const { toast } = useToast();
+  const [lastRequestTime, setLastRequestTime] = useState(0);
+  const cooldownMs = 2000; // 2 second cooldown
   
   const sendMessage = async (content: string, selectedModel?: string) => {
+    // Rate limiting check
+    const now = Date.now();
+    const timeSinceLastRequest = now - lastRequestTime;
+    if (timeSinceLastRequest < cooldownMs) {
+      const waitTime = Math.ceil((cooldownMs - timeSinceLastRequest) / 1000);
+      toast({
+        title: 'Please wait',
+        description: `You can send another message in ${waitTime} second${waitTime > 1 ? 's' : ''}`,
+        variant: 'default',
+      });
+      return;
+    }
+    
+    setLastRequestTime(now);
+    
     const userMessage = {
       id: Date.now().toString(),
       role: 'user' as const,
@@ -22,6 +40,7 @@ export const useChat = () => {
     
     // Add placeholder for assistant response
     const assistantId = (Date.now() + 1).toString();
+    let streamingContent = '';
     
     try {
       if (selectedMode === 'image') {
@@ -45,26 +64,40 @@ export const useChat = () => {
           description: 'Your image has been created successfully',
         });
       } else {
+        // Create streaming message placeholder
+        const streamingMessage = {
+          id: assistantId,
+          role: 'assistant' as const,
+          content: '',
+          timestamp: Date.now(),
+          metadata: {
+            model: selectedModel || 'AI',
+            provider: 'openai'
+          }
+        };
+        addMessage(streamingMessage);
+        
         const response = await api.sendMessage(
           content,
           selectedMode,
           messages,
           undefined,
-          selectedModel
+          selectedModel,
+          (chunk: string) => {
+            // Update message with streaming content
+            streamingContent += chunk;
+            updateMessage(assistantId, { content: streamingContent });
+          }
         );
         
-        const assistantMessage = {
-          id: assistantId,
-          role: 'assistant' as const,
-          content: response.content,
-          timestamp: Date.now(),
+        // Update with final metadata
+        updateMessage(assistantId, {
+          content: response.content || streamingContent,
           metadata: {
             model: response.model,
             provider: response.provider
           }
-        };
-        
-        addMessage(assistantMessage);
+        });
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Something went wrong';

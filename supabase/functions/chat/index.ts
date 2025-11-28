@@ -24,7 +24,7 @@ serve(async (req) => {
   }
 
   try {
-    const { message, mode, conversationHistory = [], provider, model: requestedModel }: ChatRequest = await req.json();
+    const { message, mode, conversationHistory = [], provider, model: requestedModel, stream = false }: ChatRequest & { stream?: boolean } = await req.json();
     
     console.log('Chat request:', { message, mode, provider, requestedModel, historyLength: conversationHistory.length });
     
@@ -77,7 +77,8 @@ serve(async (req) => {
       body = {
         model,
         messages,
-        max_completion_tokens: 4096
+        max_completion_tokens: 4096,
+        stream
       };
     } else if (selectedProvider === 'anthropic') {
       apiKey = Deno.env.get('ANTHROPIC_API_KEY');
@@ -127,7 +128,7 @@ serve(async (req) => {
       throw new Error(`Unsupported provider: ${selectedProvider}`);
     }
     
-    console.log('Calling AI provider:', selectedProvider, model);
+    console.log('Calling AI provider:', selectedProvider, model, 'stream:', stream);
     
     const response = await fetch(apiUrl, {
       method: 'POST',
@@ -141,6 +142,68 @@ serve(async (req) => {
       throw new Error(`AI provider error: ${response.status}`);
     }
     
+    // Handle streaming response
+    if (stream && selectedProvider === 'openai') {
+      const encoder = new TextEncoder();
+      const readable = new ReadableStream({
+        async start(controller) {
+          const reader = response.body?.getReader();
+          if (!reader) {
+            controller.close();
+            return;
+          }
+          
+          const decoder = new TextDecoder();
+          let buffer = '';
+          
+          try {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              
+              buffer += decoder.decode(value, { stream: true });
+              const lines = buffer.split('\n');
+              buffer = lines.pop() || '';
+              
+              for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                  const data = line.slice(6);
+                  if (data === '[DONE]') continue;
+                  
+                  try {
+                    const parsed = JSON.parse(data);
+                    const content = parsed.choices?.[0]?.delta?.content;
+                    if (content) {
+                      const sseData = `data: ${JSON.stringify({ content, model, provider: selectedProvider })}\n\n`;
+                      controller.enqueue(encoder.encode(sseData));
+                    }
+                  } catch (e) {
+                    // Skip invalid JSON
+                  }
+                }
+              }
+            }
+            
+            controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+            controller.close();
+          } catch (error) {
+            console.error('Streaming error:', error);
+            controller.error(error);
+          }
+        }
+      });
+      
+      return new Response(readable, {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive'
+        }
+      });
+    }
+    
+    // Handle non-streaming response
     const data = await response.json();
     console.log('AI response received:', JSON.stringify(data).substring(0, 200));
     

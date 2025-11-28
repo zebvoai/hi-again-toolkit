@@ -8,7 +8,8 @@ export const api = {
     mode: Mode, 
     history: Message[],
     provider?: Provider,
-    model?: string
+    model?: string,
+    onChunk?: (chunk: string) => void
   ): Promise<ChatResponse> {
     const response = await fetch(`${API_BASE}/chat`, {
       method: 'POST',
@@ -21,13 +22,62 @@ export const api = {
         mode,
         conversationHistory: history,
         provider,
-        model
+        model,
+        stream: !!onChunk
       })
     });
     
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || 'Request failed');
+    }
+    
+    // Handle streaming response
+    if (onChunk && response.body) {
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let fullContent = '';
+      let responseModel = '';
+      let responseProvider = '';
+      
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+          
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6);
+              if (data === '[DONE]') continue;
+              
+              try {
+                const parsed = JSON.parse(data);
+                if (parsed.content) {
+                  fullContent += parsed.content;
+                  responseModel = parsed.model || responseModel;
+                  responseProvider = parsed.provider || responseProvider;
+                  onChunk(parsed.content);
+                }
+              } catch (e) {
+                // Skip invalid JSON
+              }
+            }
+          }
+        }
+      } catch (error) {
+        throw new Error('Streaming failed');
+      }
+      
+      return {
+        content: fullContent,
+        model: responseModel,
+        provider: responseProvider
+      };
     }
     
     return response.json();

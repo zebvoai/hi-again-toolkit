@@ -36,7 +36,7 @@ export const Message = ({ message, onRetry }: MessageProps) => {
   };
   
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-6 group`}>
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-6 group animate-fade-in`}>
       <div
         className={`
           max-w-[75%] rounded-2xl px-5 py-4 shadow-sm relative
