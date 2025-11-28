@@ -41,10 +41,7 @@ serve(async (req) => {
         
         // Google Models
         'Gemini 2.5 Flash Image',
-        'Gemini 3 Pro Image',
-        
-        // Other
-        'Stable Diffusion XL'
+        'Gemini 3 Pro Image'
       ],
       video: [
         'Runway Gen-2',

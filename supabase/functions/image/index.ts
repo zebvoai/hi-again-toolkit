@@ -16,9 +16,8 @@ const modelMapping: Record<string, { api: string; provider: 'lovable' | 'openai'
   'gpt-image-1': { api: 'gpt-image-1', provider: 'openai' },
   'dall-e-3': { api: 'dall-e-3', provider: 'openai' },
   'dall-e-2': { api: 'dall-e-2', provider: 'openai' },
-  'gemini-2.5-flash-image': { api: 'google/gemini-2.5-flash-image-preview', provider: 'lovable' },
+  'gemini-2.5-flash-image': { api: 'google/gemini-2.5-flash-image', provider: 'lovable' },
   'gemini-3-pro-image': { api: 'google/gemini-3-pro-image-preview', provider: 'lovable' },
-  'stable-diffusion-xl': { api: 'stable-diffusion-xl', provider: 'lovable' },
 };
 
 serve(async (req) => {
@@ -34,7 +33,7 @@ serve(async (req) => {
     // Determine the actual provider and model to use
     const modelConfig = model ? modelMapping[model.toLowerCase().replace(/\s+/g, '-')] : undefined;
     const actualProvider = modelConfig?.provider || 'lovable';
-    const actualModel = modelConfig?.api || 'google/gemini-2.5-flash-image-preview';
+    const actualModel = modelConfig?.api || 'google/gemini-2.5-flash-image';
     
     console.log('Using provider:', actualProvider, 'model:', actualModel);
     
