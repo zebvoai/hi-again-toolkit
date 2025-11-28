@@ -11,6 +11,7 @@ import { ModeDropdown } from '@/features/modes/components/ModeDropdown';
 import { Badge } from '@/components/ui/badge';
 import { TopActions } from '@/components/TopActions';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useModels } from '@/features/chat/hooks/useModels';
 export function ChatInterface() {
   const [input, setInput] = useState('');
   const [isTemporaryMode, setIsTemporaryMode] = useState(false);
@@ -30,12 +31,13 @@ export function ChatInterface() {
     isModelLocked,
     setSelectedModels
   } = useChatStore();
+  const { models } = useModels();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Reset selected models when mode changes (unless models are locked)
   useEffect(() => {
-    if (isModelLocked) return; // Don't reset if models are locked in a conversation
+    if (isModelLocked || !models) return; // Don't reset if models are locked in a conversation
 
     const defaultModels: Record<string, string> = {
       text: 'GPT-5',
@@ -43,11 +45,24 @@ export function ChatInterface() {
       video: 'Runway Gen-2',
       build: 'GPT-5'
     };
-    const defaultModel = defaultModels[selectedMode] || 'GPT-5';
     
-    // Completely clear and reset to only the default model for this mode
-    setSelectedModels([defaultModel]);
-  }, [selectedMode, isModelLocked, setSelectedModels]);
+    // Get available models for current mode
+    const availableModelsForMode = models[selectedMode] || [];
+    
+    // Filter out models that don't belong to current mode
+    const validModels = selectedModels.filter(model => 
+      availableModelsForMode.includes(model)
+    );
+    
+    // If no valid models remain, set the default model
+    if (validModels.length === 0) {
+      const defaultModel = defaultModels[selectedMode] || 'GPT-5';
+      setSelectedModels([defaultModel]);
+    } else if (validModels.length !== selectedModels.length) {
+      // Some models were invalid, update to only valid ones
+      setSelectedModels(validModels);
+    }
+  }, [selectedMode, isModelLocked, models, selectedModels, setSelectedModels]);
 
   // Initialize with default model if none selected
   useEffect(() => {
