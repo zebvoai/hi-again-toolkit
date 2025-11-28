@@ -8,7 +8,6 @@ export const useChatStore = create<ChatState>((set) => ({
   selectedModels: [],
   isModelLocked: false,
   currentConversationId: null,
-  isTemporaryMode: false,
   addMessage: (message) => set((state) => ({ 
     messages: [...state.messages, message] 
   })),
@@ -24,6 +23,5 @@ export const useChatStore = create<ChatState>((set) => ({
   lockModels: () => set({ isModelLocked: true }),
   unlockModels: () => set({ isModelLocked: false }),
   setMessages: (messages) => set({ messages }),
-  setCurrentConversationId: (id) => set({ currentConversationId: id }),
-  setTemporaryMode: (isTemporary) => set({ isTemporaryMode: isTemporary })
+  setCurrentConversationId: (id) => set({ currentConversationId: id })
 }));

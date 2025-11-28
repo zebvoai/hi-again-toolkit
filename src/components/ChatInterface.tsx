@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ChevronDown, Mic, Volume2, Paperclip, Send, ChevronUp, EyeOff } from 'lucide-react';
+import { ChevronDown, Mic, Volume2, Paperclip, Send, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useChat } from '@/features/chat/hooks/useChat';
 import { useModeStore } from '@/features/modes/store/modeStore';
@@ -9,13 +9,12 @@ import { TypingIndicator } from '@/features/chat/components/TypingIndicator';
 import { ModelSelector } from '@/features/chat/components/ModelSelector';
 import { ModeDropdown } from '@/features/modes/components/ModeDropdown';
 import { Badge } from '@/components/ui/badge';
-import { ActionIcons } from '@/components/ActionIcons';
 
 export function ChatInterface() {
   const [input, setInput] = useState('');
   const { messages, sendMessage, isLoading, retryMessage } = useChat();
   const { selectedMode } = useModeStore();
-  const { selectedModels, isModelLocked, isTemporaryMode, setSelectedModels } = useChatStore();
+  const { selectedModels, isModelLocked, setSelectedModels } = useChatStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Initialize with default model if none selected
@@ -38,9 +37,6 @@ export function ChatInterface() {
   };
 
   const getPlaceholder = () => {
-    if (isTemporaryMode) {
-      return 'Ask anything (temporary mode)...';
-    }
     switch (selectedMode) {
       case 'image':
         return 'Describe the image you want to generate...';
@@ -55,21 +51,6 @@ export function ChatInterface() {
 
   return (
     <div className="flex flex-col h-full relative bg-gray-50/50">
-      {/* Action Icons */}
-      <ActionIcons />
-
-      {/* Temporary Mode Banner */}
-      {isTemporaryMode && (
-        <div className="bg-blue-50 border-b border-blue-200 px-4 py-2.5">
-          <div className="max-w-4xl mx-auto flex items-center justify-center gap-2 text-sm text-blue-700">
-            <EyeOff className="w-4 h-4" />
-            <span className="font-medium">Temporary Chat Mode</span>
-            <span className="text-blue-600">—</span>
-            <span className="text-blue-600">This conversation is private and won't be saved</span>
-          </div>
-        </div>
-      )}
-
       {/* Messages Area */}
       {messages.length > 0 ? (
         <div className="flex-1 overflow-y-auto px-4 py-8">
