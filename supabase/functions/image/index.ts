@@ -8,6 +8,7 @@ const corsHeaders = {
 interface ImageRequest {
   prompt: string;
   provider?: string;
+  model?: string;
 }
 
 serve(async (req) => {
@@ -16,9 +17,9 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, provider }: ImageRequest = await req.json();
+    const { prompt, provider, model }: ImageRequest = await req.json();
     
-    console.log('Image generation request:', { prompt, provider });
+    console.log('Image generation request:', { prompt, provider, model });
     
     const selectedProvider = provider || 'openai';
     
@@ -36,7 +37,7 @@ serve(async (req) => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'dall-e-3',
+          model: model || 'dall-e-3',
           prompt,
           n: 1,
           size: '1024x1024'
@@ -55,7 +56,8 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({
           imageUrl: data.data[0].url,
-          revisedPrompt: data.data[0].revised_prompt
+          revisedPrompt: data.data[0].revised_prompt,
+          model: model || 'dall-e-3'
         }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }

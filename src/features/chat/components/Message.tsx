@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { MultiModelResponse } from './MultiModelResponse';
+import { MultiModelImageResponse } from './MultiModelImageResponse';
 import { formatModelName } from '@/lib/utils';
 
 interface MessageProps {
@@ -47,6 +48,21 @@ export const Message = ({ message, onRetry }: MessageProps) => {
   if (isMultiModel) {
     const multiContent = message.content as MultiModelContent;
     const models = message.metadata?.models || Object.keys(multiContent);
+    const isImageMode = message.metadata?.isImage;
+    
+    // If it's multi-model image generation
+    if (isImageMode) {
+      return (
+        <div className="flex justify-start mb-6 group animate-fade-in">
+          <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center shadow-md mr-3 flex-shrink-0">
+            <Bot className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex-1 max-w-4xl">
+            <MultiModelImageResponse content={multiContent} models={models} />
+          </div>
+        </div>
+      );
+    }
     
     return (
       <div className="flex justify-start mb-6 group animate-fade-in">

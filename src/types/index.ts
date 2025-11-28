@@ -16,6 +16,7 @@ export interface Message {
     provider?: string;
     imageUrl?: string;
     error?: string;
+    isImage?: boolean;
   };
 }
 
@@ -49,6 +50,7 @@ export interface ImageRequest {
 export interface ImageResponse {
   imageUrl: string;
   revisedPrompt?: string;
+  model?: string;
 }
 
 export interface AvailableModels {
