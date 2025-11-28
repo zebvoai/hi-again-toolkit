@@ -99,17 +99,13 @@ export function ChatInterface() {
           <form onSubmit={handleSubmit}>
             <div className="relative bg-white rounded-3xl shadow-lg border border-gray-200">
               {/* Dropdowns Row */}
-              <div className="absolute -top-10 left-4 flex items-center gap-2">
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                  <ModeDropdown />
-                </div>
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                  <ModelSelector 
-                    values={selectedModels} 
-                    onChange={setSelectedModels}
-                    disabled={isModelLocked}
-                  />
-                </div>
+              <div className="absolute -top-11 left-4 flex items-center gap-2.5">
+                <ModeDropdown />
+                <ModelSelector 
+                  values={selectedModels} 
+                  onChange={setSelectedModels}
+                  disabled={isModelLocked}
+                />
               </div>
 
               {/* Input Row */}
