@@ -72,8 +72,36 @@ html {
   }
 }
 
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
 .animate-fade-in {
   animation: fade-in 0.3s ease-out;
+}
+
+.animate-shimmer {
+  animation: shimmer 2s linear infinite;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  background-size: 200% 100%;
+}
+
+/* Premium glassmorphism utilities */
+.glass-panel {
+  @apply bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 shadow-xl;
+}
+
+.glass-panel-hover {
+  @apply transition-all duration-200 hover:bg-white/80 dark:hover:bg-gray-900/80 hover:shadow-2xl;
+}
+
+.frosted-glass {
+  @apply backdrop-blur-2xl bg-white/95 dark:bg-gray-900/95 border border-white/20 dark:border-gray-700/30;
 }
 
 /* Custom scrollbar */
