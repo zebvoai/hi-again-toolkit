@@ -570,91 +570,88 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
               </div>
             )}
             
-            <div className="grid grid-cols-3 gap-2">
-              {allPresets.map((preset) => {
-                const Icon = preset.icon;
-                const presetModels = preset.models[selectedMode] || [];
-                const availableCount = presetModels.filter(m => availableModels.includes(m)).length;
-                const isActive = matchingPreset?.id === preset.id;
-                
-                return (
-                  <TooltipProvider key={preset.id} delayDuration={200}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="relative">
-                          <button
-                            onClick={() => handlePresetSelect(preset.id)}
-                            disabled={availableCount === 0}
-                            className={cn(
-                              "w-full flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all duration-200",
-                              "bg-white/50 dark:bg-gray-800/50 border",
-                              isActive 
-                                ? "border-purple-500 bg-purple-50/80 dark:bg-purple-900/30 ring-2 ring-purple-500/20" 
-                                : "border-gray-200 dark:border-gray-700",
-                              !isActive && "hover:bg-white/80 dark:hover:bg-gray-800/80 hover:border-gray-300 dark:hover:border-gray-600",
-                              "hover:shadow-md",
-                              availableCount === 0 && "opacity-40 cursor-not-allowed"
-                            )}
-                          >
-                            <Icon className={cn(
-                              "w-5 h-5",
-                              isActive ? "text-purple-600 dark:text-purple-400" : "text-gray-700 dark:text-gray-300"
-                            )} />
-                            <span className={cn(
-                              "text-xs font-medium",
-                              isActive ? "text-purple-700 dark:text-purple-400" : "text-gray-900 dark:text-gray-100"
-                            )}>
-                              {preset.name}
-                            </span>
-                            <span className="text-[10px] text-gray-500 dark:text-gray-400">
-                              {availableCount} models
-                            </span>
-                          </button>
-                          
-                          {/* Delete button for custom presets */}
-                          {preset.isCustom && (
+            <div className="max-h-28 overflow-y-auto pr-1">
+              <div className="grid grid-cols-3 gap-2">
+                {allPresets.map((preset) => {
+                  const presetModels = preset.models[selectedMode] || [];
+                  const availableCount = presetModels.filter(m => availableModels.includes(m)).length;
+                  const isActive = matchingPreset?.id === preset.id;
+                  
+                  return (
+                    <TooltipProvider key={preset.id} delayDuration={200}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="relative">
                             <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeletePreset(preset.id);
-                              }}
-                              className="absolute -top-1 -right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-md"
+                              onClick={() => handlePresetSelect(preset.id)}
+                              disabled={availableCount === 0}
+                              className={cn(
+                                "w-full flex flex-col items-start gap-1.5 p-3 rounded-xl transition-all duration-200",
+                                "bg-white/50 dark:bg-gray-800/50 border",
+                                isActive 
+                                  ? "border-purple-500 bg-purple-50/80 dark:bg-purple-900/30 ring-2 ring-purple-500/20" 
+                                  : "border-gray-200 dark:border-gray-700",
+                                !isActive && "hover:bg-white/80 dark:hover:bg-gray-800/80 hover:border-gray-300 dark:hover:border-gray-600",
+                                "hover:shadow-md",
+                                availableCount === 0 && "opacity-40 cursor-not-allowed"
+                              )}
                             >
-                              <Trash2 className="w-3 h-3" />
+                              <span className={cn(
+                                "text-xs font-medium",
+                                isActive ? "text-purple-700 dark:text-purple-400" : "text-gray-900 dark:text-gray-100"
+                              )}>
+                                {preset.name}
+                              </span>
+                              <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                                {availableCount} models
+                              </span>
                             </button>
-                          )}
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent 
-                        side="top"
-                        className="bg-gray-900/95 dark:bg-gray-950/95 backdrop-blur-xl border-gray-700/50 p-3 z-[150]"
-                      >
-                        <div className="space-y-1">
-                          <p className="font-semibold text-white text-xs">
-                            {preset.name} Preset {preset.isCustom && '(Custom)'}
-                          </p>
-                          <p className="text-xs text-gray-300">{preset.description}</p>
-                          {availableCount > 0 && (
-                            <div className="pt-2 border-t border-gray-700/50">
-                              <p className="text-[10px] text-gray-400 mb-1">Models in this preset:</p>
-                              <div className="flex flex-wrap gap-1">
-                                {presetModels.filter(m => availableModels.includes(m)).slice(0, 4).map((model) => (
-                                  <span
-                                    key={model}
-                                    className="text-[10px] px-1.5 py-0.5 bg-blue-500/20 text-blue-300 rounded"
-                                  >
-                                    {model}
-                                  </span>
-                                ))}
+                            
+                            {/* Delete button for custom presets */}
+                            {preset.isCustom && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeletePreset(preset.id);
+                                }}
+                                className="absolute -top-1 -right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-md"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            )}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent 
+                          side="top"
+                          className="bg-gray-900/95 dark:bg-gray-950/95 backdrop-blur-xl border-gray-700/50 p-3 z-[150]"
+                        >
+                          <div className="space-y-1">
+                            <p className="font-semibold text-white text-xs">
+                              {preset.name} Preset {preset.isCustom && '(Custom)'}
+                            </p>
+                            <p className="text-xs text-gray-300">{preset.description}</p>
+                            {availableCount > 0 && (
+                              <div className="pt-2 border-t border-gray-700/50">
+                                <p className="text-[10px] text-gray-400 mb-1">Models in this preset:</p>
+                                <div className="flex flex-wrap gap-1">
+                                  {presetModels.filter(m => availableModels.includes(m)).slice(0, 4).map((model) => (
+                                    <span
+                                      key={model}
+                                      className="text-[10px] px-1.5 py-0.5 bg-blue-500/20 text-blue-300 rounded"
+                                    >
+                                      {model}
+                                    </span>
+                                  ))}
+                                </div>
                               </div>
-                            </div>
-                          )}
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                );
-              })}
+                            )}
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  );
+                })}
+              </div>
             </div>
           </div>
           
