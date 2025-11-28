@@ -36,7 +36,7 @@ const Index = () => {
     <div className="min-h-screen bg-background flex flex-col relative">
       {/* Messages Area - Only show when there are messages */}
       {messages.length > 0 && (
-        <div className="flex-1 overflow-y-auto px-4 pt-8 pb-32">
+        <div className="flex-1 overflow-y-auto px-4 pt-8 pb-40">
           <div className="max-w-4xl mx-auto">
             {messages.map((message) => (
               <Message key={message.id} message={message} />
@@ -66,11 +66,11 @@ const Index = () => {
       
       {/* Fixed Bottom Input Area */}
       <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border">
-        <div className="max-w-4xl mx-auto px-4 py-6">
+        <div className="max-w-4xl mx-auto px-4 py-3">
           {/* Model Selector */}
-          <div className="flex justify-center mb-4">
+          <div className="flex justify-center mb-2">
             <Select defaultValue="zebvo-4">
-              <SelectTrigger className="w-auto border-border bg-background rounded-lg text-sm px-4 py-2">
+              <SelectTrigger className="w-auto border-border bg-background rounded-lg text-sm px-3 py-1.5 h-8">
                 <SelectValue placeholder="Select model" />
               </SelectTrigger>
               <SelectContent>
@@ -83,13 +83,13 @@ const Index = () => {
           </div>
           
           {/* Chat Input */}
-          <form onSubmit={handleSubmit} className="mb-5">
+          <form onSubmit={handleSubmit} className="mb-3">
             <div className="relative flex items-center bg-background border border-border rounded-full shadow-lg hover:shadow-xl transition-shadow">
               <button
                 type="button"
-                className="absolute left-5 text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute left-4 text-muted-foreground hover:text-foreground transition-colors"
               >
-                <Paperclip className="w-5 h-5" />
+                <Paperclip className="w-4 h-4" />
               </button>
               
               <input
@@ -98,26 +98,26 @@ const Index = () => {
                 onChange={(e) => setInput(e.target.value)}
                 placeholder={getPlaceholder()}
                 disabled={isLoading}
-                className="flex-1 px-16 py-4 bg-transparent outline-none text-sm placeholder:text-muted-foreground disabled:opacity-50"
+                className="flex-1 px-12 py-3 bg-transparent outline-none text-sm placeholder:text-muted-foreground disabled:opacity-50"
               />
               
               <button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className="absolute right-3 p-2.5 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="absolute right-2 p-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
-                <Send className="w-5 h-5" />
+                <Send className="w-4 h-4" />
               </button>
             </div>
           </form>
           
           {/* Mode Selector */}
-          <div className="flex justify-center mb-4">
+          <div className="flex justify-center mb-2">
             <ModeSelector />
           </div>
           
           {/* Disclaimer */}
-          <p className="text-center text-xs text-muted-foreground">
+          <p className="text-center text-xs text-muted-foreground pb-1">
             Zebvo AI can make mistakes. Check important info.{' '}
             <button className="underline hover:text-foreground transition-colors">
               See Cookie Preferences

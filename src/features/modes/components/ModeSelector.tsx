@@ -12,13 +12,13 @@ export const ModeSelector = () => {
   const { selectedMode, setMode } = useModeStore();
   
   return (
-    <div className="inline-flex items-center gap-2 bg-muted/50 rounded-full p-1">
+    <div className="inline-flex items-center gap-1.5 bg-muted/50 rounded-full p-0.5">
       {modes.map((mode) => (
         <button
           key={mode.id}
           onClick={() => setMode(mode.id)}
           className={`
-            px-6 py-2 rounded-full text-sm font-medium transition-all
+            px-5 py-1.5 rounded-full text-sm font-medium transition-all
             ${selectedMode === mode.id 
               ? 'bg-background text-foreground shadow-sm' 
               : 'text-muted-foreground hover:text-foreground'
