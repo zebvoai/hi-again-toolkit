@@ -1,5 +1,5 @@
-import { Plus, User, Search, Library, Folder, ChevronDown, ChevronRight, MoreVertical } from 'lucide-react';
-import { useState } from 'react';
+import { Plus, User, Search, Library, Folder, ChevronDown, ChevronRight, MoreVertical } from "lucide-react";
+import { useState } from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -7,44 +7,32 @@ import {
   SidebarHeader,
   SidebarTrigger,
   useSidebar,
-} from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
+} from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { useChatStore } from '@/features/chat/store/chatStore';
-import { useConversations } from '@/features/chat/hooks/useConversations';
-import { ConversationItem } from './ConversationItem';
-import { isToday, isYesterday, format } from 'date-fns';
+} from "@/components/ui/dropdown-menu";
+import { useChatStore } from "@/features/chat/store/chatStore";
+import { useConversations } from "@/features/chat/hooks/useConversations";
+import { ConversationItem } from "./ConversationItem";
+import { isToday, isYesterday, format } from "date-fns";
 
 export function AppSidebar() {
   const { state } = useSidebar();
-  const isCollapsed = state === 'collapsed';
-  const { 
-    clearMessages, 
-    unlockModels, 
-    setCurrentConversationId,
-    currentConversationId,
-    setMessages,
-    lockModels
-  } = useChatStore();
-  const { 
-    conversations, 
-    isLoading, 
-    loadConversation, 
-    deleteConversation,
-    refreshConversations
-  } = useConversations();
+  const isCollapsed = state === "collapsed";
+  const { clearMessages, unlockModels, setCurrentConversationId, currentConversationId, setMessages, lockModels } =
+    useChatStore();
+  const { conversations, isLoading, loadConversation, deleteConversation, refreshConversations } = useConversations();
 
   // Projects state
   const [isProjectsOpen, setIsProjectsOpen] = useState(true);
   const [projects, setProjects] = useState([
-    { id: 1, name: 'Queries' },
-    { id: 2, name: 'Zebvo' }
+    { id: 1, name: "Queries" },
+    { id: 2, name: "Zebvo" },
   ]);
   const [hoveredProject, setHoveredProject] = useState<number | null>(null);
 
@@ -58,7 +46,7 @@ export function AppSidebar() {
     const messages = await loadConversation(conversationId);
     setMessages(messages);
     setCurrentConversationId(conversationId);
-    
+
     // Lock models if conversation has messages
     if (messages.length > 0) {
       lockModels();
@@ -72,47 +60,47 @@ export function AppSidebar() {
     }
   };
 
-  const handleProjectAction = (projectId: number, action: 'rename' | 'duplicate' | 'archive' | 'delete') => {
+  const handleProjectAction = (projectId: number, action: "rename" | "duplicate" | "archive" | "delete") => {
     console.log(`Project ${projectId} - ${action}`);
     // TODO: Implement project actions
-    if (action === 'delete') {
-      setProjects(projects.filter(p => p.id !== projectId));
+    if (action === "delete") {
+      setProjects(projects.filter((p) => p.id !== projectId));
     }
   };
 
   const handleShare = async (conversationId: string) => {
-    const conversation = conversations.find(c => c.id === conversationId);
+    const conversation = conversations.find((c) => c.id === conversationId);
     if (!conversation) return;
-    
+
     // Use Web Share API if available
     if (navigator.share) {
       try {
         await navigator.share({
           title: conversation.title,
           text: `Check out this conversation: ${conversation.title}`,
-          url: window.location.href
+          url: window.location.href,
         });
       } catch (err) {
-        console.log('Share cancelled');
+        console.log("Share cancelled");
       }
     } else {
       // Fallback: copy to clipboard
       await navigator.clipboard.writeText(window.location.href);
-      alert('Link copied to clipboard!');
+      alert("Link copied to clipboard!");
     }
   };
 
   const handleStartGroupChat = (conversationId: string) => {
-    const conversation = conversations.find(c => c.id === conversationId);
+    const conversation = conversations.find((c) => c.id === conversationId);
     alert(`Starting group chat based on: ${conversation?.title}`);
     // TODO: Open group chat modal with this conversation preselected
   };
 
   const handleRename = (conversationId: string) => {
-    const conversation = conversations.find(c => c.id === conversationId);
+    const conversation = conversations.find((c) => c.id === conversationId);
     if (!conversation) return;
-    
-    const newTitle = prompt('Enter new conversation title:', conversation.title);
+
+    const newTitle = prompt("Enter new conversation title:", conversation.title);
     if (newTitle && newTitle.trim() && newTitle !== conversation.title) {
       // TODO: Call API to rename conversation
       console.log(`Renaming conversation ${conversationId} to: ${newTitle}`);
@@ -121,40 +109,43 @@ export function AppSidebar() {
   };
 
   const handleArchive = async (conversationId: string) => {
-    const conversation = conversations.find(c => c.id === conversationId);
+    const conversation = conversations.find((c) => c.id === conversationId);
     if (!conversation) return;
-    
+
     // TODO: Call API to archive conversation
     console.log(`Archiving conversation: ${conversationId}`);
     alert(`Archived: ${conversation.title}`);
-    
+
     // If this was the current conversation, start a new chat
     if (currentConversationId === conversationId) {
       handleNewChat();
     }
-    
+
     refreshConversations();
   };
 
   // Group conversations by date
-  const groupedConversations = conversations.reduce((acc, conv) => {
-    const date = new Date(conv.updated_at);
-    let label = '';
-    
-    if (isToday(date)) {
-      label = 'TODAY';
-    } else if (isYesterday(date)) {
-      label = 'YESTERDAY';
-    } else {
-      label = format(date, 'MMMM d, yyyy').toUpperCase();
-    }
-    
-    if (!acc[label]) {
-      acc[label] = [];
-    }
-    acc[label].push(conv);
-    return acc;
-  }, {} as Record<string, typeof conversations>);
+  const groupedConversations = conversations.reduce(
+    (acc, conv) => {
+      const date = new Date(conv.updated_at);
+      let label = "";
+
+      if (isToday(date)) {
+        label = "TODAY";
+      } else if (isYesterday(date)) {
+        label = "YESTERDAY";
+      } else {
+        label = format(date, "MMMM d, yyyy").toUpperCase();
+      }
+
+      if (!acc[label]) {
+        acc[label] = [];
+      }
+      acc[label].push(conv);
+      return acc;
+    },
+    {} as Record<string, typeof conversations>,
+  );
 
   if (isCollapsed) {
     return (
@@ -165,7 +156,7 @@ export function AppSidebar() {
             <Button
               variant="ghost"
               size="icon"
-              className="w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white"
+              className="w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-700 text-white"
               onClick={handleNewChat}
             >
               <Plus className="w-5 h-5" />
@@ -195,7 +186,7 @@ export function AppSidebar() {
           <div className="flex items-center mb-2">
             <SidebarTrigger className="w-6 h-6" />
           </div>
-          
+
           {/* New Chat */}
           <Button
             variant="ghost"
@@ -266,8 +257,10 @@ export function AppSidebar() {
                     onMouseLeave={() => setHoveredProject(null)}
                   >
                     <Folder className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                    <span className="text-sm flex-1 truncate whitespace-nowrap overflow-hidden text-ellipsis">{project.name}</span>
-                    
+                    <span className="text-sm flex-1 truncate whitespace-nowrap overflow-hidden text-ellipsis">
+                      {project.name}
+                    </span>
+
                     {/* 3-dot menu (visible on hover) */}
                     {hoveredProject === project.id && (
                       <DropdownMenu>
@@ -285,7 +278,7 @@ export function AppSidebar() {
                           <DropdownMenuItem
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleProjectAction(project.id, 'rename');
+                              handleProjectAction(project.id, "rename");
                             }}
                           >
                             Rename
@@ -293,7 +286,7 @@ export function AppSidebar() {
                           <DropdownMenuItem
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleProjectAction(project.id, 'duplicate');
+                              handleProjectAction(project.id, "duplicate");
                             }}
                           >
                             Duplicate
@@ -301,7 +294,7 @@ export function AppSidebar() {
                           <DropdownMenuItem
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleProjectAction(project.id, 'archive');
+                              handleProjectAction(project.id, "archive");
                             }}
                           >
                             Archive
@@ -309,7 +302,7 @@ export function AppSidebar() {
                           <DropdownMenuItem
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleProjectAction(project.id, 'delete');
+                              handleProjectAction(project.id, "delete");
                             }}
                             className="text-destructive focus:text-destructive"
                           >
@@ -326,13 +319,9 @@ export function AppSidebar() {
 
           {/* Chat History */}
           {isLoading ? (
-            <div className="text-sm text-muted-foreground text-center py-8">
-              Loading...
-            </div>
+            <div className="text-sm text-muted-foreground text-center py-8">Loading...</div>
           ) : conversations.length === 0 ? (
-            <div className="text-sm text-muted-foreground text-center py-8">
-              No conversations yet
-            </div>
+            <div className="text-sm text-muted-foreground text-center py-8">No conversations yet</div>
           ) : (
             <div className="space-y-6">
               {Object.entries(groupedConversations).map(([label, convs]) => (
