@@ -123,6 +123,22 @@ export const useChat = () => {
           title: 'Image generated',
           description: 'Your image has been created successfully',
         });
+      } else if (selectedMode === 'video') {
+        // VIDEO MODE: Filter to only video models
+        const videoModels = ['Runway Gen-2', 'Pika 1.0'];
+        const filteredModels = selectedModels.filter(m => videoModels.includes(m));
+        
+        if (filteredModels.length === 0) {
+          throw new Error('No video model selected. Please select Runway Gen-2 or Pika 1.0.');
+        }
+        
+        toast({
+          title: 'Video generation not available',
+          description: 'Video generation requires Runway or Pika API integration which is not yet implemented.',
+          variant: 'destructive',
+        });
+        
+        throw new Error('Video generation API not yet implemented');
       } else if (selectedModels.length > 1) {
         // Multi-model handling
         let multiModelContent: MultiModelContent = {};
