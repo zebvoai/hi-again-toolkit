@@ -13,7 +13,7 @@ interface ImageRequest {
 
 // Map frontend model names to API model names
 // Only including verified working models to avoid API errors
-const modelMapping: Record<string, { api: string; provider: 'lovable' | 'openai' | 'wavespeed' }> = {
+const modelMapping: Record<string, { api: string; provider: 'lovable' | 'openai' | 'wavespeed'; requiresInputImage?: boolean }> = {
   'gpt-image-1': { api: 'gpt-image-1', provider: 'openai' },
   'dall-e-3': { api: 'dall-e-3', provider: 'openai' },
   'dall-e-2': { api: 'dall-e-2', provider: 'openai' },
@@ -39,10 +39,10 @@ const modelMapping: Record<string, { api: string; provider: 'lovable' | 'openai'
   'stable-diffusion-3.5-large': { api: 'stability-ai/stable-diffusion-3.5-large', provider: 'wavespeed' },
   
   // FLUX Family (Verified working)
-  'flux-pro-1.1-ultra': { api: 'black-forest-labs/flux-pro-1.1-ultra', provider: 'wavespeed' },
+  'flux-pro-1.1-ultra': { api: 'wavespeed-ai/flux-1.1-pro-ultra', provider: 'wavespeed' },
   'flux-dev': { api: 'wavespeed-ai/flux-dev', provider: 'wavespeed' },
   'flux-schnell': { api: 'wavespeed-ai/flux-schnell', provider: 'wavespeed' },
-  'flux-redux-dev': { api: 'wavespeed-ai/flux-redux-dev', provider: 'wavespeed' },
+  'flux-redux-dev': { api: 'wavespeed-ai/flux-redux-dev', provider: 'wavespeed', requiresInputImage: true },
 };
 
 serve(async (req) => {
@@ -57,6 +57,21 @@ serve(async (req) => {
     
     // Determine the actual provider and model to use
     const modelConfig = model ? modelMapping[model.toLowerCase().replace(/\s+/g, '-')] : undefined;
+    
+    // Skip image-to-image models for text-to-image requests
+    if (modelConfig?.requiresInputImage) {
+      console.log(`Skipping ${model} - requires input image for image-to-image generation`);
+      return new Response(
+        JSON.stringify({ 
+          error: `${model} is an image-to-image model and requires an input image. Currently only text-to-image generation is supported.`
+        }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+    
     const actualProvider = modelConfig?.provider || 'lovable';
     const actualModel = modelConfig?.api || 'google/gemini-2.5-flash-image';
     
