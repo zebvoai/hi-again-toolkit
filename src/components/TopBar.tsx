@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
-const tabs = ['Text', 'Image', 'Video', 'Audio', 'Apps'];
+const tabs = ['Text'];
 
 export function TopBar() {
   return (
