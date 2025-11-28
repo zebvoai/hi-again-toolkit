@@ -24,12 +24,13 @@ serve(async (req) => {
     const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
     
     if (!googleApiKey) {
+      console.error('GOOGLE_API_KEY not configured');
       return new Response(
         JSON.stringify({ 
-          error: 'Google API key not configured. Please configure GOOGLE_API_KEY to use video generation.' 
+          error: 'Video generation requires API configuration. Please contact support.' 
         }),
         { 
-          status: 400,
+          status: 503,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       );
@@ -74,13 +75,13 @@ serve(async (req) => {
       console.error('Google API error:', response.status, errorText);
       
       // Check if video generation is not supported
-      if (errorText.includes('not supported') || errorText.includes('modality')) {
+      if (errorText.includes('not supported') || errorText.includes('modality') || errorText.includes('video')) {
         return new Response(
           JSON.stringify({ 
-            error: 'Video generation is not yet available in Google\'s Gemini API. Currently available: text and image generation. Video generation support is coming soon.' 
+            error: 'Video generation is not yet available with the current API. This feature is still in development by the provider. Please try image generation instead.' 
           }),
           { 
-            status: 501,
+            status: 503,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           }
         );
@@ -122,11 +123,10 @@ serve(async (req) => {
     // If no video was generated, return error
     return new Response(
       JSON.stringify({ 
-        error: 'No video generated. The API may not support video generation yet, or the response format is unexpected.',
-        debugInfo: data
+        error: 'Video generation is not currently supported by this API. The provider has not yet enabled video generation capabilities. Please try image generation as an alternative.',
       }),
       { 
-        status: 501,
+        status: 503,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );
