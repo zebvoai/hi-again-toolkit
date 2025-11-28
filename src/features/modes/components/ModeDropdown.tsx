@@ -1,10 +1,10 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useModeStore } from '../store/modeStore';
 import type { Mode } from '@/types';
-import { Image, Video, Code } from 'lucide-react';
+import { MessageSquare, Image, Video, Code } from 'lucide-react';
 
 const modes: { id: Mode; label: string; icon: any }[] = [
-  { id: 'text', label: 'Text', icon: Code },
+  { id: 'text', label: 'Text', icon: MessageSquare },
   { id: 'image', label: 'Image', icon: Image },
   { id: 'video', label: 'Video', icon: Video },
   { id: 'build', label: 'Build', icon: Code }
@@ -18,20 +18,20 @@ export const ModeDropdown = () => {
   
   return (
     <Select value={selectedMode} onValueChange={(value: Mode) => setMode(value)}>
-      <SelectTrigger className="w-auto border-0 bg-transparent rounded-lg text-sm px-3 py-1.5 h-8 hover:bg-white/30 dark:hover:bg-gray-700/30 transition-colors">
+      <SelectTrigger className="w-auto min-w-[100px] border-0 bg-transparent rounded-lg text-sm px-3 py-1.5 h-8 hover:bg-accent transition-colors">
         <div className="flex items-center gap-2">
           <IconComponent className="w-4 h-4" />
           <SelectValue placeholder="Select mode" />
         </div>
       </SelectTrigger>
-      <SelectContent className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border-white/20 dark:border-gray-700/30 shadow-2xl z-50">
+      <SelectContent className="bg-background backdrop-blur-xl border shadow-lg z-[100]">
         {modes.map((mode) => {
           const Icon = mode.icon;
           return (
             <SelectItem 
               key={mode.id} 
               value={mode.id}
-              className="hover:bg-white/50 dark:hover:bg-gray-700/50 focus:bg-white/50 dark:focus:bg-gray-700/50"
+              className="hover:bg-accent focus:bg-accent cursor-pointer"
             >
               <div className="flex items-center gap-2">
                 <Icon className="w-4 h-4" />
