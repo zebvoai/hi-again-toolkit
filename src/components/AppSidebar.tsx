@@ -96,11 +96,11 @@ export function AppSidebar() {
 
         <div className="flex-grow" />
 
-        <SidebarFooter className="flex-none p-4 flex items-center justify-center mb-5">
+        <SidebarFooter className="flex-none p-0 w-full max-w-[60px] flex items-center justify-center mb-5 overflow-hidden">
           <Button
             variant="ghost"
             size="icon"
-            className="w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 hover:scale-105 text-white transition-all duration-150"
+            className="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150"
           >
             <User className="w-5 h-5" />
           </Button>
