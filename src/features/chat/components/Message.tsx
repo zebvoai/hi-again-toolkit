@@ -43,17 +43,17 @@ export const Message = ({ message, onRetry }: MessageProps) => {
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-6 group animate-fade-in`}>
       {/* Avatar for AI */}
       {!isUser && (
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg mr-3 flex-shrink-0">
+        <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center shadow-md mr-3 flex-shrink-0">
           <Bot className="w-5 h-5 text-white" />
         </div>
       )}
       
       <div
         className={`
-          max-w-[70%] rounded-2xl px-6 py-4 shadow-xl relative
+          max-w-[70%] rounded-2xl px-5 py-3.5 shadow-sm relative
           ${isUser 
-            ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white' 
-            : 'bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 text-foreground'
+            ? 'bg-blue-600 text-white' 
+            : 'bg-white border border-gray-200 text-foreground'
           }
         `}
       >
@@ -61,7 +61,7 @@ export const Message = ({ message, onRetry }: MessageProps) => {
         {!isUser && message.metadata?.model && (
           <Badge 
             variant="secondary" 
-            className="mb-3 text-xs font-medium bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border-0"
+            className="mb-2.5 text-xs font-medium bg-gray-100 text-gray-700 border-0"
           >
             {message.metadata.model}
           </Badge>
@@ -72,7 +72,7 @@ export const Message = ({ message, onRetry }: MessageProps) => {
             <img 
               src={message.metadata.imageUrl} 
               alt="Generated" 
-              className="rounded-xl w-full max-w-md shadow-lg"
+              className="rounded-xl w-full max-w-md shadow-md"
             />
             {message.content && (
               <p className="text-sm leading-relaxed">{message.content}</p>
@@ -83,7 +83,7 @@ export const Message = ({ message, onRetry }: MessageProps) => {
             {message.content}
           </p>
         ) : (
-          <div className="prose prose-sm dark:prose-invert max-w-none">
+          <div className="prose prose-sm max-w-none">
             <ReactMarkdown
               components={{
                 code({ node, inline, className, children, ...props }: any) {
@@ -92,17 +92,17 @@ export const Message = ({ message, onRetry }: MessageProps) => {
                   const codeId = `code-${message.id}-${Math.random()}`;
                   
                   return !inline && match ? (
-                    <div className="relative group/code my-4 rounded-xl overflow-hidden shadow-lg">
+                    <div className="relative group/code my-3 rounded-lg overflow-hidden shadow-md">
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="absolute right-2 top-2 opacity-0 group-hover/code:opacity-100 transition-opacity bg-white/10 backdrop-blur-sm hover:bg-white/20"
+                        className="absolute right-2 top-2 opacity-0 group-hover/code:opacity-100 transition-opacity bg-gray-800/80 hover:bg-gray-700"
                         onClick={() => copyToClipboard(codeString, codeId)}
                       >
                         {copiedCode === codeId ? (
-                          <Check className="w-4 h-4" />
+                          <Check className="w-4 h-4 text-white" />
                         ) : (
-                          <Copy className="w-4 h-4" />
+                          <Copy className="w-4 h-4 text-white" />
                         )}
                       </Button>
                       <SyntaxHighlighter
@@ -115,7 +115,7 @@ export const Message = ({ message, onRetry }: MessageProps) => {
                       </SyntaxHighlighter>
                     </div>
                   ) : (
-                    <code className="bg-white/30 dark:bg-gray-800/30 px-2 py-1 rounded text-sm backdrop-blur-sm" {...props}>
+                    <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm" {...props}>
                       {children}
                     </code>
                   );
@@ -129,11 +129,11 @@ export const Message = ({ message, onRetry }: MessageProps) => {
         
         {/* Copy button for AI messages */}
         {!isUser && (
-          <div className="flex items-center gap-2 mt-4 pt-3 border-t border-white/10 dark:border-gray-700/20">
+          <div className="flex items-center gap-2 mt-3 pt-2.5 border-t border-gray-100">
             <Button
               size="sm"
               variant="ghost"
-              className="h-8 px-3 text-xs hover:bg-white/20 dark:hover:bg-gray-800/20 backdrop-blur-sm"
+              className="h-7 px-2.5 text-xs hover:bg-gray-100"
               onClick={copyMessage}
             >
               {copied ? (
@@ -153,7 +153,7 @@ export const Message = ({ message, onRetry }: MessageProps) => {
               <Button
                 size="sm"
                 variant="outline"
-                className="h-8 px-3 text-xs bg-white/10 backdrop-blur-sm hover:bg-white/20"
+                className="h-7 px-2.5 text-xs"
                 onClick={onRetry}
               >
                 Retry
@@ -165,7 +165,7 @@ export const Message = ({ message, onRetry }: MessageProps) => {
       
       {/* Avatar for User */}
       {isUser && (
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg ml-3 flex-shrink-0">
+        <div className="w-9 h-9 rounded-full bg-gray-700 flex items-center justify-center shadow-md ml-3 flex-shrink-0">
           <User className="w-5 h-5 text-white" />
         </div>
       )}

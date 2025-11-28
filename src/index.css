@@ -2,30 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Glassmorphism base */
-@layer base {
-  :root {
-    --glass-bg: rgba(255, 255, 255, 0.1);
-    --glass-border: rgba(255, 255, 255, 0.2);
-  }
-  
-  .dark {
-    --glass-bg: rgba(17, 24, 39, 0.4);
-    --glass-border: rgba(75, 85, 99, 0.3);
-  }
-}
-
 /* Markdown styles */
 .prose {
   @apply text-foreground;
 }
 
 .prose code {
-  @apply bg-white/30 dark:bg-gray-800/30 px-2 py-1 rounded-md text-sm backdrop-blur-sm;
+  @apply bg-muted px-2 py-1 rounded-md text-sm;
 }
 
 .prose pre {
-  @apply bg-gray-900/90 backdrop-blur-xl rounded-xl p-4 my-4 overflow-x-auto shadow-2xl border border-white/10;
+  @apply bg-gray-900 rounded-xl p-4 my-4 overflow-x-auto shadow-lg;
 }
 
 .prose pre code {
@@ -65,7 +52,7 @@
 }
 
 .prose a {
-  @apply text-blue-500 hover:text-blue-600 hover:underline;
+  @apply text-blue-600 hover:text-blue-700 hover:underline;
 }
 
 /* Smooth scrolling */
@@ -99,11 +86,11 @@ html {
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gray-300/50 dark:bg-gray-700/50 rounded-full backdrop-blur-xl;
+  @apply bg-gray-300 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-400/70 dark:bg-gray-600/70;
+  @apply bg-gray-400;
 }
 
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
