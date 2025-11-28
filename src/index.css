@@ -2,17 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Glassmorphism base */
+@layer base {
+  :root {
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.2);
+  }
+  
+  .dark {
+    --glass-bg: rgba(17, 24, 39, 0.4);
+    --glass-border: rgba(75, 85, 99, 0.3);
+  }
+}
+
 /* Markdown styles */
 .prose {
   @apply text-foreground;
 }
 
 .prose code {
-  @apply bg-muted px-1.5 py-0.5 rounded text-sm;
+  @apply bg-white/30 dark:bg-gray-800/30 px-2 py-1 rounded-md text-sm backdrop-blur-sm;
 }
 
 .prose pre {
-  @apply bg-muted rounded-lg p-4 my-4 overflow-x-auto;
+  @apply bg-gray-900/90 backdrop-blur-xl rounded-xl p-4 my-4 overflow-x-auto shadow-2xl border border-white/10;
 }
 
 .prose pre code {
@@ -52,7 +65,7 @@
 }
 
 .prose a {
-  @apply text-primary hover:underline;
+  @apply text-blue-500 hover:text-blue-600 hover:underline;
 }
 
 /* Smooth scrolling */
@@ -74,6 +87,23 @@ html {
 
 .animate-fade-in {
   animation: fade-in 0.3s ease-out;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300/50 dark:bg-gray-700/50 rounded-full backdrop-blur-xl;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400/70 dark:bg-gray-600/70;
 }
 
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
