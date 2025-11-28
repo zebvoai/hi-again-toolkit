@@ -41,7 +41,13 @@ serve(async (req) => {
         
         // Google Models
         'Gemini 2.5 Flash Image',
-        'Gemini 3 Pro Image'
+        'Gemini 3 Pro Image',
+        
+        // Wavespeed Models
+        'Seedream v4',
+        'Flux Pro 1.1 Ultra',
+        'Flux Dev',
+        'Flux Schnell'
       ],
       video: [
         'Gemini Video 2.0',
