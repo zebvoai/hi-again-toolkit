@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ModeSelector } from '@/features/modes/components/ModeSelector';
+import { ModeDropdown } from '@/features/modes/components/ModeDropdown';
 import { ModelSelector } from '@/features/chat/components/ModelSelector';
 import { ChevronUp, Paperclip, Send } from 'lucide-react';
 import { useChat } from '@/features/chat/hooks/useChat';
@@ -81,18 +81,21 @@ const Index = () => {
       {/* Fixed Bottom Input Area */}
       <div className="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-t border-white/20 dark:border-gray-700/30 shadow-2xl">
         <div className="max-w-4xl mx-auto px-4 py-3">
-          {/* Model Selector */}
-          <div className="flex justify-center mb-2">
+          {/* Model and Mode Selectors */}
+          <div className="flex justify-center items-center gap-2 mb-2">
             <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-xl p-1 shadow-lg border border-white/20 dark:border-gray-700/30">
               <ModelSelector 
                 value={selectedModel}
                 onChange={setSelectedModel}
               />
             </div>
+            <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-xl p-1 shadow-lg border border-white/20 dark:border-gray-700/30">
+              <ModeDropdown />
+            </div>
           </div>
           
           {/* Chat Input */}
-          <form onSubmit={handleSubmit} className="mb-3">
+          <form onSubmit={handleSubmit} className="mb-2">
             <div className="relative flex items-center bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl border border-white/30 dark:border-gray-700/40 rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300">
               <button
                 type="button"
@@ -119,11 +122,6 @@ const Index = () => {
               </button>
             </div>
           </form>
-          
-          {/* Mode Selector */}
-          <div className="flex justify-center mb-2">
-            <ModeSelector />
-          </div>
           
           {/* Disclaimer */}
           <p className="text-center text-xs text-muted-foreground pb-1">
