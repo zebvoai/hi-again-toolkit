@@ -7,8 +7,8 @@ import { MODELS, DEFAULT_MODELS_BY_MODE } from '@/constants/models';
 import { SecureStorage } from './storage/SecureStorage';
 
 export class ModelFactory {
-  static getServiceForProvider(provider: AIProvider): OpenAIService | AnthropicService | GoogleService | null {
-    const credentials = SecureStorage.getApiKeys();
+  static async getServiceForProvider(provider: AIProvider): Promise<OpenAIService | AnthropicService | GoogleService | null> {
+    const credentials = await SecureStorage.getApiKeys();
 
     switch (provider) {
       case 'openai':
@@ -22,13 +22,13 @@ export class ModelFactory {
     }
   }
 
-  static getDefaultModelForMode(mode: InteractionMode): ModelSelection | null {
+  static async getDefaultModelForMode(mode: InteractionMode): Promise<ModelSelection | null> {
     const modelId = DEFAULT_MODELS_BY_MODE[mode];
     const model = MODELS.find(m => m.id === modelId);
 
     if (!model) return null;
 
-    const service = this.getServiceForProvider(model.provider);
+    const service = await this.getServiceForProvider(model.provider);
     if (!service) return null;
 
     return {
@@ -38,8 +38,8 @@ export class ModelFactory {
     };
   }
 
-  static getAvailableModelsForMode(mode: InteractionMode): ModelSelection[] {
-    const credentials = SecureStorage.getApiKeys();
+  static async getAvailableModelsForMode(mode: InteractionMode): Promise<ModelSelection[]> {
+    const credentials = await SecureStorage.getApiKeys();
     const availableProviders: AIProvider[] = [];
 
     if (credentials.openai) availableProviders.push('openai');

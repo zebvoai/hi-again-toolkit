@@ -1,32 +1,48 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
 import { ProviderCredentials } from '@/types/model.types';
 import { SecureStorage } from '@/services/storage/SecureStorage';
+import { useAuth } from './AuthContext';
 
 interface SettingsContextValue {
   credentials: ProviderCredentials;
-  saveApiKey: (provider: keyof ProviderCredentials, apiKey: string) => void;
-  deleteApiKey: (provider: keyof ProviderCredentials) => void;
+  saveApiKey: (provider: keyof ProviderCredentials, apiKey: string) => Promise<void>;
+  deleteApiKey: (provider: keyof ProviderCredentials) => Promise<void>;
   hasApiKey: (provider: keyof ProviderCredentials) => boolean;
+  loadingCredentials: boolean;
 }
 
 const SettingsContext = createContext<SettingsContextValue | undefined>(undefined);
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
   const [credentials, setCredentials] = useState<ProviderCredentials>({});
+  const [loadingCredentials, setLoadingCredentials] = useState(true);
 
   useEffect(() => {
-    const loadedCredentials = SecureStorage.getApiKeys();
-    setCredentials(loadedCredentials);
-  }, []);
+    const loadCredentials = async () => {
+      if (!user) {
+        setCredentials({});
+        setLoadingCredentials(false);
+        return;
+      }
 
-  const saveApiKey = useCallback((provider: keyof ProviderCredentials, apiKey: string) => {
+      setLoadingCredentials(true);
+      const loadedCredentials = await SecureStorage.getApiKeys();
+      setCredentials(loadedCredentials);
+      setLoadingCredentials(false);
+    };
+
+    loadCredentials();
+  }, [user]);
+
+  const saveApiKey = useCallback(async (provider: keyof ProviderCredentials, apiKey: string) => {
+    await SecureStorage.saveApiKey(provider, apiKey);
     const updated = { ...credentials, [provider]: apiKey };
-    SecureStorage.saveApiKeys(updated);
     setCredentials(updated);
   }, [credentials]);
 
-  const deleteApiKey = useCallback((provider: keyof ProviderCredentials) => {
-    SecureStorage.deleteApiKey(provider);
+  const deleteApiKey = useCallback(async (provider: keyof ProviderCredentials) => {
+    await SecureStorage.deleteApiKey(provider);
     const updated = { ...credentials };
     delete updated[provider];
     setCredentials(updated);
@@ -41,6 +57,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     saveApiKey,
     deleteApiKey,
     hasApiKey,
+    loadingCredentials,
   };
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;

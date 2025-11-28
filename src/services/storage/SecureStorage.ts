@@ -1,81 +1,75 @@
 import { ProviderCredentials } from '@/types/model.types';
 import { encryptApiKey, decryptApiKey } from '@/utils/encryption';
-
-const STORAGE_KEYS = {
-  API_KEYS: 'zebvo_api_keys',
-  CHAT_HISTORY: 'zebvo_chat_history',
-  SETTINGS: 'zebvo_settings',
-};
+import { supabase } from '@/integrations/supabase/client';
 
 export class SecureStorage {
-  static saveApiKeys(credentials: ProviderCredentials): void {
+  static async saveApiKey(provider: string, apiKey: string): Promise<void> {
     try {
-      const encrypted: Record<string, string> = {};
-      
-      if (credentials.openai) {
-        encrypted.openai = encryptApiKey(credentials.openai);
-      }
-      if (credentials.anthropic) {
-        encrypted.anthropic = encryptApiKey(credentials.anthropic);
-      }
-      if (credentials.google) {
-        encrypted.google = encryptApiKey(credentials.google);
-      }
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
 
-      localStorage.setItem(STORAGE_KEYS.API_KEYS, JSON.stringify(encrypted));
+      const encryptedKey = encryptApiKey(apiKey);
+
+      const { error } = await supabase
+        .from('api_keys')
+        .upsert({
+          user_id: user.id,
+          provider,
+          encrypted_key: encryptedKey,
+        });
+
+      if (error) throw error;
     } catch (error) {
-      console.error('Failed to save API keys:', error);
-      throw new Error('Failed to save API keys securely');
+      console.error('Failed to save API key:', error);
+      throw new Error('Failed to save API key securely');
     }
   }
 
-  static getApiKeys(): ProviderCredentials {
+  static async getApiKeys(): Promise<ProviderCredentials> {
     try {
-      const stored = localStorage.getItem(STORAGE_KEYS.API_KEYS);
-      if (!stored) return {};
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return {};
 
-      const encrypted = JSON.parse(stored);
-      const decrypted: ProviderCredentials = {};
+      const { data, error } = await supabase
+        .from('api_keys')
+        .select('*')
+        .eq('user_id', user.id);
 
-      if (encrypted.openai) {
-        decrypted.openai = decryptApiKey(encrypted.openai);
-      }
-      if (encrypted.anthropic) {
-        decrypted.anthropic = decryptApiKey(encrypted.anthropic);
-      }
-      if (encrypted.google) {
-        decrypted.google = decryptApiKey(encrypted.google);
-      }
+      if (error) throw error;
 
-      return decrypted;
+      const credentials: ProviderCredentials = {};
+      data?.forEach((row) => {
+        const provider = row.provider as keyof ProviderCredentials;
+        credentials[provider] = decryptApiKey(row.encrypted_key);
+      });
+
+      return credentials;
     } catch (error) {
       console.error('Failed to retrieve API keys:', error);
       return {};
     }
   }
 
-  static deleteApiKey(provider: keyof ProviderCredentials): void {
+  static async deleteApiKey(provider: keyof ProviderCredentials): Promise<void> {
     try {
-      const credentials = this.getApiKeys();
-      delete credentials[provider];
-      this.saveApiKeys(credentials);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const { error } = await supabase
+        .from('api_keys')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('provider', provider);
+
+      if (error) throw error;
     } catch (error) {
       console.error('Failed to delete API key:', error);
+      throw error;
     }
   }
 
-  static clearAllData(): void {
-    try {
-      Object.values(STORAGE_KEYS).forEach(key => {
-        localStorage.removeItem(key);
-      });
-    } catch (error) {
-      console.error('Failed to clear data:', error);
-    }
-  }
-
-  static hasApiKey(provider: keyof ProviderCredentials): boolean {
-    const keys = this.getApiKeys();
+  static async hasApiKey(provider: keyof ProviderCredentials): Promise<boolean> {
+    const keys = await this.getApiKeys();
     return !!keys[provider];
   }
 }

@@ -34,7 +34,7 @@ export function ApiKeyManager() {
   });
   const { toast } = useToast();
 
-  const handleSave = (provider: AIProvider) => {
+  const handleSave = async (provider: AIProvider) => {
     const apiKey = inputValues[provider].trim();
     
     if (!validateApiKey(provider, apiKey)) {
@@ -46,22 +46,38 @@ export function ApiKeyManager() {
       return;
     }
 
-    saveApiKey(provider, apiKey);
-    setEditMode({ ...editMode, [provider]: false });
-    setInputValues({ ...inputValues, [provider]: '' });
-    
-    toast({
-      title: 'API key saved',
-      description: `${PROVIDERS.find(p => p.id === provider)?.name} API key has been saved securely`,
-    });
+    try {
+      await saveApiKey(provider, apiKey);
+      setEditMode({ ...editMode, [provider]: false });
+      setInputValues({ ...inputValues, [provider]: '' });
+      
+      toast({
+        title: 'API key saved',
+        description: `${PROVIDERS.find(p => p.id === provider)?.name} API key has been saved securely`,
+      });
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Failed to save',
+        description: 'Could not save API key. Please try again.',
+      });
+    }
   };
 
-  const handleDelete = (provider: AIProvider) => {
-    deleteApiKey(provider);
-    toast({
-      title: 'API key deleted',
-      description: `${PROVIDERS.find(p => p.id === provider)?.name} API key has been removed`,
-    });
+  const handleDelete = async (provider: AIProvider) => {
+    try {
+      await deleteApiKey(provider);
+      toast({
+        title: 'API key deleted',
+        description: `${PROVIDERS.find(p => p.id === provider)?.name} API key has been removed`,
+      });
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Failed to delete',
+        description: 'Could not delete API key. Please try again.',
+      });
+    }
   };
 
   const handleCancel = (provider: AIProvider) => {
