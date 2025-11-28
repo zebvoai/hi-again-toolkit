@@ -62,7 +62,7 @@ export function ChatInterface() {
                 onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')}
               />
             ))}
-            {isLoading && <TypingIndicator model={selectedModels.join(', ')} />}
+            {isLoading && <TypingIndicator models={selectedModels} />}
             <div ref={messagesEndRef} />
           </div>
         </div>
