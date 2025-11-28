@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ChevronDown, Mic, Volume2, Paperclip, Send, ChevronUp } from 'lucide-react';
+import { ChevronDown, Mic, Volume2, Paperclip, Send, ChevronUp, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useChat } from '@/features/chat/hooks/useChat';
 import { useModeStore } from '@/features/modes/store/modeStore';
@@ -16,7 +16,7 @@ export function ChatInterface() {
   const [input, setInput] = useState('');
   const [isTemporaryMode, setIsTemporaryMode] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
-  const { messages, sendMessage, isLoading, retryMessage } = useChat();
+  const { messages, sendMessage, isLoading, retryMessage, cancelGeneration } = useChat();
   const { selectedMode } = useModeStore();
   const { selectedModels, isModelLocked, setSelectedModels } = useChatStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -131,7 +131,6 @@ export function ChatInterface() {
                 onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')}
               />
             ))}
-            {isLoading && <TypingIndicator models={selectedModels} />}
             <div ref={messagesEndRef} />
           </div>
         </div>
@@ -264,12 +263,21 @@ export function ChatInterface() {
                   </Button>
 
                   <Button
-                    type="submit"
-                    disabled={!input.trim() || isLoading || selectedModels.length === 0}
+                    type={isLoading ? "button" : "submit"}
+                    onClick={isLoading ? cancelGeneration : undefined}
+                    disabled={!isLoading && (!input.trim() || selectedModels.length === 0)}
                     size="icon"
-                    className="w-9 h-9 bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
+                    className={`${
+                      isLoading 
+                        ? 'w-8 h-8 rounded-full bg-gray-700 hover:bg-gray-800' 
+                        : 'w-9 h-9 bg-blue-600 hover:bg-blue-700'
+                    } text-white transition-all duration-200 disabled:opacity-50`}
                   >
-                    <Send className="w-4 h-4" />
+                    {isLoading ? (
+                      <Square className="w-3.5 h-3.5 fill-current" />
+                    ) : (
+                      <Send className="w-4 h-4" />
+                    )}
                   </Button>
                 </div>
               </div>

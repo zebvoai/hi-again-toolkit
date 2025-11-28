@@ -4,12 +4,13 @@ const API_BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
 
 export const api = {
   async sendMessage(
-    message: string, 
-    mode: Mode, 
+    message: string,
+    mode: Mode,
     history: Message[],
     provider?: Provider,
     model?: string,
-    onChunk?: (chunk: string) => void
+    onChunk?: (chunk: string) => void,
+    signal?: AbortSignal
   ): Promise<ChatResponse> {
     const response = await fetch(`${API_BASE}/chat`, {
       method: 'POST',
@@ -24,7 +25,8 @@ export const api = {
         provider,
         model,
         stream: !!onChunk
-      })
+      }),
+      signal
     });
     
     if (!response.ok) {
@@ -83,14 +85,15 @@ export const api = {
     return response.json();
   },
   
-  async generateImage(prompt: string, provider?: Provider): Promise<ImageResponse> {
+  async generateImage(prompt: string, provider?: Provider, signal?: AbortSignal): Promise<ImageResponse> {
     const response = await fetch(`${API_BASE}/image`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`
       },
-      body: JSON.stringify({ prompt, provider })
+      body: JSON.stringify({ prompt, provider }),
+      signal
     });
     
     if (!response.ok) {
