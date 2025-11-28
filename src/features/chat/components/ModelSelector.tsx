@@ -3,7 +3,7 @@ import { useModels } from '../hooks/useModels';
 import { useModeStore } from '@/features/modes/store/modeStore';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Check, ChevronDown, Sparkles, Info, Search, Star, X, Clock, ArrowUpDown } from 'lucide-react';
+import { Check, ChevronDown, Sparkles, Info, Search, Star, X, Clock, ArrowUpDown, Zap, Crown, Scale, Wallet } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -111,6 +111,73 @@ const modelInfo: Record<string, { description: string; strengths: string[]; spee
     specialization: 'General purpose images'
   }
 };
+
+// Model Presets - categorized by characteristics
+type PresetType = 'fast' | 'premium' | 'balanced' | 'budget';
+
+interface ModelPreset {
+  id: PresetType;
+  name: string;
+  description: string;
+  icon: any;
+  models: {
+    text: string[];
+    image: string[];
+    video: string[];
+    build: string[];
+  };
+}
+
+const modelPresets: ModelPreset[] = [
+  {
+    id: 'fast',
+    name: 'Speed',
+    description: 'Fastest models for quick responses',
+    icon: Zap,
+    models: {
+      text: ['GPT-5 Nano', 'Claude Haiku 3.5', 'Gemini 2.5 Flash Lite'],
+      image: ['Flux Schnell', 'Ideogram V2 Turbo', 'Ideogram V3 Turbo', 'Stable Diffusion'],
+      video: ['Gemini Video Flash'],
+      build: ['GPT-5 Nano']
+    }
+  },
+  {
+    id: 'premium',
+    name: 'Premium',
+    description: 'Highest quality models for best results',
+    icon: Crown,
+    models: {
+      text: ['GPT-5', 'Claude Sonnet 4.5', 'Gemini 2.5 Pro'],
+      image: ['Flux Pro 1.1 Ultra', 'DALL-E 3', 'Ideogram V3 Balanced', 'Stable Diffusion 3.5 Large'],
+      video: ['Gemini Video 2.0'],
+      build: ['GPT-5', 'Claude Sonnet 4.5']
+    }
+  },
+  {
+    id: 'balanced',
+    name: 'Balanced',
+    description: 'Good balance of speed and quality',
+    icon: Scale,
+    models: {
+      text: ['GPT-5 Mini', 'Claude Sonnet 3.5', 'Gemini 2.5 Flash'],
+      image: ['Flux Dev', 'Ideogram V2', 'Recraft 20B', 'Stable Diffusion 3'],
+      video: ['Gemini Video Flash'],
+      build: ['GPT-5 Mini']
+    }
+  },
+  {
+    id: 'budget',
+    name: 'Budget',
+    description: 'Cost-effective models for high volume',
+    icon: Wallet,
+    models: {
+      text: ['GPT-5 Nano', 'Claude Haiku 3.5', 'Gemini 2.5 Flash Lite'],
+      image: ['Flux Schnell', 'DALL-E 2', 'Stable Diffusion'],
+      video: ['Gemini Video Flash'],
+      build: ['GPT-5 Nano']
+    }
+  }
+];
 
 // Favorites management
 const FAVORITES_STORAGE_KEY = 'model-selector-favorites';
@@ -300,6 +367,21 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
     }
   };
   
+  const handlePresetSelect = (presetId: PresetType) => {
+    const preset = modelPresets.find(p => p.id === presetId);
+    if (!preset) return;
+    
+    const presetModels = preset.models[selectedMode] || [];
+    const availablePresetModels = presetModels.filter(model => availableModels.includes(model));
+    const modelsToSelect = availablePresetModels.slice(0, 4);
+    
+    onChange(modelsToSelect);
+    modelsToSelect.forEach(model => {
+      addToRecentModels(model);
+    });
+    setRecentModels(getRecentModels());
+  };
+  
   const displayText = values.length === 0 
     ? 'Select models' 
     : values.length === 1 
@@ -336,6 +418,77 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                 Choose up to 4 models • {values.length}/4 selected
               </p>
+            </div>
+          </div>
+          
+          {/* Presets Section */}
+          <div className="space-y-2 px-2">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-3.5 h-3.5 text-purple-500" />
+              <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Quick Presets
+              </span>
+              <div className="h-px flex-1 bg-gradient-to-r from-purple-300/50 via-transparent to-transparent" />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-2">
+              {modelPresets.map((preset) => {
+                const Icon = preset.icon;
+                const presetModels = preset.models[selectedMode] || [];
+                const availableCount = presetModels.filter(m => availableModels.includes(m)).length;
+                
+                return (
+                  <TooltipProvider key={preset.id} delayDuration={200}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => handlePresetSelect(preset.id)}
+                          disabled={availableCount === 0}
+                          className={cn(
+                            "flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all duration-200",
+                            "bg-white/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700",
+                            "hover:bg-white/80 dark:hover:bg-gray-800/80 hover:border-gray-300 dark:hover:border-gray-600",
+                            "hover:shadow-md",
+                            availableCount === 0 && "opacity-40 cursor-not-allowed"
+                          )}
+                        >
+                          <Icon className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                          <span className="text-xs font-medium text-gray-900 dark:text-gray-100">
+                            {preset.name}
+                          </span>
+                          <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                            {availableCount} models
+                          </span>
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent 
+                        side="top"
+                        className="bg-gray-900/95 dark:bg-gray-950/95 backdrop-blur-xl border-gray-700/50 p-3 z-[150]"
+                      >
+                        <div className="space-y-1">
+                          <p className="font-semibold text-white text-xs">{preset.name} Preset</p>
+                          <p className="text-xs text-gray-300">{preset.description}</p>
+                          {availableCount > 0 && (
+                            <div className="pt-2 border-t border-gray-700/50">
+                              <p className="text-[10px] text-gray-400 mb-1">Models in this preset:</p>
+                              <div className="flex flex-wrap gap-1">
+                                {presetModels.filter(m => availableModels.includes(m)).slice(0, 4).map((model) => (
+                                  <span
+                                    key={model}
+                                    className="text-[10px] px-1.5 py-0.5 bg-blue-500/20 text-blue-300 rounded"
+                                  >
+                                    {model}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                );
+              })}
             </div>
           </div>
           
