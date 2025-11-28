@@ -7,6 +7,7 @@ export interface ChatState {
   selectedModels: string[];
   isModelLocked: boolean;
   currentConversationId: string | null;
+  isTemporaryMode: boolean;
   addMessage: (message: Message) => void;
   updateMessage: (id: string, updates: Partial<Message>) => void;
   setLoading: (loading: boolean) => void;
@@ -17,4 +18,5 @@ export interface ChatState {
   unlockModels: () => void;
   setMessages: (messages: Message[]) => void;
   setCurrentConversationId: (id: string | null) => void;
+  setTemporaryMode: (isTemporary: boolean) => void;
 }
