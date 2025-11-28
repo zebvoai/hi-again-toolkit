@@ -3,7 +3,8 @@ import { useModels } from '../hooks/useModels';
 import { useModeStore } from '@/features/modes/store/modeStore';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Check, ChevronDown, Sparkles } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Check, ChevronDown, Sparkles, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -12,6 +13,60 @@ interface ModelSelectorProps {
   onChange: (values: string[]) => void;
   disabled?: boolean;
 }
+
+// Model descriptions and capabilities
+const modelInfo: Record<string, { description: string; strengths: string[]; speed: string }> = {
+  'GPT-5': {
+    description: 'Most advanced GPT model with superior reasoning and multimodal capabilities',
+    strengths: ['Complex reasoning', 'Long context', 'Multimodal', 'High accuracy'],
+    speed: 'Moderate'
+  },
+  'GPT-5 Mini': {
+    description: 'Balanced performance with lower cost and faster responses',
+    strengths: ['Good reasoning', 'Cost effective', 'Fast responses', 'Multimodal'],
+    speed: 'Fast'
+  },
+  'GPT-5 Nano': {
+    description: 'Ultra-fast model optimized for high-volume simple tasks',
+    strengths: ['Very fast', 'Low cost', 'High throughput', 'Simple tasks'],
+    speed: 'Very Fast'
+  },
+  'Claude Sonnet 4.5': {
+    description: 'Most intelligent Anthropic model with exceptional reasoning',
+    strengths: ['Superior reasoning', 'Complex analysis', 'Long context', 'Vision'],
+    speed: 'Moderate'
+  },
+  'Claude Opus 4': {
+    description: 'Highly intelligent model with advanced capabilities',
+    strengths: ['Deep reasoning', 'Complex tasks', 'High accuracy', 'Extended context'],
+    speed: 'Moderate'
+  },
+  'Claude Sonnet 3.5': {
+    description: 'High-performance model with excellent reasoning and efficiency',
+    strengths: ['Balanced performance', 'Good reasoning', 'Efficient', 'Vision'],
+    speed: 'Fast'
+  },
+  'Claude Haiku 3.5': {
+    description: 'Fastest Claude model for quick, straightforward responses',
+    strengths: ['Very fast', 'Cost effective', 'Quick responses', 'Simple tasks'],
+    speed: 'Very Fast'
+  },
+  'Gemini 2.5 Pro': {
+    description: 'Top-tier Gemini with best multimodal and reasoning capabilities',
+    strengths: ['Multimodal excellence', 'Large context', 'Complex reasoning', 'Vision'],
+    speed: 'Moderate'
+  },
+  'Gemini 2.5 Flash': {
+    description: 'Balanced Gemini model with good performance and speed',
+    strengths: ['Fast responses', 'Good reasoning', 'Multimodal', 'Cost effective'],
+    speed: 'Fast'
+  },
+  'Gemini 2.5 Flash Lite': {
+    description: 'Fastest Gemini model for classification and simple workloads',
+    strengths: ['Very fast', 'Low cost', 'Simple tasks', 'High volume'],
+    speed: 'Very Fast'
+  }
+};
 
 // Model grouping by provider
 const getModelProvider = (model: string): string => {
@@ -60,27 +115,28 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
     : `${values.length} models`;
   
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          disabled={disabled || isLoading}
-          className={cn(
-            "w-auto min-w-[140px] border border-white/10 bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl text-sm px-3 py-2 h-9 hover:bg-white/80 dark:hover:bg-gray-900/80 transition-all duration-200 shadow-sm hover:shadow-md justify-between",
-            values.length > 0 && "bg-white/80 dark:bg-gray-900/80"
-          )}
+    <TooltipProvider delayDuration={300}>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="ghost"
+            disabled={disabled || isLoading}
+            className={cn(
+              "w-auto min-w-[140px] border border-white/10 bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl text-sm px-3 py-2 h-9 hover:bg-white/80 dark:hover:bg-gray-900/80 transition-all duration-200 shadow-sm hover:shadow-md justify-between",
+              values.length > 0 && "bg-white/80 dark:bg-gray-900/80"
+            )}
+          >
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-blue-500" />
+              <span className="font-medium">{isLoading ? 'Loading...' : displayText}</span>
+            </div>
+            <ChevronDown className="w-4 h-4 ml-1 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent 
+          className="w-[320px] bg-white/95 dark:bg-gray-900/95 backdrop-blur-2xl border border-white/20 dark:border-gray-700/30 shadow-2xl rounded-2xl p-3 z-[100]" 
+          align="start"
         >
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-blue-500" />
-            <span className="font-medium">{isLoading ? 'Loading...' : displayText}</span>
-          </div>
-          <ChevronDown className="w-4 h-4 ml-1 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent 
-        className="w-[320px] bg-white/95 dark:bg-gray-900/95 backdrop-blur-2xl border border-white/20 dark:border-gray-700/30 shadow-2xl rounded-2xl p-3 z-[100]" 
-        align="start"
-      >
         <div className="space-y-3">
           {/* Header */}
           <div className="flex items-center justify-between px-2">
@@ -112,8 +168,9 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
                       const isSelected = values.includes(model);
                       const isDisabled = !isSelected && values.length >= 4;
                       const tier = getModelTier(model);
+                      const info = modelInfo[model];
                       
-                      return (
+                      const modelButton = (
                         <button
                           key={model}
                           onClick={() => handleToggle(model)}
@@ -156,8 +213,65 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
                               )}
                             </div>
                           </div>
+                          
+                          {/* Info Icon */}
+                          {info && (
+                            <Info className="w-4 h-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                          )}
                         </button>
                       );
+                      
+                      return info ? (
+                        <Tooltip key={model}>
+                          <TooltipTrigger asChild>
+                            {modelButton}
+                          </TooltipTrigger>
+                          <TooltipContent 
+                            side="left" 
+                            className="max-w-[280px] bg-gray-900/98 dark:bg-gray-800/98 backdrop-blur-xl border border-gray-700/50 p-4 z-[150]"
+                            sideOffset={8}
+                          >
+                            <div className="space-y-3">
+                              <div>
+                                <h4 className="font-semibold text-white text-sm mb-1">{model}</h4>
+                                <p className="text-xs text-gray-300 leading-relaxed">
+                                  {info.description}
+                                </p>
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Speed:</span>
+                                  <span className={cn(
+                                    "text-xs font-medium px-2 py-0.5 rounded-full",
+                                    info.speed === 'Very Fast' && "bg-green-500/20 text-green-400",
+                                    info.speed === 'Fast' && "bg-blue-500/20 text-blue-400",
+                                    info.speed === 'Moderate' && "bg-amber-500/20 text-amber-400"
+                                  )}>
+                                    {info.speed}
+                                  </span>
+                                </div>
+                                
+                                <div>
+                                  <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider block mb-1.5">
+                                    Key Strengths:
+                                  </span>
+                                  <div className="flex flex-wrap gap-1">
+                                    {info.strengths.map((strength, idx) => (
+                                      <span 
+                                        key={idx}
+                                        className="text-[10px] px-2 py-0.5 bg-blue-500/10 text-blue-300 rounded-md border border-blue-500/20"
+                                      >
+                                        {strength}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
+                      ) : modelButton;
                     })}
                   </div>
                 </div>
@@ -176,5 +290,6 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
         </div>
       </PopoverContent>
     </Popover>
+    </TooltipProvider>
   );
 };
