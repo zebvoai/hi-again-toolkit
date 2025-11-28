@@ -1,149 +1,104 @@
-import { useCallback } from 'react';
-import { useChat as useChatContext } from '@/contexts/ChatContext';
-import { ModelFactory } from '@/services/ModelFactory';
-import { OpenAIService } from '@/services/api/OpenAIService';
-import { AnthropicService } from '@/services/api/AnthropicService';
-import { GoogleService } from '@/services/api/GoogleService';
-import { ChatCompletionRequest, ImageGenerationRequest } from '@/types/api.types';
+import { useState, useCallback } from 'react';
+import { nanoid } from 'nanoid';
+import { Message, InteractionMode } from '@/types';
+import { streamChatCompletion } from '@/lib/api';
 
-export function useChatActions() {
-  const {
-    addMessage,
-    updateLastMessage,
-    setStreaming,
-    setError,
-    clearError,
-    currentMode,
-    currentModel,
-    messages,
-  } = useChatContext();
+export function useChat() {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [currentMode, setCurrentMode] = useState<InteractionMode>('text');
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const addMessage = useCallback((role: 'user' | 'assistant', content: string) => {
+    const message: Message = {
+      id: nanoid(),
+      role,
+      content,
+      timestamp: new Date(),
+      mode: currentMode,
+    };
+    setMessages(prev => [...prev, message]);
+    return message.id;
+  }, [currentMode]);
+
+  const updateLastMessage = useCallback((content: string) => {
+    setMessages(prev => {
+      const newMessages = [...prev];
+      if (newMessages.length > 0) {
+        newMessages[newMessages.length - 1] = {
+          ...newMessages[newMessages.length - 1],
+          content,
+        };
+      }
+      return newMessages;
+    });
+  }, []);
 
   const sendMessage = useCallback(async (userMessage: string) => {
     try {
-      clearError();
+      setError(null);
       addMessage('user', userMessage);
 
-      const model = currentModel || await ModelFactory.getDefaultModelForMode(currentMode);
-      
-      if (!model) {
-        setError('No model selected. Please configure your API keys in settings.');
-        return;
-      }
+      const systemPrompt = getSystemPrompt(currentMode);
+      const chatMessages = [
+        { role: 'system' as const, content: systemPrompt },
+        ...messages.map(m => ({ role: m.role, content: m.content })),
+        { role: 'user' as const, content: userMessage },
+      ];
 
-      const service = await ModelFactory.getServiceForProvider(model.provider);
-      if (!service) {
-        setError('Service not available. Please check your API keys.');
-        return;
-      }
-
-      const request: ChatCompletionRequest = {
-        model: model.modelId,
-        messages: [
-          ...messages.map(m => ({
-            role: m.role,
-            content: m.content,
-          })),
-          {
-            role: 'user',
-            content: userMessage,
-          },
-        ],
-        stream: true,
-        maxTokens: 4096,
-        temperature: 0.7,
-      };
-
+      let assistantContent = '';
       addMessage('assistant', '');
-      setStreaming(true);
+      setIsStreaming(true);
 
-      let fullResponse = '';
-
-      if (service instanceof OpenAIService) {
-        for await (const chunk of service.chatCompletionStream(request)) {
-          fullResponse += chunk;
-          updateLastMessage(fullResponse);
-        }
-      } else if (service instanceof AnthropicService) {
-        for await (const chunk of service.chatCompletionStream(request)) {
-          fullResponse += chunk;
-          updateLastMessage(fullResponse);
-        }
-      } else if (service instanceof GoogleService) {
-        for await (const chunk of service.chatCompletionStream(request)) {
-          fullResponse += chunk;
-          updateLastMessage(fullResponse);
-        }
-      }
-
-      setStreaming(false);
-    } catch (error) {
-      console.error('Chat error:', error);
-      setError(error instanceof Error ? error.message : 'An unexpected error occurred');
-      setStreaming(false);
+      await streamChatCompletion({
+        messages: chatMessages,
+        mode: currentMode,
+        onDelta: (chunk) => {
+          assistantContent += chunk;
+          updateLastMessage(assistantContent);
+        },
+        onDone: () => {
+          setIsStreaming(false);
+        },
+        onError: (errorMsg) => {
+          setError(errorMsg);
+          setIsStreaming(false);
+        },
+      });
+    } catch (err) {
+      console.error('Send message error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to send message');
+      setIsStreaming(false);
     }
-  }, [
-    addMessage,
-    updateLastMessage,
-    setStreaming,
-    setError,
-    clearError,
-    currentMode,
-    currentModel,
-    messages,
-  ]);
+  }, [addMessage, updateLastMessage, currentMode, messages]);
 
-  const generateImage = useCallback(async (prompt: string) => {
-    try {
-      clearError();
-      addMessage('user', prompt);
+  const clearMessages = useCallback(() => {
+    setMessages([]);
+    setError(null);
+  }, []);
 
-      const model = currentModel || await ModelFactory.getDefaultModelForMode('image');
-      
-      if (!model) {
-        setError('No image model available. Please configure OpenAI API key.');
-        return;
-      }
-
-      const service = await ModelFactory.getServiceForProvider(model.provider);
-      if (!(service instanceof OpenAIService)) {
-        setError('Image generation requires OpenAI API key.');
-        return;
-      }
-
-      setStreaming(true);
-      addMessage('assistant', 'Generating image...');
-
-      const request: ImageGenerationRequest = {
-        model: model.modelId,
-        prompt,
-        size: '1024x1024',
-        quality: 'standard',
-      };
-
-      const response = await service.generateImage(request);
-
-      if (!response.success || !response.data) {
-        throw new Error(response.error?.message || 'Image generation failed');
-      }
-
-      updateLastMessage(`![Generated Image](${response.data.url})`);
-      setStreaming(false);
-    } catch (error) {
-      console.error('Image generation error:', error);
-      setError(error instanceof Error ? error.message : 'Image generation failed');
-      setStreaming(false);
-    }
-  }, [
-    addMessage,
-    updateLastMessage,
-    setStreaming,
-    setError,
-    clearError,
-    currentModel,
-  ]);
+  const changeMode = useCallback((mode: InteractionMode) => {
+    setCurrentMode(mode);
+    setError(null);
+  }, []);
 
   return {
+    messages,
+    currentMode,
+    isStreaming,
+    error,
     sendMessage,
-    generateImage,
+    clearMessages,
+    changeMode,
   };
+}
+
+function getSystemPrompt(mode: InteractionMode): string {
+  const prompts: Record<InteractionMode, string> = {
+    text: 'You are a helpful AI assistant. Provide clear, concise, and accurate responses.',
+    image: 'You are an AI assistant specialized in image analysis and generation. Help users understand and create visual content.',
+    video: 'You are an AI assistant specialized in video content. Help users with video-related tasks and queries.',
+    build: 'You are an AI coding assistant. Help users write, debug, and optimize code. Provide clear explanations and working examples.',
+  };
+  return prompts[mode];
 }
