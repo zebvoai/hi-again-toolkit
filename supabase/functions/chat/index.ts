@@ -39,7 +39,8 @@ async function handleMultiModelRequest(
   message: string,
   models: string[],
   conversationHistory: Message[],
-  stream: boolean
+  stream: boolean,
+  mode: string = 'text'
 ): Promise<Response> {
   const encoder = new TextEncoder();
   
@@ -56,6 +57,11 @@ async function handleMultiModelRequest(
             let headers: Record<string, string> = {};
             let body: any = {};
             
+            // Build mode gets a code-generation system prompt
+            const systemPrompt = mode === 'build' 
+              ? 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags.'
+              : 'You are a helpful AI assistant.';
+            
             if (provider === 'openai') {
               apiKey = Deno.env.get('OPENAI_API_KEY') || '';
               if (!apiKey) throw new Error('OPENAI_API_KEY not configured');
@@ -67,12 +73,12 @@ async function handleMultiModelRequest(
               };
               
               const messages = [
-                { role: 'system', content: 'You are a helpful AI assistant.' },
+                { role: 'system', content: systemPrompt },
                 ...conversationHistory.map(m => ({ role: m.role, content: m.content })),
                 { role: 'user', content: message }
               ];
               
-              body = { model: apiModel, messages, stream: true };
+              body = { model: apiModel, messages, stream: true, max_completion_tokens: mode === 'build' ? 8192 : 4096 };
             } else if (provider === 'anthropic') {
               apiKey = Deno.env.get('ANTHROPIC_API_KEY') || '';
               if (!apiKey) throw new Error('ANTHROPIC_API_KEY not configured');
@@ -89,7 +95,7 @@ async function handleMultiModelRequest(
                 { role: 'user', content: message }
               ];
               
-              body = { model: apiModel, messages, max_tokens: 4096, stream: true };
+              body = { model: apiModel, messages, max_tokens: mode === 'build' ? 8192 : 4096, stream: true };
             } else if (provider === 'google') {
               apiKey = Deno.env.get('GOOGLE_API_KEY') || '';
               if (!apiKey) throw new Error('GOOGLE_API_KEY not configured');
@@ -237,7 +243,7 @@ serve(async (req) => {
     // Handle multi-model requests (text mode only)
     if (models && Array.isArray(models) && models.length > 1) {
       console.log('Multi-model request:', models);
-      return await handleMultiModelRequest(message, models, conversationHistory, stream);
+      return await handleMultiModelRequest(message, models, conversationHistory, stream, mode);
     }
     
     // Map display names to actual API model names
@@ -310,8 +316,13 @@ serve(async (req) => {
         'Content-Type': 'application/json'
       };
       
+      // Build mode gets a code-generation system prompt
+      const systemPrompt = mode === 'build' 
+        ? 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags.'
+        : 'You are a helpful AI assistant.';
+      
       const messages = [
-        { role: 'system', content: 'You are a helpful AI assistant.' },
+        { role: 'system', content: systemPrompt },
         ...conversationHistory.map(m => ({ role: m.role, content: m.content })),
         { role: 'user', content: message }
       ];
@@ -319,7 +330,7 @@ serve(async (req) => {
       body = {
         model,
         messages,
-        max_completion_tokens: 4096,
+        max_completion_tokens: mode === 'build' ? 8192 : 4096, // More tokens for code generation
         stream
       };
     } else if (selectedProvider === 'anthropic') {
@@ -343,7 +354,8 @@ serve(async (req) => {
       body = {
         model,
         messages,
-        max_tokens: 4096
+        max_tokens: mode === 'build' ? 8192 : 4096, // More tokens for code generation
+        stream
       };
     } else if (selectedProvider === 'google') {
       apiKey = Deno.env.get('GOOGLE_API_KEY');
