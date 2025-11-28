@@ -209,34 +209,11 @@ serve(async (req) => {
       }
       
       const submitData = await submitResponse.json();
-      
-      // Some Wavespeed models are synchronous and return the image directly
-      // while others are async and return a request ID that must be polled.
-      let imageUrlFromSync: string | null = null;
-      const requestId = submitData.id;
+      const requestId = submitData.data?.id;
       
       if (!requestId) {
-        if (submitData.output && Array.isArray(submitData.output) && submitData.output.length > 0) {
-          imageUrlFromSync = submitData.output[0];
-        } else {
-          console.error('Wavespeed unexpected response format:', submitData);
-          throw new Error('Wavespeed API did not return a request ID or image output');
-        }
-      }
-      
-      // If we already have an image URL (synchronous models), return immediately
-      if (imageUrlFromSync) {
-        console.log('Image generated synchronously with Wavespeed');
-        return new Response(
-          JSON.stringify({
-            imageUrl: imageUrlFromSync,
-            revisedPrompt: prompt,
-            model: model || actualModel
-          }),
-          { 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          }
-        );
+        console.error('Wavespeed response missing data.id:', submitData);
+        throw new Error('Wavespeed API error: invalid response format');
       }
       
       console.log('Wavespeed task submitted:', requestId);
@@ -263,17 +240,20 @@ serve(async (req) => {
         }
         
         const resultData = await resultResponse.json();
-        console.log(`Wavespeed status (attempt ${attempt + 1}):`, resultData.status);
+        const status = resultData.data?.status;
+        const outputs = resultData.data?.outputs;
+        const errorMessage = resultData.data?.error;
+        console.log(`Wavespeed status (attempt ${attempt + 1}):`, status);
         
         // Check if generation is complete
-        if (resultData.status === 'succeeded' && resultData.output?.length > 0) {
-          imageUrl = resultData.output[0];
+        if (status === 'completed' && Array.isArray(outputs) && outputs.length > 0) {
+          imageUrl = outputs[0];
           console.log('Image generated successfully with Wavespeed');
           break;
-        } else if (resultData.status === 'failed') {
-          throw new Error(`Wavespeed generation failed: ${resultData.error || 'Unknown error'}`);
+        } else if (status === 'failed') {
+          throw new Error(`Wavespeed generation failed: ${errorMessage || 'Unknown error'}`);
         }
-        // Continue polling if status is 'processing' or 'starting'
+        // Continue polling if status is 'processing' or 'created'
       }
       
       if (!imageUrl) {
