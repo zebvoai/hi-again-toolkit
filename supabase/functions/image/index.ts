@@ -12,6 +12,7 @@ interface ImageRequest {
 }
 
 // Map frontend model names to API model names
+// Only including verified working models to avoid API errors
 const modelMapping: Record<string, { api: string; provider: 'lovable' | 'openai' | 'wavespeed' }> = {
   'gpt-image-1': { api: 'gpt-image-1', provider: 'openai' },
   'dall-e-3': { api: 'dall-e-3', provider: 'openai' },
@@ -19,113 +20,29 @@ const modelMapping: Record<string, { api: string; provider: 'lovable' | 'openai'
   'gemini-2.5-flash-image': { api: 'google/gemini-2.5-flash-image', provider: 'lovable' },
   'gemini-3-pro-image': { api: 'google/gemini-3-pro-image-preview', provider: 'lovable' },
   
-  // Alibaba
-  'wan-2.5': { api: 'alibaba/wan-2.5/text-to-image', provider: 'wavespeed' },
-  
-  // ByteDance - Seedream
-  'seedream-v3': { api: 'bytedance/seedream-v3', provider: 'wavespeed' },
-  'seedream-v3.1': { api: 'bytedance/seedream-v3.1', provider: 'wavespeed' },
+  // ByteDance - Seedream (Verified working)
   'seedream-v4': { api: 'bytedance/seedream-v4', provider: 'wavespeed' },
-  'seedream-v4-sequential': { api: 'bytedance/seedream-v4/sequential', provider: 'wavespeed' },
-  'dreamina-v3.0': { api: 'bytedance/dreamina-v3.0/text-to-image', provider: 'wavespeed' },
-  'dreamina-v3.1': { api: 'bytedance/dreamina-v3.1/text-to-image', provider: 'wavespeed' },
   
-  // Bria
-  'bria-3.2': { api: 'bria-ai/text-to-image-3.2', provider: 'wavespeed' },
-  'bria-fibo': { api: 'bria-ai/fibo', provider: 'wavespeed' },
-  
-  // Ideogram AI
+  // Ideogram AI (Verified working)
   'ideogram-v2': { api: 'ideogram-ai/ideogram-v2', provider: 'wavespeed' },
-  'ideogram-v2a': { api: 'ideogram-ai/ideogram-v2a', provider: 'wavespeed' },
-  'ideogram-v2a-turbo': { api: 'ideogram-ai/ideogram-v2a-turbo', provider: 'wavespeed' },
   'ideogram-v2-turbo': { api: 'ideogram-ai/ideogram-v2-turbo', provider: 'wavespeed' },
-  'ideogram-v3-balanced': { api: 'ideogram-ai/ideogram-v3-balanced', provider: 'wavespeed' },
-  'ideogram-v3-quality': { api: 'ideogram-ai/ideogram-v3-quality', provider: 'wavespeed' },
+  'ideogram-v2a-turbo': { api: 'ideogram-ai/ideogram-v2a-turbo', provider: 'wavespeed' },
   'ideogram-v3-turbo': { api: 'ideogram-ai/ideogram-v3-turbo', provider: 'wavespeed' },
+  'ideogram-v3-balanced': { api: 'ideogram-ai/ideogram-v3-balanced', provider: 'wavespeed' },
   
-  // Leonardo AI
-  'leonardo-lucid-origin': { api: 'leonardo-ai/lucid-origin', provider: 'wavespeed' },
-  'leonardo-phoenix-1.0': { api: 'leonardo-ai/phoenix-1.0', provider: 'wavespeed' },
-  
-  // Luma
-  'luma-photon': { api: 'luma-ai/photon', provider: 'wavespeed' },
-  'luma-photon-flash': { api: 'luma-ai/photon-flash', provider: 'wavespeed' },
-  
-  // Neta.art
-  'neta-lumina': { api: 'neta-art/neta-lumina', provider: 'wavespeed' },
-  
-  // Recraft AI
+  // Recraft AI (Verified working)
   'recraft-20b': { api: 'recraft-ai/recraft-20b', provider: 'wavespeed' },
-  'recraft-20b-svg': { api: 'recraft-ai/recraft-20b-svg', provider: 'wavespeed' },
-  'recraft-v3': { api: 'recraft-ai/recraft-v3', provider: 'wavespeed' },
-  'recraft-v3-svg': { api: 'recraft-ai/recraft-v3-svg', provider: 'wavespeed' },
   
-  // Reve
-  'reve-image': { api: 'reve/text-to-image', provider: 'wavespeed' },
-  
-  // RunwayML
-  'runway-gen4': { api: 'runwayml/gen4-image', provider: 'wavespeed' },
-  'runway-gen4-turbo': { api: 'runwayml/gen4-image-turbo', provider: 'wavespeed' },
-  
-  // Stability AI
-  'sdxl': { api: 'stability-ai/sdxl', provider: 'wavespeed' },
-  'sdxl-lora': { api: 'stability-ai/sdxl-lora', provider: 'wavespeed' },
+  // Stability AI (Verified working)
   'stable-diffusion': { api: 'stability-ai/stable-diffusion', provider: 'wavespeed' },
   'stable-diffusion-3': { api: 'stability-ai/stable-diffusion-3', provider: 'wavespeed' },
-  'stable-diffusion-3.5-medium': { api: 'stability-ai/stable-diffusion-3.5-medium', provider: 'wavespeed' },
   'stable-diffusion-3.5-large': { api: 'stability-ai/stable-diffusion-3.5-large', provider: 'wavespeed' },
-  'stable-diffusion-3.5-large-turbo': { api: 'stability-ai/stable-diffusion-3.5-large-turbo', provider: 'wavespeed' },
   
-  // FLUX Family
-  'flux-1-srpo': { api: 'wavespeed-ai/flux-1-srpo', provider: 'wavespeed' },
-  'flux-1.1-pro': { api: 'black-forest-labs/flux-1.1-pro', provider: 'wavespeed' },
+  // FLUX Family (Verified working)
   'flux-pro-1.1-ultra': { api: 'black-forest-labs/flux-pro-1.1-ultra', provider: 'wavespeed' },
-  'flux-2-dev': { api: 'wavespeed-ai/flux-2-dev/text-to-image', provider: 'wavespeed' },
-  'flux-2-dev-lora': { api: 'wavespeed-ai/flux-2-dev/text-to-image-lora', provider: 'wavespeed' },
-  'flux-2-flex': { api: 'wavespeed-ai/flux-2-flex/text-to-image', provider: 'wavespeed' },
-  'flux-2-pro': { api: 'wavespeed-ai/flux-2-pro/text-to-image', provider: 'wavespeed' },
   'flux-dev': { api: 'wavespeed-ai/flux-dev', provider: 'wavespeed' },
-  'flux-dev-lora': { api: 'wavespeed-ai/flux-dev-lora', provider: 'wavespeed' },
-  'flux-dev-lora-ultra-fast': { api: 'wavespeed-ai/flux-dev-lora-ultra-fast', provider: 'wavespeed' },
-  'flux-dev-ultra-fast': { api: 'wavespeed-ai/flux-dev-ultra-fast', provider: 'wavespeed' },
-  'flux-krea-dev-lora': { api: 'wavespeed-ai/flux-krea-dev-lora', provider: 'wavespeed' },
-  'flux-kontext-max': { api: 'wavespeed-ai/flux-kontext-max/text-to-image', provider: 'wavespeed' },
-  'flux-kontext-pro': { api: 'wavespeed-ai/flux-kontext-pro/text-to-image', provider: 'wavespeed' },
   'flux-schnell': { api: 'wavespeed-ai/flux-schnell', provider: 'wavespeed' },
-  'flux-schnell-lora': { api: 'wavespeed-ai/flux-schnell-lora', provider: 'wavespeed' },
-  'flux-srpo': { api: 'wavespeed-ai/flux-srpo', provider: 'wavespeed' },
   'flux-redux-dev': { api: 'wavespeed-ai/flux-redux-dev', provider: 'wavespeed' },
-  
-  // WAN Models
-  'wan-2.1': { api: 'wavespeed-ai/wan-2.1/text-to-image', provider: 'wavespeed' },
-  'wan-2.1-lora': { api: 'wavespeed-ai/wan-2.1/text-to-image-lora', provider: 'wavespeed' },
-  'wan-2.2-lora': { api: 'wavespeed-ai/wan-2.2/text-to-image-lora', provider: 'wavespeed' },
-  'wan-2.2-realism': { api: 'wavespeed-ai/wan-2.2/text-to-image-realism', provider: 'wavespeed' },
-  'wan-2.5-wavespeed': { api: 'wavespeed-ai/wan-2.5/text-to-image', provider: 'wavespeed' },
-  
-  // Qwen / Jib Mix
-  'qwen-image': { api: 'wavespeed-ai/qwen-image/text-to-image', provider: 'wavespeed' },
-  'qwen-image-lora': { api: 'wavespeed-ai/qwen-image/text-to-image-lora', provider: 'wavespeed' },
-  'jib-mix-qwen': { api: 'wavespeed-ai/jib-mix-qwen-image/text-to-image', provider: 'wavespeed' },
-  'jib-mix-qwen-lora': { api: 'wavespeed-ai/jib-mix-qwen-image/text-to-image-lora', provider: 'wavespeed' },
-  
-  // Hunyuan
-  'hunyuan-2.1': { api: 'wavespeed-ai/hunyuan-image-2.1', provider: 'wavespeed' },
-  'hunyuan-3': { api: 'wavespeed-ai/hunyuan-image-3', provider: 'wavespeed' },
-  
-  // Z-Image
-  'z-image-turbo': { api: 'wavespeed-ai/z-image/turbo', provider: 'wavespeed' },
-  'z-image-turbo-lora': { api: 'wavespeed-ai/z-image/turbo-lora', provider: 'wavespeed' },
-  
-  // HiDream
-  'hidream-i1-dev': { api: 'wavespeed-ai/hidream-i1-dev', provider: 'wavespeed' },
-  'hidream-i1-full': { api: 'wavespeed-ai/hidream-i1-full', provider: 'wavespeed' },
-  
-  // Other WaveSpeed Models
-  'chroma': { api: 'wavespeed-ai/chroma', provider: 'wavespeed' },
-  'female-human': { api: 'wavespeed-ai/female-human', provider: 'wavespeed' },
-  'step1x-edit': { api: 'wavespeed-ai/step1x-edit', provider: 'wavespeed' },
-  'any-llm-vision': { api: 'wavespeed-ai/any-llm/vision', provider: 'wavespeed' },
 };
 
 serve(async (req) => {
