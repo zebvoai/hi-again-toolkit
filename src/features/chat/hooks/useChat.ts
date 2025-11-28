@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { api } from '@/lib/api';
 import { multiModelApi } from '@/lib/multiModelApi';
 import { useChatStore } from '../store/chatStore';
@@ -25,6 +25,19 @@ export const useChat = () => {
   const { toast } = useToast();
   const [lastRequestTime, setLastRequestTime] = useState(0);
   const cooldownMs = 2000; // 2 second cooldown
+  const abortControllerRef = useRef<AbortController | null>(null);
+  
+  const cancelGeneration = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+      setLoading(false);
+      toast({
+        title: 'Generation cancelled',
+        description: 'Response generation has been stopped.',
+      });
+    }
+  };
   
   const sendMessage = async (content: string) => {
     // Rate limiting check
@@ -41,6 +54,9 @@ export const useChat = () => {
     }
     
     setLastRequestTime(now);
+    
+    // Create new abort controller for this request
+    abortControllerRef.current = new AbortController();
     
     // Create conversation if this is the first message
     let convId = currentConversationId;
@@ -89,7 +105,7 @@ export const useChat = () => {
     
     try {
       if (selectedMode === 'image') {
-        const response = await api.generateImage(content);
+        const response = await api.generateImage(content, undefined, abortControllerRef.current?.signal);
         
         const assistantMessage: Message = {
           id: assistantId,
@@ -172,7 +188,8 @@ export const useChat = () => {
             } else {
               updateMessage(assistantId, { content: { ...multiModelContent } });
             }
-          }
+          },
+          abortControllerRef.current?.signal
         );
 
         // Final update after all models complete
@@ -260,7 +277,8 @@ export const useChat = () => {
                   updateMessage(assistantId, { content: streamingContent });
                 }
               }
-            : undefined
+            : undefined,
+          abortControllerRef.current?.signal
         );
         
         if (hasCreatedMessage) {
@@ -318,6 +336,12 @@ export const useChat = () => {
         }
       }
     } catch (error) {
+      // Don't show error toast if user cancelled
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('Request was cancelled by user');
+        return;
+      }
+      
       const errorMessage = error instanceof Error ? error.message : 'Something went wrong';
       setError(errorMessage);
       
@@ -340,6 +364,7 @@ export const useChat = () => {
       });
     } finally {
       setLoading(false);
+      abortControllerRef.current = null;
     }
   };
   
@@ -347,5 +372,5 @@ export const useChat = () => {
     await sendMessage(content);
   };
   
-  return { messages, sendMessage, isLoading, retryMessage };
+  return { messages, sendMessage, isLoading, retryMessage, cancelGeneration };
 };
