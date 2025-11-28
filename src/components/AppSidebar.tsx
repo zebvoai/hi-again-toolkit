@@ -80,6 +80,11 @@ export function AppSidebar() {
     }
   };
 
+  const handleConversationAction = (conversationId: string, action: 'share' | 'group' | 'rename' | 'archive') => {
+    console.log(`Conversation ${conversationId} - ${action}`);
+    // TODO: Implement conversation actions
+  };
+
   // Group conversations by date
   const groupedConversations = conversations.reduce((acc, conv) => {
     const date = new Date(conv.updated_at);
@@ -172,8 +177,8 @@ export function AppSidebar() {
         </SidebarHeader>
       </div>
 
-      <ScrollArea className="flex-1 min-h-0">
-        <SidebarContent className="px-3 pb-4 space-y-6">
+      <ScrollArea className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+        <SidebarContent className="px-3 pb-4 space-y-6 pr-2">
           {/* Projects Section */}
           <div className="space-y-2">
             {/* Projects Header */}
@@ -205,12 +210,12 @@ export function AppSidebar() {
                 {projects.map((project) => (
                   <div
                     key={project.id}
-                    className="group relative flex items-center gap-3 px-3 py-2 hover:bg-accent rounded-lg transition-colors cursor-pointer"
+                    className="group relative flex items-center gap-3 px-3 py-2 hover:bg-accent rounded-lg transition-colors cursor-pointer overflow-hidden"
                     onMouseEnter={() => setHoveredProject(project.id)}
                     onMouseLeave={() => setHoveredProject(null)}
                   >
                     <Folder className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                    <span className="text-sm flex-1 truncate">{project.name}</span>
+                    <span className="text-sm flex-1 truncate whitespace-nowrap overflow-hidden text-ellipsis">{project.name}</span>
                     
                     {/* 3-dot menu (visible on hover) */}
                     {hoveredProject === project.id && (
@@ -294,6 +299,10 @@ export function AppSidebar() {
                         isActive={currentConversationId === conv.id}
                         onClick={() => handleLoadConversation(conv.id)}
                         onDelete={() => handleDeleteConversation(conv.id)}
+                        onShare={() => handleConversationAction(conv.id, 'share')}
+                        onStartGroupChat={() => handleConversationAction(conv.id, 'group')}
+                        onRename={() => handleConversationAction(conv.id, 'rename')}
+                        onArchive={() => handleConversationAction(conv.id, 'archive')}
                       />
                     ))}
                   </div>
