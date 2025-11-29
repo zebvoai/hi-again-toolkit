@@ -574,7 +574,8 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
         </PopoverTrigger>
         <PopoverContent 
           className={cn(
-            "w-[480px] max-w-[95vw] md:max-w-[400px] sm:max-w-[100vw]",
+            "w-[360px] max-w-[95vw] md:max-w-[380px] sm:w-full",
+            "max-h-[70vh] flex flex-col",
             "bg-white dark:bg-gray-900 border border-black/[0.08] dark:border-white/10",
             "shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.6)]",
             "rounded-2xl p-0 z-[100]",
@@ -583,38 +584,38 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
           align="start"
           sideOffset={8}
         >
-          {/* Apple-style Header */}
-          <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-800">
-            <div className="flex items-start justify-between mb-1">
+          {/* Compact Header */}
+          <div className="flex-shrink-0 px-4 py-3 border-b border-gray-100 dark:border-gray-800">
+            <div className="flex items-start justify-between mb-2">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white tracking-tight">
+                <h3 className="text-base font-semibold text-gray-900 dark:text-white tracking-tight">
                   Select Models
                 </h3>
-                <p className="text-[13px] text-gray-500 dark:text-gray-400 mt-1 font-medium">
+                <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 font-medium">
                   {values.length <= 4 ? (
-                    <>Choose up to 4 models • <span className="text-blue-600 dark:text-blue-400">{values.length}/{availableModels.length}</span> selected</>
+                    <>Choose up to 4 • <span className="text-blue-600 dark:text-blue-400">{values.length}/{availableModels.length}</span></>
                   ) : (
                     <span className="text-amber-600 dark:text-amber-500">
-                      🧪 Test mode: {values.length} models selected
+                      🧪 Test: {values.length} selected
                     </span>
                   )}
                 </p>
               </div>
               
               {/* Action Buttons */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <button
                   onClick={handleSelectAll}
-                  className="text-[14px] font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200"
+                  className="text-[12px] font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200"
                 >
-                  Select All
+                  All
                 </button>
                 {values.length > 0 && (
                   <>
                     <span className="text-gray-300 dark:text-gray-700">|</span>
                     <button
                       onClick={handleClearAll}
-                      className="text-[14px] font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors duration-200"
+                      className="text-[12px] font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors duration-200"
                     >
                       Clear
                     </button>
@@ -623,231 +624,234 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
               </div>
             </div>
             
-            {/* Full-width CTA for test mode */}
+            {/* Compact CTA for test mode */}
             <button
               onClick={handleSelectAll}
-              className="w-full mt-4 h-10 bg-gray-900 dark:bg-gray-800 hover:bg-gray-800 dark:hover:bg-gray-700 text-white text-[14px] font-semibold rounded-xl transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
+              className="w-full mt-2 h-8 bg-gray-900 dark:bg-gray-800 hover:bg-gray-800 dark:hover:bg-gray-700 text-white text-[12px] font-semibold rounded-lg transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
             >
-              Select all models for testing
+              Select all for testing
             </button>
           </div>
           
-          {/* Quick Presets Section - Apple Style */}
-          <div className="px-6 py-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                  ✨ QUICK PRESETS
-                </span>
+          {/* Scrollable Content Wrapper */}
+          <div className="flex-1 overflow-y-auto" style={{ scrollBehavior: 'smooth' }}>
+            {/* Compact Presets Section */}
+            <div className="px-4 py-2">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-1.5">
+                  <Sparkles className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                  <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    Presets
+                  </span>
+                </div>
+                
+                {values.length > 0 && (
+                  <button
+                    onClick={() => setShowSavePresetDialog(true)}
+                    className="text-[11px] font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200"
+                  >
+                    + Save
+                  </button>
+                )}
               </div>
               
-              {values.length > 0 && (
-                <button
-                  onClick={() => setShowSavePresetDialog(true)}
-                  className="text-[13px] font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200"
-                >
-                  + Save
-                </button>
-              )}
+              {/* Compact Preset Pills - 2 columns */}
+              <div className="grid grid-cols-2 gap-1.5">
+                {allPresets.slice(0, 6).map((preset) => {
+                  const presetModels = preset.models[selectedMode] || [];
+                  const availableCount = presetModels.filter(m => availableModels.includes(m)).length;
+                  const isActive = matchingPreset?.id === preset.id;
+                  
+                  return (
+                    <button
+                      key={preset.id}
+                      onClick={() => handlePresetSelect(preset.id)}
+                      disabled={availableCount === 0}
+                      className={cn(
+                        "relative flex flex-col items-start p-2 rounded-lg transition-all duration-200",
+                        "border",
+                        isActive 
+                          ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20" 
+                          : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800",
+                        !isActive && "hover:border-blue-400 hover:bg-gray-50 dark:hover:bg-gray-750",
+                        availableCount === 0 && "opacity-40 cursor-not-allowed"
+                      )}
+                    >
+                      {isActive && (
+                        <Check className="absolute top-1 right-1 w-3 h-3 text-blue-600 dark:text-blue-400" />
+                      )}
+                      {preset.isCustom && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeletePreset(preset.id);
+                          }}
+                          className="absolute top-1 right-1 w-4 h-4 flex items-center justify-center bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                        >
+                          <X className="w-2.5 h-2.5" />
+                        </button>
+                      )}
+                      <span className={cn(
+                        "text-[11px] font-semibold leading-tight",
+                        isActive ? "text-blue-700 dark:text-blue-400" : "text-gray-900 dark:text-white"
+                      )}>
+                        {preset.name}
+                      </span>
+                      <span className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
+                        {availableCount} models
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            
-            {/* Preset Pills - 2 columns */}
-            <div className="grid grid-cols-2 sm:grid-cols-1 gap-2.5">
-              {allPresets.slice(0, 6).map((preset) => {
-                const presetModels = preset.models[selectedMode] || [];
-                const availableCount = presetModels.filter(m => availableModels.includes(m)).length;
-                const isActive = matchingPreset?.id === preset.id;
-                
-                return (
+          
+            {/* Compact Search & Filter */}
+            <div className="px-4 py-2 space-y-2">
+              {/* Search Bar */}
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-gray-500 pointer-events-none" />
+                <Input
+                  placeholder="Search..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className={cn(
+                    "h-8 pl-8 pr-8 bg-[#F5F5F7] dark:bg-gray-800 border-0",
+                    "rounded-lg text-[13px] placeholder:text-gray-500 dark:placeholder:text-gray-500",
+                    "focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-0",
+                    "transition-all duration-200"
+                  )}
+                />
+                {searchQuery && (
                   <button
-                    key={preset.id}
-                    onClick={() => handlePresetSelect(preset.id)}
-                    disabled={availableCount === 0}
-                    className={cn(
-                      "relative flex flex-col items-start p-3 rounded-xl transition-all duration-200",
-                      "border-[1.5px]",
-                      isActive 
-                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-sm" 
-                        : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800",
-                      !isActive && "hover:border-blue-400 hover:bg-gray-50 dark:hover:bg-gray-750 hover:-translate-y-0.5 hover:shadow-md",
-                      availableCount === 0 && "opacity-40 cursor-not-allowed hover:translate-y-0"
-                    )}
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center rounded-full bg-gray-400/20 hover:bg-gray-400/30 text-gray-600 dark:text-gray-400 transition-colors"
                   >
-                    {isActive && (
-                      <Check className="absolute top-2 right-2 w-4 h-4 text-blue-600 dark:text-blue-400" />
-                    )}
-                    {preset.isCustom && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeletePreset(preset.id);
-                        }}
-                        className="absolute top-2 right-2 w-5 h-5 flex items-center justify-center bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    )}
-                    <span className={cn(
-                      "text-[14px] font-semibold",
-                      isActive ? "text-blue-700 dark:text-blue-400" : "text-gray-900 dark:text-white"
-                    )}>
-                      {preset.name}
-                    </span>
-                    <span className="text-[12px] text-gray-500 dark:text-gray-400 mt-0.5">
-                      {availableCount} models
-                    </span>
+                    <X className="w-2.5 h-2.5" />
                   </button>
-                );
-              })}
-            </div>
-          </div>
-          
-          {/* Search & Filter - Apple Style */}
-          <div className="px-6 py-3 space-y-3">
-            {/* Search Bar */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 pointer-events-none" />
-              <Input
-                placeholder="Search models..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className={cn(
-                  "h-10 pl-10 pr-10 bg-[#F5F5F7] dark:bg-gray-800 border-0",
-                  "rounded-xl text-[15px] placeholder:text-gray-500 dark:placeholder:text-gray-500",
-                  "focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-0",
-                  "transition-all duration-200"
                 )}
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-full bg-gray-400/20 hover:bg-gray-400/30 text-gray-600 dark:text-gray-400 transition-colors"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              )}
+              </div>
+              
+              {/* Filter Dropdown */}
+              <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
+                <SelectTrigger className="h-7 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-[12px] hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
+                  <SelectValue placeholder="Sort by..." />
+                </SelectTrigger>
+                <SelectContent className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl">
+                  <SelectItem value="provider" className="text-[12px]">Provider</SelectItem>
+                  <SelectItem value="speed" className="text-[12px]">Speed</SelectItem>
+                  <SelectItem value="quality" className="text-[12px]">Cost</SelectItem>
+                  <SelectItem value="alphabetical" className="text-[12px]">Alphabetical</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            
-            {/* Filter Dropdown */}
-            <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
-              <SelectTrigger className="h-9 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-[14px] hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
-                <SelectValue placeholder="Sort by..." />
-              </SelectTrigger>
-              <SelectContent className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl">
-                <SelectItem value="provider" className="text-[14px]">Provider</SelectItem>
-                <SelectItem value="speed" className="text-[14px]">Speed</SelectItem>
-                <SelectItem value="quality" className="text-[14px]">Cost</SelectItem>
-                <SelectItem value="alphabetical" className="text-[14px]">Alphabetical</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
           
-          {/* Models List - Scrollable */}
-          <div className="overflow-y-auto max-h-[360px] px-6 pb-4" style={{ scrollBehavior: 'smooth' }}>
-            <div className="space-y-3">
-              {/* Favorites Section */}
-              {favoriteModels.length > 0 && (
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                    <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                      Favorites
-                    </span>
-                  </div>
-                  
+            {/* Compact Models List */}
+            <div className="px-4 pb-3">
+              <div className="space-y-2">
+                {/* Favorites Section */}
+                {favoriteModels.length > 0 && (
                   <div className="space-y-1">
-                    {favoriteModels.map((model) => (
-                      <ModelItem
-                        key={model}
-                        model={model}
-                        isSelected={values.includes(model)}
-                        isDisabled={false}
-                        isFavorite={true}
-                        onToggle={handleToggle}
-                        onToggleFavorite={toggleFavorite}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {/* Recently Used Section */}
-              {recentFilteredModels.length > 0 && (
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <Clock className="w-3.5 h-3.5 text-blue-500" />
-                    <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                      Recently Used
-                    </span>
-                  </div>
-                  
-                  <div className="space-y-1">
-                    {recentFilteredModels.map((model) => (
-                      <ModelItem
-                        key={model}
-                        model={model}
-                        isSelected={values.includes(model)}
-                        isDisabled={false}
-                        isFavorite={favorites.includes(model)}
-                        onToggle={handleToggle}
-                        onToggleFavorite={toggleFavorite}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {/* Regular models grouped by provider or sorted */}
-              {Object.entries(groupedModels).map(([provider, providerModels]) => (
-                <div key={provider} className="space-y-1.5">
-                  {/* Provider Label - only show if grouping by provider */}
-                  {sortBy === 'provider' && (
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <Cpu className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
-                      <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                        {provider}
+                    <div className="flex items-center gap-1 mb-1">
+                      <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
+                      <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        Favorites
                       </span>
                     </div>
-                  )}
-                  
-                  {/* Models in this provider */}
-                  <div className="space-y-1">
-                    {providerModels.map((model) => (
-                      <ModelItem
-                        key={model}
-                        model={model}
-                        isSelected={values.includes(model)}
-                        isDisabled={false}
-                        isFavorite={favorites.includes(model)}
-                        onToggle={handleToggle}
-                        onToggleFavorite={toggleFavorite}
-                      />
-                    ))}
+                    
+                    <div className="space-y-0.5">
+                      {favoriteModels.map((model) => (
+                        <ModelItem
+                          key={model}
+                          model={model}
+                          isSelected={values.includes(model)}
+                          isDisabled={false}
+                          isFavorite={true}
+                          onToggle={handleToggle}
+                          onToggleFavorite={toggleFavorite}
+                        />
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                )}
+              
+                {/* Recently Used Section */}
+                {recentFilteredModels.length > 0 && (
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-1 mb-1">
+                      <Clock className="w-3 h-3 text-blue-500" />
+                      <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        Recently Used
+                      </span>
+                    </div>
+                    
+                    <div className="space-y-0.5">
+                      {recentFilteredModels.map((model) => (
+                        <ModelItem
+                          key={model}
+                          model={model}
+                          isSelected={values.includes(model)}
+                          isDisabled={false}
+                          isFavorite={favorites.includes(model)}
+                          onToggle={handleToggle}
+                          onToggleFavorite={toggleFavorite}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              
+                {/* Regular models grouped by provider or sorted */}
+                {Object.entries(groupedModels).map(([provider, providerModels]) => (
+                  <div key={provider} className="space-y-1">
+                    {/* Provider Label - only show if grouping by provider */}
+                    {sortBy === 'provider' && (
+                      <div className="flex items-center gap-1 mb-1">
+                        <Cpu className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                        <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                          {provider}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {/* Models in this provider */}
+                    <div className="space-y-0.5">
+                      {providerModels.map((model) => (
+                        <ModelItem
+                          key={model}
+                          model={model}
+                          isSelected={values.includes(model)}
+                          isDisabled={false}
+                          isFavorite={favorites.includes(model)}
+                          onToggle={handleToggle}
+                          onToggleFavorite={toggleFavorite}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
           
-          {/* Sticky Footer */}
-          <div className="sticky bottom-0 left-0 right-0 border-t border-gray-100 dark:border-gray-800 bg-gradient-to-t from-white via-white to-white/0 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900/0 px-6 py-4">
+          {/* Sticky Footer - Fixed at Bottom */}
+          <div className="flex-shrink-0 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-3">
             {/* Selected Model Pills */}
             {values.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mb-3">
+              <div className="flex flex-wrap gap-1 mb-2">
                 {values.slice(0, 4).map((model) => (
                   <button
                     key={model}
                     onClick={() => handleToggle(model)}
-                    className="group flex items-center gap-1.5 px-2.5 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-lg text-[12px] font-medium hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-all duration-200"
+                    className="group flex items-center gap-1 px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-md text-[10px] font-medium hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-all duration-200"
                   >
-                    <span>{model}</span>
-                    <X className="w-3 h-3 opacity-60 group-hover:opacity-100" />
+                    <span className="truncate max-w-[80px]">{model}</span>
+                    <X className="w-2.5 h-2.5 opacity-60 group-hover:opacity-100 flex-shrink-0" />
                   </button>
                 ))}
                 {values.length > 4 && (
-                  <span className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-lg text-[12px] font-medium">
-                    +{values.length - 4} more
+                  <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-md text-[10px] font-medium">
+                    +{values.length - 4}
                   </span>
                 )}
               </div>
@@ -858,7 +862,7 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
               <Button
                 variant="outline"
                 onClick={() => setOpen(false)}
-                className="flex-1 h-10 border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl font-semibold text-[14px]"
+                className="flex-1 h-8 border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg font-semibold text-[12px]"
               >
                 Cancel
               </Button>
@@ -867,7 +871,7 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
                   setOpen(false);
                   toast.success(`${values.length} model${values.length > 1 ? 's' : ''} selected`);
                 }}
-                className="flex-1 h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-[14px] transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                className="flex-1 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-[12px] transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
               >
                 Apply {values.length > 0 && `(${values.length})`}
               </Button>
@@ -967,26 +971,26 @@ const ModelItem = ({ model, isSelected, isDisabled, isFavorite, onToggle, onTogg
         onClick={() => onToggle(model)}
         disabled={isDisabled}
         className={cn(
-          "w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200",
+          "w-full flex items-center gap-2 px-2 py-1.5 rounded-lg transition-all duration-200",
           "border border-transparent",
           isSelected 
             ? "bg-blue-50 dark:bg-blue-900/20 border-blue-500" 
             : "bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750",
-          !isSelected && "hover:translate-x-1 hover:shadow-sm",
+          !isSelected && "hover:translate-x-0.5 hover:shadow-sm",
           isDisabled && "opacity-50 cursor-not-allowed hover:translate-x-0 hover:bg-transparent"
         )}
       >
-        {/* Provider Icon */}
-        <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
-          <Cpu className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+        {/* Provider Icon - Smaller */}
+        <div className="w-6 h-6 rounded-md bg-gray-100 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
+          <Cpu className="w-3 h-3 text-gray-600 dark:text-gray-400" />
         </div>
         
-        {/* Checkbox */}
+        {/* Checkbox - Smaller */}
         <div className="flex-shrink-0">
           <Checkbox 
             checked={isSelected} 
             className={cn(
-              "w-5 h-5 rounded-md transition-all duration-200",
+              "w-4 h-4 rounded-sm transition-all duration-200",
               isSelected && "data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
             )}
           />
@@ -994,47 +998,47 @@ const ModelItem = ({ model, isSelected, isDisabled, isFavorite, onToggle, onTogg
         
         {/* Model Info */}
         <div className="flex-1 text-left min-w-0">
-          <div className="flex items-center gap-1.5 flex-wrap">
+          <div className="flex items-center gap-1 flex-wrap">
             <span className={cn(
-              "text-[14px] font-semibold",
+              "text-[11px] font-semibold truncate",
               isSelected ? "text-blue-700 dark:text-blue-400" : "text-gray-900 dark:text-white"
             )}>
               {model}
             </span>
             
-            {/* Badges */}
-            <div className="flex items-center gap-1">
+            {/* Compact Badges */}
+            <div className="flex items-center gap-0.5">
               {tier === 'premium' && (
-                <span className="px-1.5 py-0.5 text-[10px] font-bold bg-gradient-to-r from-amber-400 to-amber-600 text-white rounded-md">
-                  PREMIUM
+                <span className="px-1 py-0 text-[8px] font-bold bg-gradient-to-r from-amber-400 to-amber-600 text-white rounded">
+                  PRE
                 </span>
               )}
               {tier === 'pro' && (
-                <span className="px-1.5 py-0.5 text-[10px] font-bold bg-gradient-to-r from-purple-500 to-purple-700 text-white rounded-md">
+                <span className="px-1 py-0 text-[8px] font-bold bg-gradient-to-r from-purple-500 to-purple-700 text-white rounded">
                   PRO
                 </span>
               )}
               {tier === 'budget' && (
-                <span className="px-1.5 py-0.5 text-[10px] font-bold bg-gradient-to-r from-green-500 to-green-700 text-white rounded-md">
-                  BUDGET
+                <span className="px-1 py-0 text-[8px] font-bold bg-gradient-to-r from-green-500 to-green-700 text-white rounded">
+                  BUD
                 </span>
               )}
               {speed === 'ultrafast' && (
-                <span className="px-1.5 py-0.5 text-[10px] font-bold bg-blue-600 text-white rounded-md flex items-center gap-0.5">
-                  <Zap className="w-2.5 h-2.5" />
-                  ULTRAFAST
+                <span className="px-1 py-0 text-[8px] font-bold bg-blue-600 text-white rounded flex items-center gap-0.5">
+                  <Zap className="w-2 h-2" />
+                  UF
                 </span>
               )}
               {speed === 'fast' && (
-                <span className="px-1.5 py-0.5 text-[10px] font-bold bg-blue-500 text-white rounded-md">
-                  FAST
+                <span className="px-1 py-0 text-[8px] font-bold bg-blue-500 text-white rounded">
+                  F
                 </span>
               )}
             </div>
           </div>
         </div>
         
-        {/* Favorite Star */}
+        {/* Favorite Star - Smaller */}
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -1046,12 +1050,12 @@ const ModelItem = ({ model, isSelected, isDisabled, isFavorite, onToggle, onTogg
           )}
           aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
         >
-          <Star className={cn("w-4 h-4", isFavorite && "fill-amber-500")} />
+          <Star className={cn("w-3 h-3", isFavorite && "fill-amber-500")} />
         </button>
         
-        {/* Info Icon */}
+        {/* Info Icon - Smaller */}
         {info && (
-          <Info className="w-4 h-4 text-gray-400 dark:text-gray-500 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <Info className="w-3 h-3 text-gray-400 dark:text-gray-500 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
         )}
       </button>
     </div>
