@@ -50,7 +50,7 @@ const modelMapping: Record<string, { api: string; provider: 'lovable' | 'openai'
   'luma-photon-flash': { api: 'luma/photon-flash', provider: 'wavespeed' },
   
   // Neta.art
-  'neta-lumina': { api: 'neta-art/neta-lumina', provider: 'wavespeed' },
+  'neta-lumina': { api: 'neta/neta-lumina', provider: 'wavespeed' },
   
   // Recraft AI
   'recraft-20b': { api: 'recraft-ai/recraft-20b', provider: 'wavespeed' },
@@ -108,8 +108,8 @@ const modelMapping: Record<string, { api: string; provider: 'lovable' | 'openai'
   'jib-mix-qwen-image-lora': { api: 'wavespeed-ai/jib-mix-qwen-image/text-to-image-lora', provider: 'wavespeed' },
   
   // Hunyuan
-  'hunyuan-image-2.1': { api: 'wavespeed-ai/hunyuan-image-2.1', provider: 'wavespeed' },
-  'hunyuan-image-3': { api: 'wavespeed-ai/hunyuan-image-3', provider: 'wavespeed' },
+  'hunyuan-image-2.1': { api: 'tencent/hunyuan-image-2.1', provider: 'wavespeed' },
+  'hunyuan-image-3': { api: 'tencent/hunyuan-image-3', provider: 'wavespeed' },
   
   // Z-Image
   'z-image-turbo': { api: 'wavespeed-ai/z-image/turbo', provider: 'wavespeed' },
@@ -344,6 +344,16 @@ serve(async (req) => {
         if (status === 'completed' && Array.isArray(outputs) && outputs.length > 0) {
           imageUrl = outputs[0];
           console.log('Image generated successfully with Wavespeed');
+          console.log('Image URL:', imageUrl);
+          
+          // Handle potential SVG content
+          if (typeof imageUrl === 'string' && imageUrl.trim().startsWith('<svg')) {
+            // Convert SVG text to data URL
+            const svgBase64 = btoa(imageUrl);
+            imageUrl = `data:image/svg+xml;base64,${svgBase64}`;
+            console.log('Converted SVG text to data URL');
+          }
+          
           break;
         } else if (status === 'failed') {
           throw new Error(`Wavespeed generation failed: ${errorMessage || 'Unknown error'}`);
