@@ -31,7 +31,8 @@ const getModelMapping = (displayName: string): { apiModel: string, provider: str
     'Gemini 2.5 Flash Lite': { apiModel: 'gemini-2.5-flash-lite', provider: 'google' }
   };
   
-  return modelMapping[displayName] || { apiModel: displayName, provider: 'openai' };
+  // If not in base mappings, assume it's an OpenRouter model (use display name as model ID)
+  return modelMapping[displayName] || { apiModel: displayName, provider: 'openrouter' };
 };
 
 // Multi-model request handler
@@ -114,6 +115,25 @@ async function handleMultiModelRequest(
               contents.push({ role: 'user', parts: [{ text: message }] });
               
               body = { contents };
+            } else if (provider === 'openrouter') {
+              apiKey = Deno.env.get('OPENROUTER_API_KEY') || '';
+              if (!apiKey) throw new Error('OPENROUTER_API_KEY not configured');
+              
+              apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
+              headers = {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json',
+                'HTTP-Referer': 'https://lovable.dev',
+                'X-Title': 'Lovable AI'
+              };
+              
+              const messages = [
+                { role: 'system', content: systemPrompt },
+                ...conversationHistory.map(m => ({ role: m.role, content: m.content })),
+                { role: 'user', content: message }
+              ];
+              
+              body = { model: apiModel, messages, stream: true };
             }
             
             const response = await fetch(apiUrl, {
@@ -149,7 +169,7 @@ async function handleMultiModelRequest(
                   try {
                     let content = '';
                     
-                    if (provider === 'openai') {
+                    if (provider === 'openai' || provider === 'openrouter') {
                       const parsed = JSON.parse(data);
                       content = parsed.choices?.[0]?.delta?.content || '';
                     } else if (provider === 'anthropic') {
@@ -294,7 +314,8 @@ serve(async (req) => {
       } else if (requestedModel.includes('gemini')) {
         selectedProvider = 'google';
       } else {
-        selectedProvider = provider || 'openai';
+        // Default to OpenRouter for unknown models
+        selectedProvider = 'openrouter';
       }
     } else {
       // Default fallback
@@ -383,6 +404,35 @@ serve(async (req) => {
       });
       
       body = { contents };
+    } else if (selectedProvider === 'openrouter') {
+      apiKey = Deno.env.get('OPENROUTER_API_KEY');
+      if (!apiKey) {
+        throw new Error('OPENROUTER_API_KEY not configured');
+      }
+      
+      apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
+      headers = {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://lovable.dev',
+        'X-Title': 'Lovable AI'
+      };
+      
+      const systemPrompt = mode === 'build' 
+        ? 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags.'
+        : 'You are a helpful AI assistant.';
+      
+      const messages = [
+        { role: 'system', content: systemPrompt },
+        ...conversationHistory.map(m => ({ role: m.role, content: m.content })),
+        { role: 'user', content: message }
+      ];
+      
+      body = {
+        model,
+        messages,
+        stream
+      };
     } else {
       throw new Error(`Unsupported provider: ${selectedProvider}`);
     }
@@ -402,7 +452,7 @@ serve(async (req) => {
     }
     
     // Handle streaming response
-    if (stream && selectedProvider === 'openai') {
+    if (stream && (selectedProvider === 'openai' || selectedProvider === 'openrouter')) {
       const encoder = new TextEncoder();
       const readable = new ReadableStream({
         async start(controller) {
@@ -467,10 +517,10 @@ serve(async (req) => {
     console.log('AI response received:', JSON.stringify(data).substring(0, 200));
     
     let content: string;
-    if (selectedProvider === 'openai') {
+    if (selectedProvider === 'openai' || selectedProvider === 'openrouter') {
       if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-        console.error('Invalid OpenAI response:', data);
-        throw new Error('Invalid response from OpenAI');
+        console.error('Invalid API response:', data);
+        throw new Error(`Invalid response from ${selectedProvider}`);
       }
       content = data.choices[0].message.content;
     } else if (selectedProvider === 'anthropic') {
