@@ -1,6 +1,6 @@
 import { Users, Glasses, FlaskConical } from 'lucide-react';
 import { useState } from 'react';
-import { TestRunner } from '@/components/TestRunner';
+import { TestRunner } from '@/components/TestRunnerSimple';
 import { Button } from '@/components/ui/button';
 import {
   Tooltip,
