@@ -1,5 +1,6 @@
-import { Users, Glasses } from 'lucide-react';
+import { Users, Glasses, FlaskConical } from 'lucide-react';
 import { useState } from 'react';
+import { TestRunner } from '@/components/TestRunner';
 import { Button } from '@/components/ui/button';
 import {
   Tooltip,
@@ -33,6 +34,7 @@ interface TopActionsProps {
 export function TopActions({ isTemporaryMode, onTemporaryModeToggle }: TopActionsProps) {
   const [showGroupDialog, setShowGroupDialog] = useState(false);
   const [showTempConfirm, setShowTempConfirm] = useState(false);
+  const [showTestRunner, setShowTestRunner] = useState(false);
 
   const handleTemporaryClick = () => {
     if (!isTemporaryMode) {
@@ -50,6 +52,26 @@ export function TopActions({ isTemporaryMode, onTemporaryModeToggle }: TopAction
   return (
     <>
       <div className="fixed top-5 right-6 z-50 flex items-center gap-3">
+        {/* Test Runner Icon */}
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowTestRunner(true)}
+                className="w-10 h-10 rounded-lg bg-transparent hover:bg-muted/80 transition-all duration-150 hover:scale-105 active:scale-95"
+                aria-label="Test Runner"
+              >
+                <FlaskConical className="w-5 h-5 text-muted-foreground" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>Run Platform Tests</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
         {/* Group Chat Icon */}
         <TooltipProvider>
           <Tooltip>
@@ -142,6 +164,9 @@ export function TopActions({ isTemporaryMode, onTemporaryModeToggle }: TopAction
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Test Runner Dialog */}
+      <TestRunner open={showTestRunner} onOpenChange={setShowTestRunner} />
     </>
   );
 }
