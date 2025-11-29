@@ -42,8 +42,8 @@ const modelMapping: Record<string, { api: string; provider: 'lovable' | 'openai'
   'ideogram-v3-quality': { api: 'ideogram-ai/ideogram-v3-quality', provider: 'wavespeed' },
   
   // Leonardo AI
-  'leonardo-lucid-origin': { api: 'leonardo-ai/lucid-origin', provider: 'wavespeed' },
-  'leonardo-phoenix-1.0': { api: 'leonardo-ai/phoenix-1.0', provider: 'wavespeed' },
+  'leonardo-lucid-origin': { api: 'leonardoai/lucid-origin', provider: 'wavespeed' },
+  'leonardo-phoenix-1.0': { api: 'leonardoai/phoenix-1.0', provider: 'wavespeed' },
   
   // Luma
   'luma-photon': { api: 'luma/photon', provider: 'wavespeed' },
@@ -62,8 +62,8 @@ const modelMapping: Record<string, { api: string; provider: 'lovable' | 'openai'
   'reve-text-to-image': { api: 'reve/text-to-image', provider: 'wavespeed' },
   
   // RunwayML
-  'runway-gen4-image': { api: 'runwayml/gen4-image', provider: 'wavespeed' },
-  'runway-gen4-image-turbo': { api: 'runwayml/gen4-image-turbo', provider: 'wavespeed' },
+  'runway-gen4-image': { api: 'runwayml/gen4-image', provider: 'wavespeed', requiresInputImage: true },
+  'runway-gen4-image-turbo': { api: 'runwayml/gen4-image-turbo', provider: 'wavespeed', requiresInputImage: true },
   
   // Stability AI
   'sdxl': { api: 'stability-ai/sdxl', provider: 'wavespeed' },
@@ -99,7 +99,7 @@ const modelMapping: Record<string, { api: string; provider: 'lovable' | 'openai'
   'wan-2.1-lora': { api: 'wavespeed-ai/wan-2.1/text-to-image-lora', provider: 'wavespeed' },
   'wan-2.2-lora': { api: 'wavespeed-ai/wan-2.2/text-to-image-lora', provider: 'wavespeed' },
   'wan-2.2-realism': { api: 'wavespeed-ai/wan-2.2/text-to-image-realism', provider: 'wavespeed' },
-  'wan-2.5': { api: 'wavespeed-ai/wan-2.5/text-to-image', provider: 'wavespeed' },
+  'wan-2.5': { api: 'alibaba/wan-2.5/text-to-image', provider: 'wavespeed' },
   
   // Qwen / Jib Mix
   'qwen-image': { api: 'wavespeed-ai/qwen-image/text-to-image', provider: 'wavespeed' },
