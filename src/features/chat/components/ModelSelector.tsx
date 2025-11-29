@@ -301,22 +301,10 @@ const sortModels = (models: string[], sortBy: SortOption): string[] => {
 const getModelProvider = (model: string): string => {
   const modelLower = model.toLowerCase();
   
-  // Core providers (original + fallback)
+  // Text models
   if (model.includes('GPT') || model.includes('gpt') || model.includes('DALL-E')) return 'OpenAI';
   if (model.includes('Claude') || model.includes('claude')) return 'Anthropic';
   if (model.includes('Gemini') || model.includes('gemini')) return 'Google';
-  
-  // OpenRouter text model providers
-  if (modelLower.includes('llama') || modelLower.includes('meta')) return 'Meta';
-  if (modelLower.includes('mistral') || modelLower.includes('mixtral')) return 'Mistral';
-  if (modelLower.includes('deepseek')) return 'DeepSeek';
-  if (modelLower.includes('qwen') && !modelLower.includes('image')) return 'Qwen';
-  if (modelLower.includes('phi')) return 'Microsoft';
-  if (modelLower.includes('gemma')) return 'Google';
-  if (modelLower.includes('yi-') || modelLower.includes('01-ai')) return '01.AI';
-  if (modelLower.includes('cohere')) return 'Cohere';
-  if (modelLower.includes('databricks')) return 'Databricks';
-  if (modelLower.includes('nvidia')) return 'NVIDIA';
   
   // Image model providers
   if (modelLower.includes('wan')) return 'Alibaba';
@@ -337,7 +325,7 @@ const getModelProvider = (model: string): string => {
   if (modelLower.includes('hidream')) return 'HiDream';
   if (modelLower.includes('chroma') || modelLower.includes('female') || modelLower.includes('step1x') || modelLower.includes('any llm')) return 'WaveSpeed AI';
   
-  return 'OpenRouter';
+  return 'Other';
 };
 
 const getModelTier = (model: string): 'pro' | 'premium' | 'budget' | 'standard' => {
