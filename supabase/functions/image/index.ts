@@ -14,7 +14,6 @@ interface ImageRequest {
 // Map frontend model names to API model names
 // Only including verified working models to avoid API errors
 const modelMapping: Record<string, { api: string; provider: 'lovable' | 'openai' | 'wavespeed'; requiresInputImage?: boolean }> = {
-  'gpt-image-1': { api: 'gpt-image-1', provider: 'openai' },
   'dall-e-3': { api: 'dall-e-3', provider: 'openai' },
   'dall-e-2': { api: 'dall-e-2', provider: 'openai' },
   'gemini-2.5-flash-image': { api: 'google/gemini-2.5-flash-image', provider: 'lovable' },
@@ -49,14 +48,9 @@ const modelMapping: Record<string, { api: string; provider: 'lovable' | 'openai'
   'luma-photon': { api: 'luma/photon', provider: 'wavespeed' },
   'luma-photon-flash': { api: 'luma/photon-flash', provider: 'wavespeed' },
   
-  // Neta.art
-  'neta-lumina': { api: 'neta/neta-lumina', provider: 'wavespeed' },
-  
   // Recraft AI
   'recraft-20b': { api: 'recraft-ai/recraft-20b', provider: 'wavespeed' },
-  'recraft-20b-svg': { api: 'recraft-ai/recraft-20b-svg', provider: 'wavespeed' },
   'recraft-v3': { api: 'recraft-ai/recraft-v3', provider: 'wavespeed' },
-  'recraft-v3-svg': { api: 'recraft-ai/recraft-v3-svg', provider: 'wavespeed' },
   
   // Reve
   'reve-text-to-image': { api: 'reve/text-to-image', provider: 'wavespeed' },
@@ -108,7 +102,6 @@ const modelMapping: Record<string, { api: string; provider: 'lovable' | 'openai'
   'jib-mix-qwen-image-lora': { api: 'wavespeed-ai/jib-mix-qwen-image/text-to-image-lora', provider: 'wavespeed' },
   
   // Hunyuan
-  'hunyuan-image-2.1': { api: 'tencent/hunyuan-image-2.1', provider: 'wavespeed' },
   'hunyuan-image-3': { api: 'tencent/hunyuan-image-3', provider: 'wavespeed' },
   
   // Z-Image
