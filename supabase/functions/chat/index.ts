@@ -35,6 +35,31 @@ const getModelMapping = (displayName: string): { apiModel: string, provider: str
   return modelMapping[displayName] || { apiModel: displayName, provider: 'openrouter' };
 };
 
+// Helper to get actual OpenRouter model ID from display name
+const getOpenRouterModelId = async (displayName: string): Promise<string> => {
+  const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY');
+  if (!OPENROUTER_API_KEY) return displayName;
+  
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/models', {
+      headers: {
+        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) return displayName;
+    
+    const data = await response.json();
+    const model = data.data.find((m: any) => m.name === displayName);
+    
+    return model ? model.id : displayName;
+  } catch (error) {
+    console.error('Error fetching OpenRouter model ID:', error);
+    return displayName;
+  }
+};
+
 // Multi-model request handler
 async function handleMultiModelRequest(
   message: string,
@@ -119,6 +144,9 @@ async function handleMultiModelRequest(
               apiKey = Deno.env.get('OPENROUTER_API_KEY') || '';
               if (!apiKey) throw new Error('OPENROUTER_API_KEY not configured');
               
+              // Get the actual OpenRouter model ID from display name
+              const openrouterModelId = await getOpenRouterModelId(modelName);
+              
               apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
               headers = {
                 'Authorization': `Bearer ${apiKey}`,
@@ -133,7 +161,7 @@ async function handleMultiModelRequest(
                 { role: 'user', content: message }
               ];
               
-              body = { model: apiModel, messages, stream: true };
+              body = { model: openrouterModelId, messages, stream: true };
             }
             
             const response = await fetch(apiUrl, {
@@ -429,7 +457,7 @@ serve(async (req) => {
       ];
       
       body = {
-        model,
+        model: await getOpenRouterModelId(model),
         messages,
         stream
       };
