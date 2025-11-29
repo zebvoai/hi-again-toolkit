@@ -328,11 +328,57 @@ const getModelProvider = (model: string): string => {
   return 'Other';
 };
 
-const getModelTier = (model: string): 'premium' | 'standard' | 'fast' => {
+const getModelTier = (model: string): 'pro' | 'premium' | 'budget' | 'standard' => {
   const modelLower = model.toLowerCase();
-  if (modelLower.includes('pro') || modelLower.includes('opus')) return 'premium';
-  if (modelLower.includes('mini') || modelLower.includes('nano') || modelLower.includes('flash')) return 'fast';
+  
+  // PRO tier - flagship models
+  if (modelLower.includes('gpt-5') || modelLower.includes('gpt-4o') || 
+      modelLower.includes('claude-opus') || modelLower.includes('claude-4') ||
+      modelLower.includes('gemini-2.0-pro') || modelLower.includes('gemini-exp-1206') ||
+      modelLower.includes('o1') || modelLower.includes('o3')) {
+    return 'pro';
+  }
+  
+  // PREMIUM tier - high-quality models
+  if (modelLower.includes('pro') || modelLower.includes('opus') || 
+      modelLower.includes('claude-sonnet') || modelLower.includes('gpt-4-turbo')) {
+    return 'premium';
+  }
+  
+  // BUDGET tier - cost-effective models
+  if (modelLower.includes('mini') || modelLower.includes('nano') || 
+      modelLower.includes('haiku') || modelLower.includes('lite') ||
+      modelLower.includes('gemini-flash-8b') || modelLower.includes('gemma')) {
+    return 'budget';
+  }
+  
   return 'standard';
+};
+
+const getModelSpeed = (model: string): 'ultrafast' | 'fast' | 'moderate' | null => {
+  const modelLower = model.toLowerCase();
+  
+  // ULTRAFAST - optimized for speed
+  if (modelLower.includes('nano') || modelLower.includes('flash-8b') || 
+      modelLower.includes('gemma') || modelLower.includes('llama-3.3-70b') ||
+      modelLower.includes('qwen-2.5-72b')) {
+    return 'ultrafast';
+  }
+  
+  // FAST - good balance
+  if (modelLower.includes('mini') || modelLower.includes('flash') || 
+      modelLower.includes('haiku') || modelLower.includes('turbo') ||
+      modelLower.includes('lite')) {
+    return 'fast';
+  }
+  
+  // MODERATE - standard speed
+  if (modelLower.includes('pro') || modelLower.includes('opus') || 
+      modelLower.includes('sonnet')) {
+    return 'moderate';
+  }
+  
+  return null;
 };
 
 export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps) => {
@@ -936,6 +982,7 @@ interface ModelItemProps {
 
 const ModelItem = ({ model, isSelected, isDisabled, isFavorite, onToggle, onToggleFavorite }: ModelItemProps) => {
   const tier = getModelTier(model);
+  const speed = getModelSpeed(model);
   const info = modelInfo[model];
   
   const modelButton = (
@@ -962,20 +1009,36 @@ const ModelItem = ({ model, isSelected, isDisabled, isFavorite, onToggle, onTogg
         
         {/* Model Info */}
         <div className="flex-1 text-left min-w-0">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 flex-wrap">
             <span className={cn(
               "text-sm font-medium truncate",
               isSelected ? "text-blue-700 dark:text-blue-400" : "text-gray-900 dark:text-gray-100"
             )}>
               {model}
             </span>
-            {tier === 'premium' && (
-              <span className="px-1.5 py-0.5 text-[10px] font-semibold bg-gradient-to-r from-amber-400 to-amber-500 text-white rounded-md">
+            {tier === 'pro' && (
+              <span className="px-1.5 py-0.5 text-[10px] font-bold bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-md shadow-sm">
                 PRO
               </span>
             )}
-            {tier === 'fast' && (
-              <span className="px-1.5 py-0.5 text-[10px] font-semibold bg-gradient-to-r from-green-400 to-green-500 text-white rounded-md">
+            {tier === 'premium' && (
+              <span className="px-1.5 py-0.5 text-[10px] font-bold bg-gradient-to-r from-amber-400 to-amber-500 text-white rounded-md shadow-sm">
+                PREMIUM
+              </span>
+            )}
+            {tier === 'budget' && (
+              <span className="px-1.5 py-0.5 text-[10px] font-bold bg-gradient-to-r from-green-500 to-green-600 text-white rounded-md shadow-sm">
+                BUDGET
+              </span>
+            )}
+            {speed === 'ultrafast' && (
+              <span className="px-1.5 py-0.5 text-[10px] font-bold bg-gradient-to-r from-cyan-400 to-cyan-500 text-white rounded-md shadow-sm flex items-center gap-0.5">
+                <Zap className="w-2.5 h-2.5" />
+                ULTRAFAST
+              </span>
+            )}
+            {speed === 'fast' && (
+              <span className="px-1.5 py-0.5 text-[10px] font-bold bg-gradient-to-r from-blue-400 to-blue-500 text-white rounded-md shadow-sm">
                 FAST
               </span>
             )}
