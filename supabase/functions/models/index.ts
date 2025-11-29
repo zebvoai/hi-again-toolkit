@@ -84,9 +84,7 @@ serve(async (req) => {
         // Reve
         'Reve Text to Image',
         
-        // RunwayML
-        'Runway Gen4 Image',
-        'Runway Gen4 Image Turbo',
+        // RunwayML (image-to-image models removed)
         
         // Stability AI
         'SDXL',
