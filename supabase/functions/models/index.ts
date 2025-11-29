@@ -179,27 +179,41 @@ serve(async (req) => {
   }
 
   try {
-    // Fetch OpenRouter models
+    // Base models (always included)
+    const baseModels = [
+      // OpenAI
+      'GPT-5',
+      'GPT-5 Mini',
+      'GPT-5 Nano',
+      'GPT-4.1',
+      'GPT-4.1 Mini',
+      'O3',
+      'O4 Mini',
+      // Anthropic
+      'Claude Sonnet 4.5',
+      'Claude Opus 4.1',
+      'Claude Sonnet 4',
+      'Claude Opus 4',
+      'Claude Haiku 3.5',
+      'Claude Sonnet 3.5',
+      // Google
+      'Gemini 2.5 Pro',
+      'Gemini 3 Pro',
+      'Gemini 2.5 Flash',
+      'Gemini 2.5 Flash Lite',
+      'Gemini 1.5 Pro',
+      'Gemini 1.5 Flash',
+      'Gemini 2.0 Flash',
+    ];
+    
+    // Fetch and append OpenRouter models
     const openRouterModels = await fetchOpenRouterModels();
     
+    // Combine: base models + OpenRouter models (remove duplicates)
+    const allTextModels = [...new Set([...baseModels, ...openRouterModels])];
+    
     const availableModels = {
-      text: openRouterModels.length > 0 ? openRouterModels : [
-        // Fallback to default models if API fails
-        'GPT-5',
-        'GPT-5 Mini',
-        'GPT-5 Nano',
-        'GPT-4.1',
-        'GPT-4.1 Mini',
-        'O3',
-        'O4 Mini',
-        'Claude Sonnet 4.5',
-        'Claude Opus 4.1',
-        'Claude Sonnet 4',
-        'Gemini 2.5 Pro',
-        'Gemini 3 Pro',
-        'Gemini 2.5 Flash',
-        'Gemini 2.5 Flash Lite'
-      ],
+      text: allTextModels,
       image: [
         // OpenAI Models
         'DALL-E 3',
