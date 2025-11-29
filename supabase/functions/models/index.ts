@@ -115,7 +115,6 @@ serve(async (req) => {
         'Flux Schnell',
         'Flux Schnell LoRA',
         'Flux SRPO',
-        'Flux Redux Dev',
         
         // WAN Models
         'WAN 2.1',
@@ -144,8 +143,7 @@ serve(async (req) => {
         
         // Other WaveSpeed Models
         'Chroma',
-        'Female Human',
-        'Step1x Edit'
+        'Female Human'
       ],
       video: [
         'Gemini Video 2.0',

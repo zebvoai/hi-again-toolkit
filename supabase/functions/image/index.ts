@@ -122,7 +122,7 @@ const modelMapping: Record<string, { api: string; provider: 'lovable' | 'openai'
   // Other WaveSpeed Models
   'chroma': { api: 'wavespeed-ai/chroma', provider: 'wavespeed' },
   'female-human': { api: 'wavespeed-ai/female-human', provider: 'wavespeed' },
-  'step1x-edit': { api: 'wavespeed-ai/step1x-edit', provider: 'wavespeed' },
+  'step1x-edit': { api: 'wavespeed-ai/step1x-edit', provider: 'wavespeed', requiresInputImage: true },
 };
 
 serve(async (req) => {
