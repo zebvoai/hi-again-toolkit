@@ -5,15 +5,186 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+interface OpenRouterModel {
+  id: string;
+  name: string;
+  context_length: number;
+  pricing: {
+    prompt: string;
+    completion: string;
+  };
+  top_provider?: {
+    max_completion_tokens?: number;
+  };
+  architecture?: {
+    modality?: string;
+    tokenizer?: string;
+  };
+}
+
+async function fetchOpenRouterModels(): Promise<string[]> {
+  const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY');
+  
+  if (!OPENROUTER_API_KEY) {
+    console.error('OPENROUTER_API_KEY not configured');
+    return [];
+  }
+
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/models', {
+      headers: {
+        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      console.error('OpenRouter API error:', response.status);
+      return [];
+    }
+
+    const data = await response.json();
+    const models = data.data as OpenRouterModel[];
+
+    // Filter and rank models
+    const filteredModels = models
+      .filter(model => {
+        const modality = model.architecture?.modality?.toLowerCase() || '';
+        const id = model.id.toLowerCase();
+        const name = model.name.toLowerCase();
+        
+        // Exclude non-text models
+        if (modality.includes('image') || modality.includes('vision') || 
+            modality.includes('video') || modality.includes('audio') ||
+            modality.includes('multimodal') || modality.includes('embedding')) {
+          return false;
+        }
+        
+        // Exclude image/vision models by name
+        if (id.includes('vision') || id.includes('image') || name.includes('vision')) {
+          return false;
+        }
+        
+        // Exclude deprecated/offline/blocked
+        if (id.includes('deprecated') || id.includes('offline') || id.includes('blocked')) {
+          return false;
+        }
+        
+        // Exclude extremely heavy models (>200B)
+        if (id.includes('405b') || id.includes('236b')) {
+          return false;
+        }
+        
+        return true;
+      })
+      .map(model => {
+        const promptPrice = parseFloat(model.pricing.prompt);
+        const contextLength = model.context_length || 0;
+        const maxTokens = model.top_provider?.max_completion_tokens || 0;
+        
+        // Calculate score
+        let score = 0;
+        
+        // Prioritize recent models (2024-2025)
+        if (model.id.includes('2024') || model.id.includes('2025')) {
+          score += 50;
+        }
+        
+        // High context length
+        if (contextLength >= 100000) score += 30;
+        else if (contextLength >= 50000) score += 20;
+        else if (contextLength >= 10000) score += 10;
+        
+        // Low cost
+        if (promptPrice < 0.0001) score += 25;
+        else if (promptPrice < 0.001) score += 15;
+        else if (promptPrice < 0.01) score += 5;
+        
+        // High output capacity
+        if (maxTokens >= 16000) score += 20;
+        else if (maxTokens >= 8000) score += 10;
+        
+        // Prefer modern architectures
+        if (model.id.includes('gpt-5') || model.id.includes('claude-4') || 
+            model.id.includes('gemini-3') || model.id.includes('o3')) {
+          score += 40;
+        } else if (model.id.includes('gpt-4') || model.id.includes('claude-3') || 
+                   model.id.includes('gemini-2')) {
+          score += 25;
+        }
+        
+        return { ...model, score };
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 20)
+      .map(model => model.name);
+
+    return filteredModels;
+  } catch (error) {
+    console.error('Error fetching OpenRouter models:', error);
+    // Retry once
+    try {
+      const response = await fetch('https://openrouter.ai/api/v1/models', {
+        headers: {
+          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) return [];
+
+      const data = await response.json();
+      const models = data.data as OpenRouterModel[];
+
+      const filteredModels = models
+        .filter(model => {
+          const modality = model.architecture?.modality?.toLowerCase() || '';
+          const id = model.id.toLowerCase();
+          const name = model.name.toLowerCase();
+          
+          if (modality.includes('image') || modality.includes('vision') || 
+              modality.includes('video') || modality.includes('audio') ||
+              modality.includes('multimodal') || modality.includes('embedding')) {
+            return false;
+          }
+          
+          if (id.includes('vision') || id.includes('image') || name.includes('vision')) {
+            return false;
+          }
+          
+          if (id.includes('deprecated') || id.includes('offline') || id.includes('blocked')) {
+            return false;
+          }
+          
+          if (id.includes('405b') || id.includes('236b')) {
+            return false;
+          }
+          
+          return true;
+        })
+        .slice(0, 20)
+        .map(model => model.name);
+
+      return filteredModels;
+    } catch (retryError) {
+      console.error('Retry failed:', retryError);
+      return [];
+    }
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Fetch OpenRouter models
+    const openRouterModels = await fetchOpenRouterModels();
+    
     const availableModels = {
-      text: [
-        // OpenAI Models
+      text: openRouterModels.length > 0 ? openRouterModels : [
+        // Fallback to default models if API fails
         'GPT-5',
         'GPT-5 Mini',
         'GPT-5 Nano',
@@ -21,13 +192,9 @@ serve(async (req) => {
         'GPT-4.1 Mini',
         'O3',
         'O4 Mini',
-        
-        // Anthropic Models
         'Claude Sonnet 4.5',
         'Claude Opus 4.1',
         'Claude Sonnet 4',
-        
-        // Google Models
         'Gemini 2.5 Pro',
         'Gemini 3 Pro',
         'Gemini 2.5 Flash',
