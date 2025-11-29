@@ -138,7 +138,12 @@ serve(async (req) => {
       ],
       video: [
         'Gemini Video 2.0',
-        'Gemini Video Flash'
+        'Gemini Video Flash',
+        
+        // Alibaba WAN Models
+        'WAN 2.1 T2V 480p',
+        'WAN 2.1 T2V 720p',
+        'WAN 2.2 Plus T2V'
       ],
       build: [
         'GPT-5',

@@ -11,6 +11,17 @@ interface VideoRequest {
   provider?: string;
 }
 
+// Map frontend model names to API model names
+const modelMapping: Record<string, { api: string; provider: 'google' | 'wavespeed' }> = {
+  'gemini-video-2.0': { api: 'gemini-2.0-flash-exp', provider: 'google' },
+  'gemini-video-flash': { api: 'gemini-2.0-flash-exp', provider: 'google' },
+  
+  // Alibaba WAN Models
+  'wan-2.1-t2v-480p': { api: 'alibaba/wan-2.1-t2v-480p', provider: 'wavespeed' },
+  'wan-2.1-t2v-720p': { api: 'alibaba/wan-2.1-t2v-720p', provider: 'wavespeed' },
+  'wan-2.2-plus-t2v': { api: 'alibaba/wan-2.2-plus-t2v', provider: 'wavespeed' },
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -21,13 +32,109 @@ serve(async (req) => {
     
     console.log('Video generation request:', { prompt, model, provider });
 
-    const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
+    // Determine the actual provider and model to use
+    const modelKey = model.toLowerCase().replace(/\s+/g, '-');
+    const modelConfig = modelMapping[modelKey];
     
-    if (!googleApiKey) {
-      console.error('GOOGLE_API_KEY not configured');
+    const actualProvider = modelConfig?.provider || 'google';
+    const actualModel = modelConfig?.api || 'gemini-2.0-flash-exp';
+    
+    console.log('Using provider:', actualProvider, 'model:', actualModel);
+
+    // Use Google API for Gemini models
+    if (actualProvider === 'google') {
+      const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
+      
+      if (!googleApiKey) {
+        console.error('GOOGLE_API_KEY not configured');
+        return new Response(
+          JSON.stringify({ 
+            error: 'Video generation requires API configuration. Please contact support.' 
+          }),
+          { 
+            status: 503,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        );
+      }
+
+      // Generate video using Google's Generative AI API
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${actualModel}:generateContent?key=${googleApiKey}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{
+                text: `Generate a video: ${prompt}`
+              }]
+            }],
+            generationConfig: {
+              temperature: 1,
+              topK: 40,
+              topP: 0.95,
+              maxOutputTokens: 8192,
+            }
+          })
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Google API error:', response.status, errorText);
+        
+        // Check if video generation is not supported
+        if (errorText.includes('not supported') || errorText.includes('modality') || errorText.includes('video')) {
+          return new Response(
+            JSON.stringify({ 
+              error: 'Video generation is not yet available with the current API. This feature is still in development by the provider. Please try image generation instead.' 
+            }),
+            { 
+              status: 503,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            }
+          );
+        }
+        
+        return new Response(
+          JSON.stringify({ 
+            error: `Google API error: ${errorText}` 
+          }),
+          { 
+            status: response.status,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        );
+      }
+
+      const data = await response.json();
+      console.log('Google API response:', JSON.stringify(data).substring(0, 200));
+
+      // Extract video data from response
+      const videoData = data.candidates?.[0]?.content?.parts?.[0];
+      
+      if (videoData?.inlineData?.mimeType?.startsWith('video/')) {
+        // Return base64 encoded video
+        const videoUrl = `data:${videoData.inlineData.mimeType};base64,${videoData.inlineData.data}`;
+        
+        return new Response(
+          JSON.stringify({ 
+            videoUrl,
+            model: model
+          }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        );
+      }
+
+      // If no video was generated, return error
       return new Response(
         JSON.stringify({ 
-          error: 'Video generation requires API configuration. Please contact support.' 
+          error: 'Video generation is not currently supported by this API. The provider has not yet enabled video generation capabilities. Please try image generation as an alternative.',
         }),
         { 
           status: 503,
@@ -36,83 +143,92 @@ serve(async (req) => {
       );
     }
 
-    // Map frontend model names to Google API model names
-    let apiModel = 'gemini-2.0-flash-exp';
-    const modelLower = model.toLowerCase();
-    
-    if (modelLower.includes('gemini-2.0') || modelLower.includes('gemini-video')) {
-      apiModel = 'gemini-2.0-flash-exp';
-    }
-
-    console.log('Using Google Gemini API model:', apiModel);
-
-    // Generate video using Google's Generative AI API
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${apiModel}:generateContent?key=${googleApiKey}`,
-      {
+    // Use Wavespeed for WAN video models
+    if (actualProvider === 'wavespeed') {
+      const wavespeedApiKey = Deno.env.get('WAVESPEED_API_KEY');
+      
+      if (!wavespeedApiKey) {
+        throw new Error('WAVESPEED_API_KEY not configured');
+      }
+      
+      // Submit the task to Wavespeed
+      const submitResponse = await fetch(`https://api.wavespeed.ai/api/v3/${actualModel}`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${wavespeedApiKey}`,
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: `Generate a video: ${prompt}`
-            }]
-          }],
-          generationConfig: {
-            temperature: 1,
-            topK: 40,
-            topP: 0.95,
-            maxOutputTokens: 8192,
-          }
+          prompt,
+          duration: 5, // 5 second video
+          num_videos: 1,
+          enable_sync_mode: false
         })
-      }
-    );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Google API error:', response.status, errorText);
+      });
       
-      // Check if video generation is not supported
-      if (errorText.includes('not supported') || errorText.includes('modality') || errorText.includes('video')) {
-        return new Response(
-          JSON.stringify({ 
-            error: 'Video generation is not yet available with the current API. This feature is still in development by the provider. Please try image generation instead.' 
-          }),
-          { 
-            status: 503,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      if (!submitResponse.ok) {
+        const errorText = await submitResponse.text();
+        console.error('Wavespeed submit error:', submitResponse.status, errorText);
+        throw new Error(`Wavespeed API error: ${submitResponse.status}`);
+      }
+      
+      const submitData = await submitResponse.json();
+      const requestId = submitData.data?.id;
+      
+      if (!requestId) {
+        console.error('Wavespeed response missing data.id:', submitData);
+        throw new Error('Wavespeed API error: invalid response format');
+      }
+      
+      console.log('Wavespeed video task submitted:', requestId);
+      
+      // Poll for results (max 5 minutes for video generation)
+      let videoUrl = null;
+      const maxAttempts = 300; // 5 minutes
+      const pollInterval = 1000; // 1 second
+      
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        await new Promise(resolve => setTimeout(resolve, pollInterval));
+        
+        const resultResponse = await fetch(`https://api.wavespeed.ai/api/v3/predictions/${requestId}/result`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${wavespeedApiKey}`
           }
-        );
+        });
+        
+        if (!resultResponse.ok) {
+          const errorText = await resultResponse.text();
+          console.error(`Wavespeed poll error (attempt ${attempt + 1}):`, resultResponse.status, errorText);
+          continue;
+        }
+        
+        const resultData = await resultResponse.json();
+        const status = resultData.data?.status;
+        const outputs = resultData.data?.outputs;
+        const errorMessage = resultData.data?.error;
+        console.log(`Wavespeed status (attempt ${attempt + 1}):`, status);
+        
+        // Check if generation is complete
+        if (status === 'completed' && Array.isArray(outputs) && outputs.length > 0) {
+          videoUrl = outputs[0];
+          console.log('Video generated successfully with Wavespeed');
+          console.log('Video URL:', videoUrl);
+          break;
+        } else if (status === 'failed') {
+          throw new Error(`Wavespeed generation failed: ${errorMessage || 'Unknown error'}`);
+        }
+        // Continue polling if status is 'processing' or 'created'
+      }
+      
+      if (!videoUrl) {
+        throw new Error('Video generation timed out after 5 minutes');
       }
       
       return new Response(
-        JSON.stringify({ 
-          error: `Google API error: ${errorText}` 
-        }),
-        { 
-          status: response.status,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
-    }
-
-    const data = await response.json();
-    console.log('Google API response:', JSON.stringify(data).substring(0, 200));
-
-    // Extract video data from response
-    // Note: The actual response format may vary based on Google's implementation
-    const videoData = data.candidates?.[0]?.content?.parts?.[0];
-    
-    if (videoData?.inlineData?.mimeType?.startsWith('video/')) {
-      // Return base64 encoded video
-      const videoUrl = `data:${videoData.inlineData.mimeType};base64,${videoData.inlineData.data}`;
-      
-      return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           videoUrl,
-          model: apiModel
+          model: model
         }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -120,16 +236,7 @@ serve(async (req) => {
       );
     }
 
-    // If no video was generated, return error
-    return new Response(
-      JSON.stringify({ 
-        error: 'Video generation is not currently supported by this API. The provider has not yet enabled video generation capabilities. Please try image generation as an alternative.',
-      }),
-      { 
-        status: 503,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
-    );
+    throw new Error('Provider not supported for video generation');
 
   } catch (error) {
     console.error('Video generation error:', error);
