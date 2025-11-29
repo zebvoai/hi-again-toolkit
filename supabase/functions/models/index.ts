@@ -35,7 +35,6 @@ serve(async (req) => {
       ],
       image: [
         // OpenAI Models
-        'gpt-image-1',
         'DALL-E 3',
         'DALL-E 2',
         
@@ -72,14 +71,9 @@ serve(async (req) => {
         'Luma Photon',
         'Luma Photon Flash',
         
-        // Neta.art
-        'Neta Lumina',
-        
         // Recraft AI
         'Recraft 20B',
-        'Recraft 20B SVG',
         'Recraft V3',
-        'Recraft V3 SVG',
         
         // Reve
         'Reve Text to Image',
@@ -128,7 +122,6 @@ serve(async (req) => {
         'Jib Mix Qwen Image LoRA',
         
         // Hunyuan
-        'Hunyuan Image 2.1',
         'Hunyuan Image 3',
         
         // Z-Image
