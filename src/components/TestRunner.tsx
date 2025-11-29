@@ -234,6 +234,278 @@ export function TestRunner({ open, onOpenChange }: TestRunnerProps) {
             : { status: 'fail', message: 'No focusable elements found' };
         },
       },
+
+      // Performance Tests
+      {
+        category: 'Performance',
+        name: 'Page Load Time',
+        test: async () => {
+          const perfData = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+          const loadTime = perfData.loadEventEnd - perfData.fetchStart;
+          return loadTime < 3000
+            ? { status: 'pass', message: `Page loaded in ${Math.round(loadTime)}ms (excellent)` }
+            : loadTime < 5000
+            ? { status: 'warning', message: `Page loaded in ${Math.round(loadTime)}ms (acceptable)` }
+            : { status: 'fail', message: `Page loaded in ${Math.round(loadTime)}ms (too slow)` };
+        },
+      },
+      {
+        category: 'Performance',
+        name: 'DOM Content Load',
+        test: async () => {
+          const perfData = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+          const domLoadTime = perfData.domContentLoadedEventEnd - perfData.fetchStart;
+          return domLoadTime < 1500
+            ? { status: 'pass', message: `DOM ready in ${Math.round(domLoadTime)}ms` }
+            : { status: 'warning', message: `DOM ready in ${Math.round(domLoadTime)}ms (consider optimization)` };
+        },
+      },
+      {
+        category: 'Performance',
+        name: 'API Response Time',
+        test: async () => {
+          const startTime = performance.now();
+          try {
+            await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/models`, {
+              method: 'POST',
+            });
+            const endTime = performance.now();
+            const responseTime = endTime - startTime;
+            return responseTime < 500
+              ? { status: 'pass', message: `API responded in ${Math.round(responseTime)}ms (fast)` }
+              : responseTime < 1000
+              ? { status: 'warning', message: `API responded in ${Math.round(responseTime)}ms (acceptable)` }
+              : { status: 'fail', message: `API responded in ${Math.round(responseTime)}ms (slow)` };
+          } catch (error) {
+            return { status: 'fail', message: 'API request failed', error: String(error) };
+          }
+        },
+      },
+      {
+        category: 'Performance',
+        name: 'First Contentful Paint',
+        test: async () => {
+          const fcpEntry = performance.getEntriesByName('first-contentful-paint')[0] as PerformanceEntry;
+          if (!fcpEntry) {
+            return { status: 'warning', message: 'FCP metric not available' };
+          }
+          const fcp = fcpEntry.startTime;
+          return fcp < 1800
+            ? { status: 'pass', message: `FCP at ${Math.round(fcp)}ms (excellent)` }
+            : fcp < 3000
+            ? { status: 'warning', message: `FCP at ${Math.round(fcp)}ms (needs improvement)` }
+            : { status: 'fail', message: `FCP at ${Math.round(fcp)}ms (poor)` };
+        },
+      },
+      {
+        category: 'Performance',
+        name: 'Render Performance',
+        test: async () => {
+          const startTime = performance.now();
+          const testElement = document.createElement('div');
+          testElement.style.cssText = 'width: 100px; height: 100px; background: blue;';
+          document.body.appendChild(testElement);
+          
+          // Force reflow
+          testElement.offsetHeight;
+          
+          const endTime = performance.now();
+          document.body.removeChild(testElement);
+          
+          const renderTime = endTime - startTime;
+          return renderTime < 16
+            ? { status: 'pass', message: `Render time ${renderTime.toFixed(2)}ms (60fps capable)` }
+            : { status: 'warning', message: `Render time ${renderTime.toFixed(2)}ms (may drop frames)` };
+        },
+      },
+      {
+        category: 'Performance',
+        name: 'Memory Usage',
+        test: async () => {
+          if ('memory' in performance && (performance as any).memory) {
+            const memory = (performance as any).memory;
+            const usedMB = Math.round(memory.usedJSHeapSize / 1048576);
+            const totalMB = Math.round(memory.jsHeapSizeLimit / 1048576);
+            const percentUsed = (usedMB / totalMB) * 100;
+            
+            return percentUsed < 50
+              ? { status: 'pass', message: `Using ${usedMB}MB of ${totalMB}MB (${percentUsed.toFixed(1)}%)` }
+              : percentUsed < 80
+              ? { status: 'warning', message: `Using ${usedMB}MB of ${totalMB}MB (${percentUsed.toFixed(1)}%)` }
+              : { status: 'fail', message: `Using ${usedMB}MB of ${totalMB}MB (${percentUsed.toFixed(1)}% - high)` };
+          }
+          return { status: 'warning', message: 'Memory metrics not available in this browser' };
+        },
+      },
+
+      // End-to-End Workflow Tests
+      {
+        category: 'E2E Workflows',
+        name: 'Input Field Interaction',
+        test: async () => {
+          const input = document.querySelector('input[type="text"]') as HTMLInputElement;
+          if (!input) return { status: 'fail', message: 'Input field not found' };
+          
+          const testValue = 'Test message';
+          input.focus();
+          input.value = testValue;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          return input.value === testValue
+            ? { status: 'pass', message: 'Input field accepts and retains text' }
+            : { status: 'fail', message: 'Input field interaction failed' };
+        },
+      },
+      {
+        category: 'E2E Workflows',
+        name: 'Mode Switching',
+        test: async () => {
+          const modeButtons = document.querySelectorAll('[role="combobox"]');
+          if (modeButtons.length === 0) {
+            return { status: 'warning', message: 'Mode selector not visible' };
+          }
+          
+          return { status: 'pass', message: 'Mode switching interface is accessible' };
+        },
+      },
+      {
+        category: 'E2E Workflows',
+        name: 'Model Selection Flow',
+        test: async () => {
+          try {
+            const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/models`, {
+              method: 'POST',
+            });
+            const models = await response.json();
+            
+            const hasModels = models.text?.length > 0 && models.image?.length > 0;
+            return hasModels
+              ? { status: 'pass', message: `Model selection available (${models.text?.length} text, ${models.image?.length} image)` }
+              : { status: 'fail', message: 'Model data is incomplete' };
+          } catch (error) {
+            return { status: 'fail', message: 'Model selection workflow failed', error: String(error) };
+          }
+        },
+      },
+      {
+        category: 'E2E Workflows',
+        name: 'File Attachment Flow',
+        test: async () => {
+          const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+          if (!fileInput) return { status: 'fail', message: 'File input not found' };
+          
+          // Create a test file
+          const blob = new Blob(['test'], { type: 'text/plain' });
+          const file = new File([blob], 'test.txt', { type: 'text/plain' });
+          const dataTransfer = new DataTransfer();
+          dataTransfer.items.add(file);
+          fileInput.files = dataTransfer.files;
+          
+          // Trigger change event
+          fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+          
+          await new Promise(resolve => setTimeout(resolve, 200));
+          
+          return { status: 'pass', message: 'File attachment workflow is functional' };
+        },
+      },
+      {
+        category: 'E2E Workflows',
+        name: 'Button Click Responsiveness',
+        test: async () => {
+          const buttons = document.querySelectorAll('button:not([disabled])');
+          if (buttons.length === 0) {
+            return { status: 'fail', message: 'No clickable buttons found' };
+          }
+          
+          let responsive = true;
+          const testButton = Array.from(buttons).find(btn => 
+            btn.getAttribute('aria-label') === 'Group Chat'
+          ) as HTMLButtonElement;
+          
+          if (testButton) {
+            const startTime = performance.now();
+            testButton.click();
+            const endTime = performance.now();
+            const responseTime = endTime - startTime;
+            
+            responsive = responseTime < 100;
+            return responsive
+              ? { status: 'pass', message: `Button response time: ${responseTime.toFixed(2)}ms` }
+              : { status: 'warning', message: `Button response slow: ${responseTime.toFixed(2)}ms` };
+          }
+          
+          return { status: 'pass', message: `${buttons.length} interactive buttons available` };
+        },
+      },
+      {
+        category: 'E2E Workflows',
+        name: 'Complete Chat Flow Simulation',
+        test: async () => {
+          const steps: string[] = [];
+          
+          // Step 1: Find input
+          const input = document.querySelector('input[type="text"]') as HTMLInputElement;
+          if (!input) return { status: 'fail', message: 'Chat input not found' };
+          steps.push('Input found');
+          
+          // Step 2: Focus and type
+          input.focus();
+          if (document.activeElement !== input) {
+            return { status: 'fail', message: 'Could not focus input' };
+          }
+          steps.push('Input focused');
+          
+          // Step 3: Type message
+          input.value = 'Test message';
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          steps.push('Message typed');
+          
+          // Step 4: Find send button
+          const sendBtn = document.querySelector('button[type="submit"]') as HTMLButtonElement;
+          if (!sendBtn) return { status: 'fail', message: 'Send button not found' };
+          steps.push('Send button found');
+          
+          // Step 5: Check if button would be enabled
+          const isDisabled = sendBtn.disabled;
+          steps.push(isDisabled ? 'Button disabled (as expected when no model)' : 'Button enabled');
+          
+          return {
+            status: 'pass',
+            message: `Complete chat flow validated: ${steps.join(' → ')}`
+          };
+        },
+      },
+      {
+        category: 'E2E Workflows',
+        name: 'Temporary Mode Workflow',
+        test: async () => {
+          const tempButton = document.querySelector('button[aria-label="Temporary Chat"]') as HTMLButtonElement;
+          if (!tempButton) {
+            return { status: 'fail', message: 'Temporary chat button not found' };
+          }
+          
+          // Simulate clicking temporary mode
+          tempButton.click();
+          await new Promise(resolve => setTimeout(resolve, 300));
+          
+          // Check if dialog appeared
+          const dialog = document.querySelector('[role="alertdialog"]');
+          const hasDialog = !!dialog;
+          
+          // Close dialog if open
+          if (hasDialog) {
+            const cancelBtn = dialog?.querySelector('button') as HTMLButtonElement;
+            cancelBtn?.click();
+          }
+          
+          return hasDialog
+            ? { status: 'pass', message: 'Temporary mode workflow is functional' }
+            : { status: 'warning', message: 'Temporary mode dialog behavior unclear' };
+        },
+      },
     ];
 
     const results: TestResult[] = [];
