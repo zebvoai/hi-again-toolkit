@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, XCircle, AlertCircle, Loader2, Download, Play, Eye } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface TestResult {
   category: string;
@@ -28,20 +29,81 @@ export function TestRunner({ open, onOpenChange }: TestRunnerProps) {
   const [currentTest, setCurrentTest] = useState<string>('');
   const [progress, setProgress] = useState(0);
   const [visualFeedback, setVisualFeedback] = useState<string>('');
+  const [highlightedElement, setHighlightedElement] = useState<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    label: string;
+  } | null>(null);
+  const [cursorPosition, setCursorPosition] = useState<{ x: number; y: number } | null>(null);
 
-  const highlightElement = (element: Element, color: string = '#4ade80') => {
+  const highlightElement = (element: Element, label: string, color: string = '#4ade80') => {
+    const rect = element.getBoundingClientRect();
+    
+    // Update highlighted element state for overlay
+    setHighlightedElement({
+      x: rect.left,
+      y: rect.top,
+      width: rect.width,
+      height: rect.height,
+      label: label,
+    });
+
+    // Animate cursor to element
+    animateCursor(rect.left + rect.width / 2, rect.top + rect.height / 2);
+
+    // Add pulsing border effect
     const originalOutline = (element as HTMLElement).style.outline;
-    (element as HTMLElement).style.outline = `3px solid ${color}`;
+    const originalBoxShadow = (element as HTMLElement).style.boxShadow;
+    (element as HTMLElement).style.outline = `4px solid ${color}`;
+    (element as HTMLElement).style.boxShadow = `0 0 0 8px ${color}40, 0 0 20px ${color}80`;
+    (element as HTMLElement).style.transition = 'all 0.3s ease';
+    
     setTimeout(() => {
       (element as HTMLElement).style.outline = originalOutline;
-    }, 1500);
+      (element as HTMLElement).style.boxShadow = originalBoxShadow;
+    }, 2000);
   };
+
+  const animateCursor = (targetX: number, targetY: number) => {
+    if (!cursorPosition) {
+      setCursorPosition({ x: targetX, y: targetY });
+      return;
+    }
+
+    // Smooth animation to target
+    const steps = 30;
+    const deltaX = (targetX - cursorPosition.x) / steps;
+    const deltaY = (targetY - cursorPosition.y) / steps;
+
+    let step = 0;
+    const animate = () => {
+      if (step < steps) {
+        setCursorPosition({
+          x: cursorPosition.x + deltaX * step,
+          y: cursorPosition.y + deltaY * step,
+        });
+        step++;
+        requestAnimationFrame(animate);
+      } else {
+        setCursorPosition({ x: targetX, y: targetY });
+      }
+    };
+    animate();
+  };
+
+  useEffect(() => {
+    if (!isRunning) {
+      setHighlightedElement(null);
+      setCursorPosition(null);
+    }
+  }, [isRunning]);
 
   const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   const simulateTyping = async (input: HTMLInputElement, text: string) => {
     input.focus();
-    highlightElement(input);
     for (let i = 0; i < text.length; i++) {
       input.value = text.substring(0, i + 1);
       input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -64,14 +126,16 @@ export function TestRunner({ open, onOpenChange }: TestRunnerProps) {
       testIndex++;
       setCurrentTest('Testing message input field...');
       setVisualFeedback('⌨️ Typing test message');
+      toast.info('🔍 Testing: Message Input Field');
       await wait(500);
 
       const input = document.querySelector('input[type="text"][placeholder*="Ask"]') as HTMLInputElement;
       if (!input) throw new Error('Input not found');
 
-      highlightElement(input, '#3b82f6');
+      highlightElement(input, 'Message Input Field', '#3b82f6');
       const testMessage = 'Hello, automated test!';
       await simulateTyping(input, testMessage);
+      toast.success('✓ Input field working correctly');
 
       results.push({
         category: 'Input Testing',
@@ -108,22 +172,24 @@ export function TestRunner({ open, onOpenChange }: TestRunnerProps) {
       testIndex++;
       setCurrentTest('Testing mode selector...');
       setVisualFeedback('🎯 Opening mode dropdown');
+      toast.info('🔍 Testing: Mode Selector');
       await wait(500);
 
       const modeButton = document.querySelector('[role="combobox"]') as HTMLButtonElement;
       if (!modeButton) throw new Error('Mode button not found');
 
-      highlightElement(modeButton, '#f59e0b');
+      highlightElement(modeButton, 'Mode Selector', '#f59e0b');
       await wait(500);
       modeButton.click();
       await wait(800);
 
       const dropdown = document.querySelector('[role="listbox"]');
       if (dropdown) {
-        highlightElement(dropdown, '#f59e0b');
+        highlightElement(dropdown, 'Mode Dropdown', '#f59e0b');
         await wait(1000);
       }
       modeButton.click();
+      toast.success('✓ Mode selector functional');
 
       results.push({
         category: 'Feature Testing',
@@ -157,6 +223,7 @@ export function TestRunner({ open, onOpenChange }: TestRunnerProps) {
       testIndex++;
       setCurrentTest('Testing file attachment...');
       setVisualFeedback('📎 Attaching test file');
+      toast.info('🔍 Testing: File Attachment');
       await wait(500);
 
       const attachButton = Array.from(document.querySelectorAll('button')).find(
@@ -164,7 +231,7 @@ export function TestRunner({ open, onOpenChange }: TestRunnerProps) {
       ) as HTMLButtonElement;
 
       if (attachButton) {
-        highlightElement(attachButton, '#8b5cf6');
+        highlightElement(attachButton, 'File Attachment Button', '#8b5cf6');
         await wait(500);
 
         const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -179,6 +246,7 @@ export function TestRunner({ open, onOpenChange }: TestRunnerProps) {
         }
       }
 
+      toast.success('✓ File attachment working');
       results.push({
         category: 'Feature Testing',
         name: 'File Attachment',
@@ -211,11 +279,12 @@ export function TestRunner({ open, onOpenChange }: TestRunnerProps) {
       testIndex++;
       setCurrentTest('Testing action buttons...');
       setVisualFeedback('🔘 Testing group chat button');
+      toast.info('🔍 Testing: Action Buttons');
       await wait(500);
 
       const groupButton = document.querySelector('button[aria-label="Group Chat"]') as HTMLButtonElement;
       if (groupButton) {
-        highlightElement(groupButton, '#ec4899');
+        highlightElement(groupButton, 'Group Chat Button', '#ec4899');
         await wait(600);
         groupButton.click();
         await wait(800);
@@ -227,6 +296,7 @@ export function TestRunner({ open, onOpenChange }: TestRunnerProps) {
         }
       }
 
+      toast.success('✓ Action buttons responsive');
       results.push({
         category: 'Feature Testing',
         name: 'Action Buttons',
@@ -259,6 +329,7 @@ export function TestRunner({ open, onOpenChange }: TestRunnerProps) {
       testIndex++;
       setCurrentTest('Testing API...');
       setVisualFeedback('🌐 Fetching models API');
+      toast.info('🔍 Testing: API Connection');
       await wait(500);
 
       const startTime = performance.now();
@@ -270,6 +341,7 @@ export function TestRunner({ open, onOpenChange }: TestRunnerProps) {
       const data = await response.json();
       const hasData = data.text && data.image && data.video;
 
+      toast.success(`✓ API responded in ${responseTime.toFixed(0)}ms`);
       results.push({
         category: 'API Testing',
         name: 'Models API',
@@ -302,11 +374,13 @@ export function TestRunner({ open, onOpenChange }: TestRunnerProps) {
       testIndex++;
       setCurrentTest('Checking performance...');
       setVisualFeedback('⚡ Measuring metrics');
+      toast.info('🔍 Testing: Performance Metrics');
       await wait(500);
 
       const perfData = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
       const loadTime = perfData.loadEventEnd - perfData.fetchStart;
 
+      toast.success(`✓ Page loaded in ${Math.round(loadTime)}ms`);
       results.push({
         category: 'Performance',
         name: 'Page Load',
@@ -338,11 +412,13 @@ export function TestRunner({ open, onOpenChange }: TestRunnerProps) {
       testIndex++;
       setCurrentTest('Checking accessibility...');
       setVisualFeedback('♿ Verifying ARIA labels');
+      toast.info('🔍 Testing: Accessibility');
       await wait(500);
 
       const buttonsWithAria = document.querySelectorAll('button[aria-label]');
       const focusable = document.querySelectorAll('button, input, [tabindex]:not([tabindex="-1"])');
 
+      toast.success(`✓ Found ${buttonsWithAria.length} ARIA labels`);
       results.push({
         category: 'Accessibility',
         name: 'ARIA & Keyboard Nav',
@@ -374,11 +450,18 @@ export function TestRunner({ open, onOpenChange }: TestRunnerProps) {
       testIndex++;
       setCurrentTest('Verifying UI components...');
       setVisualFeedback('🎨 Checking interface');
+      toast.info('🔍 Testing: UI Components');
       await wait(500);
 
       const chatInterface = document.querySelector('.flex.flex-col.h-full');
       const sendButton = document.querySelector('button[type="submit"]');
 
+      if (sendButton) {
+        highlightElement(sendButton, 'Send Button', '#10b981');
+        await wait(800);
+      }
+
+      toast.success('✓ All UI components present');
       results.push({
         category: 'UI Components',
         name: 'Core Interface',
@@ -407,6 +490,13 @@ export function TestRunner({ open, onOpenChange }: TestRunnerProps) {
     setIsRunning(false);
     setCurrentTest('');
     setVisualFeedback('✅ Testing complete!');
+    
+    const passed = results.filter(r => r.status === 'pass').length;
+    const failed = results.filter(r => r.status === 'fail').length;
+    toast.success(`Testing Complete! ${passed} passed, ${failed} failed`, {
+      duration: 5000,
+    });
+    
     await wait(2000);
     setVisualFeedback('');
   };
@@ -526,6 +616,76 @@ ${i + 1}. ${r.name}
   const warnings = testResults.filter(r => r.status === 'warning').length;
 
   return (
+    <>
+      {/* Live Test Highlight Overlay */}
+      {highlightedElement && (
+        <div
+          className="fixed pointer-events-none z-[9999] transition-all duration-300"
+          style={{
+            left: `${highlightedElement.x}px`,
+            top: `${highlightedElement.y}px`,
+            width: `${highlightedElement.width}px`,
+            height: `${highlightedElement.height}px`,
+          }}
+        >
+          {/* Pulsing ring effect */}
+          <div className="absolute inset-0 animate-ping border-4 border-blue-500 rounded-lg opacity-75" />
+          <div className="absolute inset-0 border-4 border-blue-500 rounded-lg shadow-2xl shadow-blue-500/50" />
+          
+          {/* Label */}
+          <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg whitespace-nowrap text-sm font-semibold animate-bounce">
+            🔍 Testing: {highlightedElement.label}
+          </div>
+        </div>
+      )}
+
+      {/* Simulated Cursor */}
+      {cursorPosition && (
+        <div
+          className="fixed pointer-events-none z-[9999] transition-all duration-200 ease-out"
+          style={{
+            left: `${cursorPosition.x}px`,
+            top: `${cursorPosition.y}px`,
+          }}
+        >
+          <div className="relative">
+            {/* Cursor pointer */}
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="drop-shadow-lg">
+              <path
+                d="M5 3L19 12L12 13L9 20L5 3Z"
+                fill="#3b82f6"
+                stroke="#1e40af"
+                strokeWidth="1.5"
+              />
+            </svg>
+            {/* Cursor glow */}
+            <div className="absolute -inset-2 bg-blue-500 rounded-full blur-md opacity-50" />
+          </div>
+        </div>
+      )}
+
+      {/* Floating Test Status Banner */}
+      {isRunning && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[9998] pointer-events-none">
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl shadow-2xl backdrop-blur-xl border border-white/20 animate-pulse">
+            <div className="flex items-center gap-4">
+              <Loader2 className="w-6 h-6 animate-spin" />
+              <div>
+                <div className="text-lg font-bold">{visualFeedback}</div>
+                <div className="text-sm text-white/80">{currentTest}</div>
+              </div>
+              <div className="text-2xl font-bold">{progress}%</div>
+            </div>
+            <div className="mt-2 h-2 bg-white/20 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-green-400 to-blue-400 transition-all duration-300"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col">
         <DialogHeader>
@@ -687,5 +847,6 @@ ${i + 1}. ${r.name}
         </div>
       </DialogContent>
     </Dialog>
+    </>
   );
 }
