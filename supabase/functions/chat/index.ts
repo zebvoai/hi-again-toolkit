@@ -31,17 +31,7 @@ const getModelMapping = (displayName: string): { apiModel: string, provider: str
     'Gemini 2.5 Flash Lite': { apiModel: 'gemini-2.5-flash-lite', provider: 'google' }
   };
   
-  // If not in mapping, check if it's an OpenRouter model (contains '/')
-  if (modelMapping[displayName]) {
-    return modelMapping[displayName];
-  }
-  
-  // OpenRouter models contain '/' in their ID
-  if (displayName.includes('/')) {
-    return { apiModel: displayName, provider: 'openrouter' };
-  }
-  
-  return { apiModel: displayName, provider: 'openai' };
+  return modelMapping[displayName] || { apiModel: displayName, provider: 'openai' };
 };
 
 // Multi-model request handler
@@ -89,25 +79,6 @@ async function handleMultiModelRequest(
               ];
               
               body = { model: apiModel, messages, stream: true, max_completion_tokens: mode === 'build' ? 8192 : 4096 };
-            } else if (provider === 'openrouter') {
-              apiKey = Deno.env.get('OPENROUTER_API_KEY') || '';
-              if (!apiKey) throw new Error('OPENROUTER_API_KEY not configured');
-              
-              apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
-              headers = {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json',
-                'HTTP-Referer': 'https://lovable.dev',
-                'X-Title': 'Lovable Chat'
-              };
-              
-              const messages = [
-                { role: 'system', content: systemPrompt },
-                ...conversationHistory.map(m => ({ role: m.role, content: m.content })),
-                { role: 'user', content: message }
-              ];
-              
-              body = { model: apiModel, messages, stream: true, max_tokens: mode === 'build' ? 8192 : 4096 };
             } else if (provider === 'anthropic') {
               apiKey = Deno.env.get('ANTHROPIC_API_KEY') || '';
               if (!apiKey) throw new Error('ANTHROPIC_API_KEY not configured');
@@ -178,7 +149,7 @@ async function handleMultiModelRequest(
                   try {
                     let content = '';
                     
-                    if (provider === 'openai' || provider === 'openrouter') {
+                    if (provider === 'openai') {
                       const parsed = JSON.parse(data);
                       content = parsed.choices?.[0]?.delta?.content || '';
                     } else if (provider === 'anthropic') {
@@ -322,9 +293,6 @@ serve(async (req) => {
         selectedProvider = 'anthropic';
       } else if (requestedModel.includes('gemini')) {
         selectedProvider = 'google';
-      } else if (requestedModel.includes('/')) {
-        // OpenRouter models contain '/' in their ID
-        selectedProvider = 'openrouter';
       } else {
         selectedProvider = provider || 'openai';
       }
@@ -367,37 +335,6 @@ serve(async (req) => {
         model,
         messages,
         max_completion_tokens: mode === 'build' ? 8192 : 4096, // More tokens for code generation
-        stream
-      };
-    } else if (selectedProvider === 'openrouter') {
-      apiKey = Deno.env.get('OPENROUTER_API_KEY');
-      if (!apiKey) {
-        throw new Error('OPENROUTER_API_KEY not configured');
-      }
-      
-      apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
-      headers = {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://lovable.dev',
-        'X-Title': 'Lovable Chat'
-      };
-      
-      // Build mode gets a code-generation system prompt
-      const systemPrompt = mode === 'build' 
-        ? 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags.'
-        : 'You are a helpful AI assistant.';
-      
-      const messages = [
-        { role: 'system', content: systemPrompt },
-        ...conversationHistory.map(m => ({ role: m.role, content: m.content })),
-        { role: 'user', content: message }
-      ];
-      
-      body = {
-        model,
-        messages,
-        max_tokens: mode === 'build' ? 8192 : 4096,
         stream
       };
     } else if (selectedProvider === 'anthropic') {
@@ -465,7 +402,7 @@ serve(async (req) => {
     }
     
     // Handle streaming response
-    if (stream && (selectedProvider === 'openai' || selectedProvider === 'openrouter')) {
+    if (stream && selectedProvider === 'openai') {
       const encoder = new TextEncoder();
       const readable = new ReadableStream({
         async start(controller) {
@@ -529,56 +466,27 @@ serve(async (req) => {
     const data = await response.json();
     console.log('AI response received:', JSON.stringify(data).substring(0, 200));
     
-    let content: string = '';
-    if (selectedProvider === 'openai' || selectedProvider === 'openrouter') {
+    let content: string;
+    if (selectedProvider === 'openai') {
       if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-        console.error('Invalid response:', data);
-        throw new Error(`Invalid response from ${selectedProvider}`);
+        console.error('Invalid OpenAI response:', data);
+        throw new Error('Invalid response from OpenAI');
       }
-      content = data.choices[0].message.content || '';
+      content = data.choices[0].message.content;
     } else if (selectedProvider === 'anthropic') {
       if (!data.content || !data.content[0]) {
         console.error('Invalid Anthropic response:', data);
         throw new Error('Invalid response from Anthropic');
       }
-      content = data.content[0].text || '';
+      content = data.content[0].text;
     } else if (selectedProvider === 'google') {
       if (!data.candidates || !data.candidates[0]) {
         console.error('Invalid Google response:', data);
         throw new Error('Invalid response from Google');
       }
-      content = data.candidates[0].content.parts[0].text || '';
+      content = data.candidates[0].content.parts[0].text;
     } else {
       content = 'Response not supported for this provider';
-    }
-    
-    // Retry logic for empty responses
-    if (!content || content.trim() === '') {
-      console.warn('Empty response received, retrying once...');
-      
-      const retryResponse = await fetch(apiUrl, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(body)
-      });
-      
-      if (retryResponse.ok) {
-        const retryData = await retryResponse.json();
-        console.log('Retry response received:', JSON.stringify(retryData).substring(0, 200));
-        
-        if (selectedProvider === 'openai' || selectedProvider === 'openrouter') {
-          content = retryData.choices?.[0]?.message?.content || '';
-        } else if (selectedProvider === 'anthropic') {
-          content = retryData.content?.[0]?.text || '';
-        } else if (selectedProvider === 'google') {
-          content = retryData.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        }
-      }
-      
-      // If still empty after retry
-      if (!content || content.trim() === '') {
-        content = 'The model did not generate a response. Please try again.';
-      }
     }
     
     return new Response(
