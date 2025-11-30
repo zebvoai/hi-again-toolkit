@@ -42,7 +42,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         {/* Sticky Header */}
         <div className="sticky top-0 z-50 backdrop-blur-xl bg-white/80 border-b border-slate-200">
-          <div className="max-w-[1400px] mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="max-w-[1400px] mx-auto px-6 py-4">
             <Button
               variant="ghost"
               size="sm"
@@ -52,28 +52,12 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Carousel
             </Button>
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold shadow-lg">
-              Z
-            </div>
-          </div>
-        </div>
-
-        {/* Question Display Section */}
-        <div className="max-w-[1400px] mx-auto px-6 pt-16 pb-12">
-          <div className="flex flex-col items-center text-center space-y-6">
-            <div className="inline-flex items-center px-6 py-3 bg-blue-500/10 border border-blue-500/20 rounded-full">
-              <span className="text-blue-600 font-medium text-sm">What is blackhole?</span>
-            </div>
-            <div className="space-y-3">
-              <h1 className="text-4xl font-bold text-slate-900">Model Responses</h1>
-              <p className="text-lg text-slate-600">Compare answers from different AI models</p>
-            </div>
           </div>
         </div>
 
         {/* Model Response Cards */}
-        <div className="max-w-[1400px] mx-auto px-6 pb-20">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="max-w-[1400px] mx-auto px-6 py-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {models.map((model) => (
               <div
                 key={model}
