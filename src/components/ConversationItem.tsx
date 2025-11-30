@@ -55,7 +55,7 @@ export const ConversationItem = ({
           <Button
             variant="ghost"
             size="icon"
-            className="h-[22px] w-[22px] flex-shrink-0 opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-200 rounded"
+            className="h-6 w-6 flex-shrink-0 opacity-0 group-hover:opacity-100 hover:bg-accent transition-all duration-150 rounded"
             onClick={(e) => e.stopPropagation()}
             aria-label="More options"
           >
