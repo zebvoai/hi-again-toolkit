@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { TopActions } from '@/components/TopActions';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useModels } from '@/features/chat/hooks/useModels';
+import { ProfileFAB } from '@/components/ProfileFAB';
 export function ChatInterface() {
   const [input, setInput] = useState('');
   const [isTemporaryMode, setIsTemporaryMode] = useState(false);
@@ -278,5 +279,7 @@ export function ChatInterface() {
 
       {/* Scroll to Top Button */}
       
+      {/* Profile FAB */}
+      <ProfileFAB />
     </div>;
 }
