@@ -141,7 +141,31 @@ export function ChatInterface() {
       {/* Messages Area */}
       {messages.length > 0 ? <div className="flex-1 overflow-y-auto px-6 py-8 bg-white">
           <div className="max-w-[800px] mx-auto">
-            {messages.map(message => <Message key={message.id} message={message} allMessages={messages} onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')} />)}
+            {messages.map((message, index) => {
+              // Skip rendering user messages that precede multi-model responses
+              if (message.role === 'user') {
+                const nextMessage = messages[index + 1];
+                const isNextMultiModel = nextMessage && 
+                  nextMessage.role === 'assistant' && 
+                  typeof nextMessage.content === 'object' && 
+                  !Array.isArray(nextMessage.content) &&
+                  nextMessage.metadata?.models?.length > 1;
+                
+                // Skip this user message - it will appear inside the multi-model columns
+                if (isNextMultiModel) {
+                  return null;
+                }
+              }
+              
+              return (
+                <Message 
+                  key={message.id} 
+                  message={message} 
+                  allMessages={messages} 
+                  onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')} 
+                />
+              );
+            })}
             {isLoading && <TypingIndicator models={selectedModels} />}
             <div ref={messagesEndRef} />
           </div>
