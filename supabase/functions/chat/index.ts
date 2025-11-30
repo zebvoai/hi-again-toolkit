@@ -60,6 +60,37 @@ const getModelMapping = (displayName: string): { apiModel: string, provider: str
   return modelMapping[displayName] || { apiModel: displayName, provider: 'openrouter' };
 };
 
+const SPECIAL_OPENROUTER_MODELS = new Set<string>([
+  'Claude Sonnet 4.5',
+  'Claude Opus 4.1',
+  'Claude Sonnet 4',
+  'Claude Opus 4',
+  'Claude Haiku 3.5',
+  'Claude Sonnet 3.5',
+  'Gemini 3 Pro',
+  'Gemini 1.5 Pro',
+  'Gemini 1.5 Flash',
+  'Gemini 2.0 Flash',
+  'Qwen: Qwen Plus 0728',
+  'Qwen: Qwen Plus 0728 (thinking)',
+  'OpenAI: o3 Mini High',
+  'OpenAI: o3 Mini',
+  'Cohere: Command R7B (12-2024)',
+  'Cohere: Command R+ (08-2024)',
+  'Cohere: Command R (08-2024)',
+  'OpenAI: GPT-4o Audio',
+  'OpenAI: GPT-4o-mini Search Preview',
+  'OpenAI: GPT-4o Search Preview',
+  'OpenAI: GPT-4 Turbo Preview',
+  'OpenAI: GPT-4 Turbo (older v1106)',
+  'Prime Intellect: INTELLECT-3',
+  'TNG: R1T Chimera',
+  'MoonshotAI: Kimi Linear 48B A3B Instruct',
+  'MoonshotAI: Kimi K2 Thinking',
+  'OpenAI: gpt-oss-safeguard-20b',
+  'MiniMax: MiniMax M2',
+]);
+
 // Helper to get actual OpenRouter model ID from display name
 const getOpenRouterModelId = async (displayName: string): Promise<string> => {
   const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY');
@@ -102,12 +133,12 @@ async function handleMultiModelRequest(
           await Promise.all(models.map(async (modelName) => {
             const mapping = getModelMapping(modelName);
             const { apiModel, provider } = mapping;
+            const isSpecialOpenRouterModel = provider === 'openrouter' && SPECIAL_OPENROUTER_MODELS.has(modelName);
             
             let apiUrl = '';
             let apiKey = '';
             let headers: Record<string, string> = {};
             let body: any = {};
-            
             // Build mode gets a code-generation system prompt
             const systemPrompt = mode === 'build' 
               ? 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags.'
@@ -196,7 +227,15 @@ async function handleMultiModelRequest(
             });
             
             if (!response.ok) {
-              console.error(`${modelName} API error:`, await response.text());
+              const errorText = await response.text();
+              console.error(`${modelName} API error:`, errorText);
+
+              if (isSpecialOpenRouterModel) {
+                const fallbackContent = 'The model could not generate a response at the moment. Please try again.';
+                const sseData = `data: ${JSON.stringify({ model: modelName, content: fallbackContent, error: true })}\n\n`;
+                controller.enqueue(encoder.encode(sseData));
+              }
+
               return;
             }
             
@@ -571,12 +610,23 @@ serve(async (req) => {
     console.log('AI response received:', JSON.stringify(data).substring(0, 200));
     
     let content: string;
-    if (selectedProvider === 'openai' || selectedProvider === 'openrouter') {
+    if (selectedProvider === 'openai') {
       if (!data.choices || !data.choices[0] || !data.choices[0].message) {
         console.error('Invalid API response:', data);
         throw new Error(`Invalid response from ${selectedProvider}`);
       }
       content = data.choices[0].message.content;
+    } else if (selectedProvider === 'openrouter') {
+      const choice = data.choices?.[0];
+      content =
+        choice?.message?.content ??
+        data.output_text ??
+        choice?.text ??
+        '';
+      if (!content) {
+        console.error('Invalid OpenRouter response:', data);
+        content = 'The model could not generate a response at the moment. Please try again.';
+      }
     } else if (selectedProvider === 'anthropic') {
       if (!data.content || !data.content[0]) {
         console.error('Invalid Anthropic response:', data);
