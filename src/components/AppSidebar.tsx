@@ -1,4 +1,4 @@
-import { Plus, User, Search, Library, Folder, ChevronDown, ChevronRight, MoreVertical } from "lucide-react";
+import { Plus, User, Search, Library, Folder, ChevronDown, ChevronRight, MoreVertical, Edit, MessageSquarePlus, Share, FileDown, Archive, Trash2 } from "lucide-react";
 import { useState } from "react";
 import {
   Sidebar,
@@ -274,22 +274,42 @@ export function AppSidebar() {
                             <MoreVertical className="w-4 h-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48 bg-background border shadow-lg z-50">
+                        <DropdownMenuContent align="end" className="w-48 bg-popover border shadow-lg z-50 rounded-[20px]">
                           <DropdownMenuItem
                             onClick={(e) => {
                               e.stopPropagation();
                               handleProjectAction(project.id, "rename");
                             }}
                           >
-                            Rename
+                            <Edit className="w-4 h-4 mr-2" />
+                            Rename project
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleProjectAction(project.id, "duplicate");
+                              console.log("Add new chat to project", project.id);
                             }}
                           >
-                            Duplicate
+                            <MessageSquarePlus className="w-4 h-4 mr-2" />
+                            Add new chat to project
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              console.log("Share project", project.id);
+                            }}
+                          >
+                            <Share className="w-4 h-4 mr-2" />
+                            Share project
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              console.log("Export project", project.id);
+                            }}
+                          >
+                            <FileDown className="w-4 h-4 mr-2" />
+                            Export project
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={(e) => {
@@ -297,16 +317,18 @@ export function AppSidebar() {
                               handleProjectAction(project.id, "archive");
                             }}
                           >
-                            Archive
+                            <Archive className="w-4 h-4 mr-2" />
+                            Archive project
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={(e) => {
                               e.stopPropagation();
                               handleProjectAction(project.id, "delete");
                             }}
-                            className="text-destructive focus:text-destructive"
+                            className="focus:bg-red-50"
                           >
-                            Delete
+                            <Trash2 className="w-4 h-4 mr-2" style={{ color: '#D92D20' }} />
+                            <span style={{ color: '#D92D20' }}>Delete project</span>
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -343,6 +365,11 @@ export function AppSidebar() {
                         onStartGroupChat={() => handleStartGroupChat(conv.id)}
                         onRename={() => handleRename(conv.id)}
                         onArchive={() => handleArchive(conv.id)}
+                        onMoveToProject={(projectId) => {
+                          console.log(`Moving conversation ${conv.id} to project ${projectId}`);
+                          // TODO: Implement move to project functionality
+                        }}
+                        projects={projects}
                       />
                     ))}
                   </div>
