@@ -243,7 +243,7 @@ export const MultiModelResponse = ({ content, models, userQuestion }: MultiModel
               </div>
 
               {/* Content Area */}
-              <div className="px-6 py-6 bg-white min-h-[400px]">
+              <div className="px-6 py-6 bg-white">
                 {/* User Question */}
                 {userQuestion && (
                   <div className="flex justify-end mb-6">
