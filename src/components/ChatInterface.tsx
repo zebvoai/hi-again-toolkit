@@ -193,17 +193,17 @@ export function ChatInterface() {
       {/* Chat Input Area */}
       <div className="p-4 pb-6">
         <div key={selectedMode} className="max-w-4xl mx-auto animate-scale-in">
-          {isModelLocked && <div className="flex justify-center mb-3">
-              <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200 px-4 py-1.5">
-                <div className="w-2 h-2 rounded-full bg-blue-500 mr-2" />
-                Model locked for this conversation
-              </Badge>
-            </div>}
           <form onSubmit={handleSubmit}>
             {/* Dropdowns Row - Keep above input */}
             <div className="flex items-center gap-2.5 mb-3">
               <ModeDropdown />
               {selectedMode !== 'video' && <ModelSelector values={selectedModels} onChange={setSelectedModels} disabled={isModelLocked} />}
+              {isModelLocked && (
+                <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200 px-4 py-1.5">
+                  <div className="w-2 h-2 rounded-full bg-blue-500 mr-2" />
+                  Model locked for this conversation
+                </Badge>
+              )}
             </div>
 
             {/* File Attachments Preview */}
