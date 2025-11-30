@@ -392,6 +392,7 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
   const [customPresets, setCustomPresets] = useState<ModelPreset[]>([]);
   const [showSavePresetDialog, setShowSavePresetDialog] = useState(false);
   const [newPresetName, setNewPresetName] = useState('');
+  const [isClicked, setIsClicked] = useState(false);
   
   // Load favorites, recent models, and custom presets on mount
   useEffect(() => {
@@ -555,21 +556,32 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
   
   return (
     <>
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={(isOpen) => {
+        setOpen(isOpen);
+        if (isOpen) {
+          setIsClicked(true);
+          setTimeout(() => setIsClicked(false), 150);
+        }
+      }}>
         <PopoverTrigger asChild>
           <Button
             variant="ghost"
             disabled={disabled || isLoading}
             className={cn(
-              "w-auto min-w-[140px] border border-white/10 bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl text-sm px-3 py-2 h-9 hover:bg-white/80 dark:hover:bg-gray-900/80 transition-all duration-300 shadow-sm hover:shadow-md justify-between",
-              values.length > 0 && "bg-white/80 dark:bg-gray-900/80"
+              "w-auto min-w-[140px] border border-white/10 bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl text-sm px-3 py-2 h-9 transition-all duration-150",
+              "hover:border-[#D1D5DB] hover:scale-[1.01] hover:shadow-md",
+              values.length > 0 && "bg-white/80 dark:bg-gray-900/80",
+              "justify-between"
             )}
           >
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-blue-500" />
               <span className="font-medium">{isLoading ? 'Loading...' : displayText}</span>
             </div>
-            <ChevronDown className="w-4 h-4 ml-1 opacity-50" />
+            <ChevronDown className={cn(
+              "w-4 h-4 ml-1 opacity-50 transition-transform duration-150",
+              open && "rotate-180"
+            )} />
           </Button>
         </PopoverTrigger>
         <PopoverContent 
