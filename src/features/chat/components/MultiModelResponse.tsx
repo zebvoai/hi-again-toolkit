@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, Copy, ThumbsUp, ThumbsDown, Download, Check } from 'lucide-react';
+import { ChevronDown, Copy, ThumbsUp, ThumbsDown, Download, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -95,14 +95,20 @@ export const MultiModelResponse = ({ content, models, userQuestion }: MultiModel
       <div className="w-full space-y-3">
         {/* Toggle Button */}
         <div className="flex justify-end px-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setViewMode('sideBySide')}
-            className="text-sm"
-          >
-            View Side by Side
-          </Button>
+          <div className="flex items-center gap-1 bg-gray-100 rounded-full p-0.5">
+            <button 
+              onClick={() => setViewMode('single')}
+              className="px-3 py-1.5 rounded-full text-xs font-medium transition-colors bg-white text-gray-900 shadow-sm"
+            >
+              Single
+            </button>
+            <button 
+              onClick={() => setViewMode('sideBySide')}
+              className="px-3 py-1.5 rounded-full text-xs font-medium transition-colors text-gray-500 hover:text-gray-700"
+            >
+              Compare
+            </button>
+          </div>
         </div>
 
         {/* Single Model Response */}
@@ -113,9 +119,29 @@ export const MultiModelResponse = ({ content, models, userQuestion }: MultiModel
             </div>
             
             <div className="flex-1">
-              <span className="text-[11px] font-medium text-gray-400 mb-1 ml-0.5 block">
-                {formatModelName(currentModel)}
-              </span>
+              <div className="flex items-center gap-2 mb-1">
+                {models.length > 1 && (
+                  <button 
+                    onClick={() => setCurrentIndex((prev) => (prev - 1 + models.length) % models.length)}
+                    className="w-7 h-7 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors"
+                  >
+                    <ChevronLeft className="w-4 h-4 text-gray-500" />
+                  </button>
+                )}
+                
+                <span className="text-[11px] font-medium text-gray-400">
+                  {formatModelName(currentModel)} • {currentIndex + 1}/{models.length}
+                </span>
+                
+                {models.length > 1 && (
+                  <button 
+                    onClick={() => setCurrentIndex((prev) => (prev + 1) % models.length)}
+                    className="w-7 h-7 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors"
+                  >
+                    <ChevronRight className="w-4 h-4 text-gray-500" />
+                  </button>
+                )}
+              </div>
               
               <div className="rounded-[18px_18px_18px_4px] bg-[#F0F0F0] text-[#1A1A1A] px-4 py-3 shadow-sm">
                 <div className="prose prose-sm max-w-none [&>*]:text-[#1A1A1A]">
@@ -165,29 +191,6 @@ export const MultiModelResponse = ({ content, models, userQuestion }: MultiModel
               </div>
             </div>
           </div>
-
-          {/* Navigation */}
-          {models.length > 1 && (
-            <div className="flex items-center justify-center gap-3 mt-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentIndex((prev) => (prev - 1 + models.length) % models.length)}
-              >
-                Previous
-              </Button>
-              <span className="text-sm text-muted-foreground">
-                {currentIndex + 1} of {models.length}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentIndex((prev) => (prev + 1) % models.length)}
-              >
-                Next
-              </Button>
-            </div>
-          )}
         </div>
       </div>
     );
@@ -198,14 +201,20 @@ export const MultiModelResponse = ({ content, models, userQuestion }: MultiModel
     <div className="w-full">
       {/* Toggle Button */}
       <div className="flex justify-end mb-3">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setViewMode('single')}
-          className="text-sm"
-        >
-          View Single
-        </Button>
+        <div className="flex items-center gap-1 bg-gray-100 rounded-full p-0.5">
+          <button 
+            onClick={() => setViewMode('single')}
+            className="px-3 py-1.5 rounded-full text-xs font-medium transition-colors text-gray-500 hover:text-gray-700"
+          >
+            Single
+          </button>
+          <button 
+            onClick={() => setViewMode('sideBySide')}
+            className="px-3 py-1.5 rounded-full text-xs font-medium transition-colors bg-white text-gray-900 shadow-sm"
+          >
+            Compare
+          </button>
+        </div>
       </div>
 
       {/* Horizontal Scroll Container */}
