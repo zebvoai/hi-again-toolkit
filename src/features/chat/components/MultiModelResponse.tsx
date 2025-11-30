@@ -42,7 +42,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         {/* Sticky Header */}
         <div className="sticky top-0 z-50 backdrop-blur-xl bg-white/80 border-b border-slate-200">
-          <div className="max-w-[1400px] mx-auto px-6 py-4">
+          <div className="w-full px-6 py-4">
             <Button
               variant="ghost"
               size="sm"
@@ -56,7 +56,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
         </div>
 
         {/* Model Response Cards */}
-        <div className="max-w-[1400px] mx-auto px-6 py-8">
+        <div className="w-full px-6 py-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {models.map((model) => (
               <div
