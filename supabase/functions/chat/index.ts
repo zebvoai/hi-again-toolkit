@@ -200,8 +200,8 @@ async function handleMultiModelRequest(
               apiKey = Deno.env.get('OPENROUTER_API_KEY') || '';
               if (!apiKey) throw new Error('OPENROUTER_API_KEY not configured');
               
-              // Get the actual OpenRouter model ID from display name
-              const openrouterModelId = await getOpenRouterModelId(modelName);
+              // Use the mapped API model ID directly instead of looking it up
+              console.log(`[${modelName}] Using OpenRouter API model ID: ${apiModel}`);
               
               apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
               headers = {
@@ -217,7 +217,7 @@ async function handleMultiModelRequest(
                 { role: 'user', content: message }
               ];
               
-              body = { model: openrouterModelId, messages, stream: true, max_tokens: mode === 'build' ? 4096 : 2048 };
+              body = { model: apiModel, messages, stream: true, max_tokens: mode === 'build' ? 4096 : 2048 };
             }
             
             const response = await fetch(apiUrl, {
@@ -228,7 +228,18 @@ async function handleMultiModelRequest(
             
             if (!response.ok) {
               const errorText = await response.text();
-              console.error(`${modelName} API error:`, errorText);
+              let errorDetails;
+              try {
+                errorDetails = JSON.parse(errorText);
+              } catch {
+                errorDetails = { raw: errorText };
+              }
+
+              console.error(`[FAIL] ${modelName} (${provider}/${apiModel}):`, JSON.stringify({
+                status: response.status,
+                error: errorDetails,
+                isSpecialModel: isSpecialOpenRouterModel
+              }));
 
               if (isSpecialOpenRouterModel) {
                 const fallbackContent = 'The model could not generate a response at the moment. Please try again.';
@@ -520,8 +531,11 @@ serve(async (req) => {
         { role: 'user', content: message }
       ];
       
+      // Use the mapped model directly instead of looking it up
+      console.log(`Single model OpenRouter request: ${requestedModel} -> ${model}`);
+      
       body = {
-        model: await getOpenRouterModelId(model),
+        model,
         messages,
         stream,
         max_tokens: mode === 'build' ? 4096 : 2048
