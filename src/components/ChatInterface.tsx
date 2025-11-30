@@ -147,7 +147,7 @@ export function ChatInterface() {
         </div>}
 
       {/* Messages Area */}
-      {messages.length > 0 ? <div className="flex-1 overflow-y-auto px-6 py-8 bg-white">
+      {messages.length > 0 ? <div className={`flex-1 overflow-y-auto py-8 bg-white ${hasMultiModelResponses ? 'px-0' : 'px-6'}`}>
           <div className={hasMultiModelResponses ? 'w-full' : 'max-w-[800px] mx-auto'}>
             {messages.map(message => <Message key={message.id} message={message} allMessages={messages} onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')} />)}
             {isLoading && <TypingIndicator models={selectedModels} />}
