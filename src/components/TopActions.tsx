@@ -65,7 +65,7 @@ export function TopActions({ isTemporaryMode, onTemporaryModeToggle }: TopAction
 
   return (
     <>
-      <div className="fixed top-5 right-6 z-50 flex items-center gap-3">
+      <div className="fixed top-5 right-6 z-50 flex items-center gap-3 px-2 py-2 rounded-full bg-white/80 backdrop-blur-md shadow-sm border border-gray-100/50">
         {/* Settings Icon */}
         <TooltipProvider delayDuration={400}>
           <Tooltip>
