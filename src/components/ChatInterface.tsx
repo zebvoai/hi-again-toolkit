@@ -33,7 +33,9 @@ export function ChatInterface() {
     isModelLocked,
     setSelectedModels
   } = useChatStore();
-  const { models } = useModels();
+  const {
+    models
+  } = useModels();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -47,15 +49,13 @@ export function ChatInterface() {
       video: 'Gemini Video 2.0',
       build: 'GPT-5'
     };
-    
+
     // Get available models for current mode
     const availableModelsForMode = models[selectedMode] || [];
-    
+
     // Filter out models that don't belong to current mode
-    const validModels = selectedModels.filter(model => 
-      availableModelsForMode.includes(model)
-    );
-    
+    const validModels = selectedModels.filter(model => availableModelsForMode.includes(model));
+
     // If no valid models remain, set the default model
     if (validModels.length === 0) {
       const defaultModel = defaultModels[selectedMode] || 'GPT-5';
@@ -77,7 +77,6 @@ export function ChatInterface() {
       behavior: 'smooth'
     });
   }, [messages, isLoading]);
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim() && !isLoading && selectedModels.length > 0) {
@@ -104,7 +103,6 @@ export function ChatInterface() {
     setTimeout(() => setIsAttachmentClicked(false), 200);
     fileInputRef.current?.click();
   };
-
   const handleMicClick = () => {
     setIsRecording(!isRecording);
     // TODO: Implement actual recording functionality
@@ -129,7 +127,7 @@ export function ChatInterface() {
   };
   return <div className="flex flex-col h-full relative bg-gray-50/50">
       {/* Top Actions */}
-      <TopActions isTemporaryMode={isTemporaryMode} onTemporaryModeToggle={handleTemporaryModeToggle} />
+      
 
       {/* Temporary Mode Banner */}
       {isTemporaryMode && <div className="px-4 pt-4">
@@ -181,88 +179,44 @@ export function ChatInterface() {
             {/* Dropdowns Row - Keep above input */}
             <div className="flex items-center gap-2.5 mb-3">
               <ModeDropdown />
-              {selectedMode !== 'video' && (
-                <ModelSelector values={selectedModels} onChange={setSelectedModels} disabled={isModelLocked} />
-              )}
+              {selectedMode !== 'video' && <ModelSelector values={selectedModels} onChange={setSelectedModels} disabled={isModelLocked} />}
             </div>
 
             {/* File Attachments Preview */}
-            {attachedFiles.length > 0 && (
-              <div className="mb-3 p-3 bg-white rounded-2xl border border-gray-200">
+            {attachedFiles.length > 0 && <div className="mb-3 p-3 bg-white rounded-2xl border border-gray-200">
                 <div className="flex flex-wrap gap-2">
-                  {attachedFiles.map((file, index) => (
-                    <div key={index} className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 text-sm">
+                  {attachedFiles.map((file, index) => <div key={index} className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 text-sm">
                       <span className="text-gray-700 truncate max-w-[200px]">{file.name}</span>
                       <span className="text-gray-400 text-xs">
                         ({(file.size / 1024).toFixed(1)} KB)
                       </span>
-                      <button 
-                        type="button" 
-                        onClick={() => handleRemoveFile(index)} 
-                        className="text-gray-400 hover:text-gray-600 ml-1"
-                      >
+                      <button type="button" onClick={() => handleRemoveFile(index)} className="text-gray-400 hover:text-gray-600 ml-1">
                         ×
                       </button>
-                    </div>
-                  ))}
+                    </div>)}
                 </div>
-              </div>
-            )}
+              </div>}
 
             {/* Hidden File Input */}
-            <input 
-              ref={fileInputRef} 
-              type="file" 
-              multiple 
-              accept="*/*" 
-              onChange={handleFileSelect} 
-              className="hidden" 
-            />
+            <input ref={fileInputRef} type="file" multiple accept="*/*" onChange={handleFileSelect} className="hidden" />
 
             {/* New Input Bar Design */}
             <div className="flex items-center w-full h-[60px] bg-[#F5F6FA] rounded-[50px] px-5 border-[0.5px] border-gray-300 shadow-[0_1px_2px_rgba(0,0,0,0.08)] focus-within:shadow-[0_0_0_1px_rgba(30,100,255,0.4)] focus-within:border-[#1E64FF] transition-all duration-200">
               {/* Left Plus Button */}
-              <button
-                type="button"
-                onClick={triggerFileInput}
-                className="flex-shrink-0 w-[42px] h-[42px] rounded-full bg-white flex items-center justify-center hover:bg-gray-50 transition-colors shadow-sm"
-              >
+              <button type="button" onClick={triggerFileInput} className="flex-shrink-0 w-[42px] h-[42px] rounded-full bg-white flex items-center justify-center hover:bg-gray-50 transition-colors shadow-sm">
                 <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-                  <path d="M10 4V16M4 10H16" stroke="#1E64FF" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M10 4V16M4 10H16" stroke="#1E64FF" strokeWidth="2" strokeLinecap="round" />
                 </svg>
               </button>
 
               {/* Input Field */}
-              <input 
-                type="text" 
-                value={input} 
-                onChange={e => setInput(e.target.value)} 
-                placeholder="Ask to Zebvo ai" 
-                disabled={isLoading} 
-                className="flex-1 bg-transparent outline-none text-[17px] font-medium placeholder:text-[#6F7287] placeholder:font-medium disabled:opacity-50 px-4" 
-                maxLength={4000}
-              />
+              <input type="text" value={input} onChange={e => setInput(e.target.value)} placeholder="Ask to Zebvo ai" disabled={isLoading} className="flex-1 bg-transparent outline-none text-[17px] font-medium placeholder:text-[#6F7287] placeholder:font-medium disabled:opacity-50 px-4" maxLength={4000} />
 
               {/* Right Send Button */}
-              <button
-                type={isLoading ? "button" : "submit"} 
-                onClick={isLoading ? cancelGeneration : undefined} 
-                disabled={!isLoading && (!input.trim() || selectedModels.length === 0)}
-                className={`flex-shrink-0 w-[42px] h-[42px] rounded-full flex items-center justify-center transition-all ${
-                  isLoading 
-                    ? 'bg-gray-700 hover:bg-gray-800 animate-pulse' 
-                    : !input.trim() || selectedModels.length === 0
-                      ? 'bg-white cursor-not-allowed'
-                      : 'bg-white hover:bg-gray-50 active:scale-95'
-                }`}
-              >
-                {isLoading ? (
-                  <Square className="w-4 h-4 fill-white" />
-                ) : (
-                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-                    <path d="M3 10L17 10M17 10L11 4M17 10L11 16" stroke="#6F7287" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                )}
+              <button type={isLoading ? "button" : "submit"} onClick={isLoading ? cancelGeneration : undefined} disabled={!isLoading && (!input.trim() || selectedModels.length === 0)} className={`flex-shrink-0 w-[42px] h-[42px] rounded-full flex items-center justify-center transition-all ${isLoading ? 'bg-gray-700 hover:bg-gray-800 animate-pulse' : !input.trim() || selectedModels.length === 0 ? 'bg-white cursor-not-allowed' : 'bg-white hover:bg-gray-50 active:scale-95'}`}>
+                {isLoading ? <Square className="w-4 h-4 fill-white" /> : <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                    <path d="M3 10L17 10M17 10L11 4M17 10L11 16" stroke="#6F7287" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>}
               </button>
             </div>
           </form>
