@@ -112,7 +112,7 @@ export const MultiModelResponse = ({ content, models, userQuestion }: MultiModel
         </div>
 
         {/* Single Model Response */}
-        <div className="max-w-[75%] ml-auto">
+        <div className="max-w-[75%]">
           <div className="flex gap-2">
             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-200 to-blue-300 flex items-center justify-center shadow-[0_2px_4px_rgba(0,0,0,0.08)] flex-shrink-0">
               <span className="text-blue-700 font-semibold text-sm">Z</span>
@@ -120,26 +120,27 @@ export const MultiModelResponse = ({ content, models, userQuestion }: MultiModel
             
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
-                {models.length > 1 && (
-                  <button 
-                    onClick={() => setCurrentIndex((prev) => (prev - 1 + models.length) % models.length)}
-                    className="w-7 h-7 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors"
-                  >
-                    <ChevronLeft className="w-4 h-4 text-gray-500" />
-                  </button>
-                )}
-                
                 <span className="text-[11px] font-medium text-gray-400">
                   {formatModelName(currentModel)} • {currentIndex + 1}/{models.length}
                 </span>
                 
                 {models.length > 1 && (
-                  <button 
-                    onClick={() => setCurrentIndex((prev) => (prev + 1) % models.length)}
-                    className="w-7 h-7 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors"
-                  >
-                    <ChevronRight className="w-4 h-4 text-gray-500" />
-                  </button>
+                  <div className="flex items-center gap-0.5 ml-auto">
+                    <button 
+                      onClick={() => setCurrentIndex((prev) => (prev - 1 + models.length) % models.length)}
+                      className="w-6 h-6 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors"
+                      aria-label="Previous model"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5 text-gray-400" />
+                    </button>
+                    <button 
+                      onClick={() => setCurrentIndex((prev) => (prev + 1) % models.length)}
+                      className="w-6 h-6 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors"
+                      aria-label="Next model"
+                    >
+                      <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
+                    </button>
+                  </div>
                 )}
               </div>
               
