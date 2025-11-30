@@ -17,9 +17,9 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <SidebarProvider defaultOpen={false}>
-          <div className="flex min-h-screen w-full">
+          <div className="flex min-h-screen w-full overflow-hidden">
             <AppSidebar />
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col overflow-hidden">
               <Routes>
                 <Route path="/" element={<ChatInterface />} />
                 <Route path="*" element={<NotFound />} />
