@@ -35,11 +35,25 @@ const getModelMapping = (displayName: string): { apiModel: string, provider: str
     'Gemini 1.5 Pro': { apiModel: 'gemini-1.5-pro', provider: 'google' },
     'Gemini 1.5 Flash': { apiModel: 'gemini-1.5-flash', provider: 'google' },
     'Gemini 2.0 Flash': { apiModel: 'gemini-2.0-flash-exp', provider: 'google' },
+    'Qwen: Qwen Plus 0728': { apiModel: 'qwen/qwen-plus-2025-07-28', provider: 'openrouter' },
+    'Qwen: Qwen Plus 0728 (thinking)': { apiModel: 'qwen/qwen-plus-2025-07-28:thinking', provider: 'openrouter' },
+    'OpenAI: o3 Mini High': { apiModel: 'openai/o3-mini-high', provider: 'openrouter' },
+    'OpenAI: o3 Mini': { apiModel: 'openai/o3-mini', provider: 'openrouter' },
+    'Cohere: Command R7B (12-2024)': { apiModel: 'cohere/command-r7b-12-2024', provider: 'openrouter' },
+    'Cohere: Command R+ (08-2024)': { apiModel: 'cohere/command-r-plus-08-2024', provider: 'openrouter' },
+    'Cohere: Command R (08-2024)': { apiModel: 'cohere/command-r-08-2024', provider: 'openrouter' },
     'OpenAI: GPT-4o Audio': { apiModel: 'openai/gpt-4o-audio-preview', provider: 'openrouter' },
+    'OpenAI: GPT-4o-mini Search Preview': { apiModel: 'openai/gpt-4o-mini-search-preview', provider: 'openrouter' },
+    'OpenAI: GPT-4o Search Preview': { apiModel: 'openai/gpt-4o-search-preview', provider: 'openrouter' },
     'OpenAI: GPT-4 Turbo Preview': { apiModel: 'openai/gpt-4-turbo-preview', provider: 'openrouter' },
     'OpenAI: GPT-4 Turbo (older v1106)': { apiModel: 'openai/gpt-4-1106-preview', provider: 'openrouter' },
+    'Prime Intellect: INTELLECT-3': { apiModel: 'prime-intellect/intellect-3', provider: 'openrouter' },
     'TNG: R1T Chimera': { apiModel: 'tng/r1t-chimera', provider: 'openrouter' },
-    'TNG: R1T Chimera (free)': { apiModel: 'tng/r1t-chimera:free', provider: 'openrouter' }
+    'TNG: R1T Chimera (free)': { apiModel: 'tng/r1t-chimera:free', provider: 'openrouter' },
+    'MoonshotAI: Kimi Linear 48B A3B Instruct': { apiModel: 'moonshotai/kimi-linear-48b-a3b-instruct', provider: 'openrouter' },
+    'MoonshotAI: Kimi K2 Thinking': { apiModel: 'moonshotai/kimi-k2-thinking', provider: 'openrouter' },
+    'OpenAI: gpt-oss-safeguard-20b': { apiModel: 'openai/gpt-oss-safeguard-20b', provider: 'openrouter' },
+    'MiniMax: MiniMax M2': { apiModel: 'minimax/minimax-m2', provider: 'openrouter' }
   };
   
   // If not in base mappings, assume it's an OpenRouter model (use display name as model ID)
