@@ -219,7 +219,7 @@ export function ChatInterface() {
             />
 
             {/* New Input Bar Design */}
-            <div className="flex items-center w-full bg-[#F5F6FA] rounded-full px-4 py-2 shadow-[0_2px_8px_rgba(0,0,0,0.06)] focus-within:shadow-[0_0_0_2px_rgba(78,168,255,0.4)] focus-within:scale-[1.01] transition-all duration-200">
+            <div className="flex items-center w-full bg-[#F5F6FA] rounded-full px-4 py-2 border-[0.5px] border-gray-300 shadow-[0_2px_8px_rgba(0,0,0,0.06)] focus-within:shadow-[0_0_0_2px_rgba(78,168,255,0.4)] focus-within:scale-[1.01] transition-all duration-200">
               {/* Left Plus Button */}
               <button
                 type="button"
