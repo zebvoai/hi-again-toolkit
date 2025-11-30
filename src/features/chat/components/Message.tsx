@@ -80,7 +80,7 @@ export const Message = ({ message, onRetry, allMessages = [] }: MessageProps) =>
     }
     
     return (
-      <div className="flex justify-start mb-4 animate-fade-in w-full">
+      <div className="mb-4 animate-fade-in -mx-6 px-0">
         <MultiModelResponse content={multiContent} models={models} userQuestion={userQuestion} />
       </div>
     );
