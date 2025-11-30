@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, Grid3x3, ArrowLeft, Copy } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Grid3x3, ArrowLeft, Copy, Bot, Sparkles, Brain, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -17,6 +17,37 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
   const [viewMode, setViewMode] = useState<'carousel' | 'compare'>('carousel');
   const [currentIndex, setCurrentIndex] = useState(0);
   const { toast } = useToast();
+
+  const getProviderIcon = (model: string) => {
+    const modelLower = model.toLowerCase();
+    if (modelLower.includes('gpt') || modelLower.includes('openai')) return <Bot className="w-4 h-4" />;
+    if (modelLower.includes('gemini') || modelLower.includes('google')) return <Sparkles className="w-4 h-4" />;
+    if (modelLower.includes('claude') || modelLower.includes('anthropic')) return <Brain className="w-4 h-4" />;
+    return <Zap className="w-4 h-4" />;
+  };
+
+  const ModelScrollBar = () => (
+    <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 pb-2">
+      <div className="flex gap-3 min-w-max">
+        {models.map((model) => (
+          <div
+            key={model}
+            className="flex items-center gap-2 px-4 py-2.5 bg-white rounded-[12px] border border-gray-200 shadow-sm hover:shadow-md transition-shadow min-w-[180px]"
+          >
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100">
+              {getProviderIcon(model)}
+            </div>
+            <span className="text-sm font-medium text-gray-700 flex-1">
+              {formatModelName(model)}
+            </span>
+            <button className="w-6 h-6 rounded-full bg-gray-900 flex items-center justify-center">
+              <div className="w-3 h-3 rounded-full border-2 border-white" />
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -37,6 +68,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
   if (viewMode === 'compare') {
     return (
       <div className="space-y-4 ml-auto max-w-[75%]">
+        <ModelScrollBar />
         <div className="flex items-center justify-end">
           <Button
             variant="outline"
@@ -99,7 +131,8 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
   const currentContent = content[currentModel];
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 ml-auto max-w-[75%]">
+      <ModelScrollBar />
       <div className="flex items-center justify-end">
         <Button
           variant="outline"
