@@ -53,11 +53,11 @@ export const Message = ({ message, onRetry }: MessageProps) => {
     // If it's multi-model image generation
     if (isImageMode) {
       return (
-        <div className="flex justify-start mb-6 group animate-fade-in">
-          <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center shadow-md mr-3 flex-shrink-0">
-            <Bot className="w-5 h-5 text-white" />
+        <div className="flex justify-start mb-4 animate-fade-in">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-200 to-blue-300 flex items-center justify-center shadow-[0_2px_4px_rgba(0,0,0,0.08)] mr-2 flex-shrink-0">
+            <span className="text-blue-700 font-semibold text-sm">Z</span>
           </div>
-          <div className="flex-1 max-w-4xl">
+          <div className="flex-1 max-w-[75%]">
             <MultiModelImageResponse content={multiContent} models={models} />
           </div>
         </div>
@@ -65,11 +65,11 @@ export const Message = ({ message, onRetry }: MessageProps) => {
     }
     
     return (
-      <div className="flex justify-start mb-6 group animate-fade-in">
-        <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center shadow-md mr-3 flex-shrink-0">
-          <Bot className="w-5 h-5 text-white" />
+      <div className="flex justify-start mb-4 animate-fade-in">
+        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-200 to-blue-300 flex items-center justify-center shadow-[0_2px_4px_rgba(0,0,0,0.08)] mr-2 flex-shrink-0">
+          <span className="text-blue-700 font-semibold text-sm">Z</span>
         </div>
-        <div className="flex-1 max-w-4xl">
+        <div className="flex-1 max-w-[75%]">
           <MultiModelResponse content={multiContent} models={models} />
         </div>
       </div>
@@ -80,146 +80,144 @@ export const Message = ({ message, onRetry }: MessageProps) => {
   const contentString = typeof message.content === 'string' ? message.content : '';
   
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-6 group animate-fade-in`}>
-      {/* Avatar for AI */}
-      {!isUser && (
-        <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center shadow-md mr-3 flex-shrink-0">
-          <Bot className="w-5 h-5 text-white" />
-        </div>
-      )}
-      
-      <div
-        className={`
-          max-w-[70%] rounded-2xl px-5 py-3.5 shadow-sm relative
-          ${isUser 
-            ? 'bg-blue-600 text-white' 
-            : 'bg-white border border-gray-200 text-foreground'
-          }
-        `}
-      >
-        {/* Model badge for AI messages */}
-        {!isUser && message.metadata?.model && (
-          <Badge 
-            variant="secondary" 
-            className="mb-2.5 text-xs font-medium bg-gray-100 text-gray-700 border-0"
-          >
-            {formatModelName(message.metadata.model)}
-          </Badge>
-        )}
-        
-        {message.metadata?.imageUrl ? (
-          <div className="space-y-3">
-            <img 
-              src={message.metadata.imageUrl} 
-              alt="Generated" 
-              className="rounded-xl w-full max-w-md shadow-md"
-            />
-            {contentString && (
-              <p className="text-sm leading-relaxed">{contentString}</p>
-            )}
-          </div>
-        ) : message.metadata?.videoUrl ? (
-          <div className="space-y-3">
-            <video 
-              src={message.metadata.videoUrl} 
-              controls
-              className="rounded-xl w-full max-w-md shadow-md"
-            />
-            {contentString && (
-              <p className="text-sm leading-relaxed">{contentString}</p>
-            )}
-          </div>
-        ) : isUser ? (
-          <p className="text-sm leading-relaxed whitespace-pre-wrap">
-            {contentString}
-          </p>
-        ) : (
-          <div className="prose prose-sm max-w-none">
-            <ReactMarkdown
-              components={{
-                code({ node, inline, className, children, ...props }: any) {
-                  const match = /language-(\w+)/.exec(className || '');
-                  const codeString = String(children).replace(/\n$/, '');
-                  const codeId = `code-${message.id}-${Math.random()}`;
-                  
-                  return !inline && match ? (
-                    <div className="relative group/code my-3 rounded-lg overflow-hidden shadow-md">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="absolute right-2 top-2 opacity-0 group-hover/code:opacity-100 transition-opacity bg-gray-800/80 hover:bg-gray-700"
-                        onClick={() => copyToClipboard(codeString, codeId)}
-                      >
-                        {copiedCode === codeId ? (
-                          <Check className="w-4 h-4 text-white" />
-                        ) : (
-                          <Copy className="w-4 h-4 text-white" />
-                        )}
-                      </Button>
-                      <SyntaxHighlighter
-                        style={oneDark}
-                        language={match[1]}
-                        PreTag="div"
-                        {...props}
-                      >
-                        {codeString}
-                      </SyntaxHighlighter>
-                    </div>
-                  ) : (
-                    <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm" {...props}>
-                      {children}
-                    </code>
-                  );
-                },
-              }}
-            >
-              {contentString}
-            </ReactMarkdown>
-          </div>
-        )}
-        
-        {/* Copy button for AI messages */}
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 animate-fade-in`}>
+      <div className={`flex ${isUser ? 'flex-row-reverse ml-auto' : 'flex-row'} max-w-[75%] gap-2`}>
+        {/* Avatar for AI only */}
         {!isUser && (
-          <div className="flex items-center gap-2 mt-3 pt-2.5 border-t border-gray-100">
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-7 px-2.5 text-xs hover:bg-gray-100"
-              onClick={copyMessage}
-            >
-              {copied ? (
-                <>
-                  <Check className="w-3 h-3 mr-1.5" />
-                  Copied
-                </>
-              ) : (
-                <>
-                  <Copy className="w-3 h-3 mr-1.5" />
-                  Copy
-                </>
-              )}
-            </Button>
-            
-            {message.metadata?.error && onRetry && (
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-7 px-2.5 text-xs"
-                onClick={onRetry}
-              >
-                Retry
-              </Button>
-            )}
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-200 to-blue-300 flex items-center justify-center shadow-[0_2px_4px_rgba(0,0,0,0.08)] flex-shrink-0">
+            <span className="text-blue-700 font-semibold text-sm">Z</span>
           </div>
         )}
-      </div>
-      
-      {/* Avatar for User */}
-      {isUser && (
-        <div className="w-9 h-9 rounded-full bg-gray-700 flex items-center justify-center shadow-md ml-3 flex-shrink-0">
-          <User className="w-5 h-5 text-white" />
+        
+        <div className="flex flex-col">
+          {/* Model name for AI messages */}
+          {!isUser && message.metadata?.model && (
+            <span className="text-[11px] font-medium text-gray-400 mb-1 ml-0.5">
+              {formatModelName(message.metadata.model)}
+            </span>
+          )}
+          
+          {/* Message bubble */}
+          <div
+            className={`
+              px-4 py-3 shadow-sm transition-all duration-150 hover:scale-[1.002]
+              ${isUser 
+                ? 'rounded-[18px_18px_4px_18px] bg-gradient-to-br from-[#5B9FFF] to-[#4A8FFF] text-white shadow-[0_2px_6px_rgba(91,159,255,0.25)]' 
+                : 'rounded-[18px_18px_18px_4px] bg-[#F0F0F0] text-[#1A1A1A]'
+              }
+            `}
+          >
+            {message.metadata?.imageUrl ? (
+              <div className="space-y-3">
+                <img 
+                  src={message.metadata.imageUrl} 
+                  alt="Generated" 
+                  className="rounded-xl w-full max-w-md shadow-md"
+                />
+                {contentString && (
+                  <p className="text-[15px] leading-[1.5]">{contentString}</p>
+                )}
+              </div>
+            ) : message.metadata?.videoUrl ? (
+              <div className="space-y-3">
+                <video 
+                  src={message.metadata.videoUrl} 
+                  controls
+                  className="rounded-xl w-full max-w-md shadow-md"
+                />
+                {contentString && (
+                  <p className="text-[15px] leading-[1.5]">{contentString}</p>
+                )}
+              </div>
+            ) : isUser ? (
+              <p className="text-[15px] leading-[1.5] whitespace-pre-wrap break-words">
+                {contentString}
+              </p>
+            ) : (
+              <div className="prose prose-sm max-w-none [&>*]:text-[#1A1A1A]">
+                <ReactMarkdown
+                  components={{
+                    code({ node, inline, className, children, ...props }: any) {
+                      const match = /language-(\w+)/.exec(className || '');
+                      const codeString = String(children).replace(/\n$/, '');
+                      const codeId = `code-${message.id}-${Math.random()}`;
+                      
+                      return !inline && match ? (
+                        <div className="relative group/code my-3 rounded-lg overflow-hidden shadow-md">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="absolute right-2 top-2 opacity-0 group-hover/code:opacity-100 transition-opacity bg-gray-800/80 hover:bg-gray-700"
+                            onClick={() => copyToClipboard(codeString, codeId)}
+                          >
+                            {copiedCode === codeId ? (
+                              <Check className="w-4 h-4 text-white" />
+                            ) : (
+                              <Copy className="w-4 h-4 text-white" />
+                            )}
+                          </Button>
+                          <SyntaxHighlighter
+                            style={oneDark}
+                            language={match[1]}
+                            PreTag="div"
+                            {...props}
+                          >
+                            {codeString}
+                          </SyntaxHighlighter>
+                        </div>
+                      ) : (
+                        <code className="bg-gray-200/60 px-1.5 py-0.5 rounded text-sm" {...props}>
+                          {children}
+                        </code>
+                      );
+                    },
+                    a({ node, children, ...props }: any) {
+                      return (
+                        <a className="text-[#007AFF] hover:underline" {...props}>
+                          {children}
+                        </a>
+                      );
+                    },
+                  }}
+                >
+                  {contentString}
+                </ReactMarkdown>
+              </div>
+            )}
+          </div>
+          
+          {/* Actions row for AI messages */}
+          {!isUser && (
+            <div className="flex items-center gap-2 mt-2 ml-0.5">
+              <button
+                onClick={copyMessage}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] text-gray-500 hover:bg-gray-100 transition-colors"
+              >
+                {copied ? (
+                  <>
+                    <Check className="w-3.5 h-3.5" />
+                    <span>Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copy</span>
+                  </>
+                )}
+              </button>
+              
+              {message.metadata?.error && onRetry && (
+                <button
+                  onClick={onRetry}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] text-gray-500 hover:bg-gray-100 transition-colors"
+                >
+                  Retry
+                </button>
+              )}
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };
