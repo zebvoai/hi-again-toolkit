@@ -139,36 +139,59 @@ export function ChatInterface() {
         </div>}
 
       {/* Messages Area */}
-      {messages.length > 0 ? <div className="flex-1 overflow-y-auto px-6 py-8 bg-white">
-          <div className="max-w-[800px] mx-auto">
-            {messages.map((message, index) => {
-              // Skip rendering user messages that precede multi-model responses
-              if (message.role === 'user') {
-                const nextMessage = messages[index + 1];
-                const isNextMultiModel = nextMessage && 
-                  nextMessage.role === 'assistant' && 
-                  typeof nextMessage.content === 'object' && 
-                  !Array.isArray(nextMessage.content) &&
-                  nextMessage.metadata?.models?.length > 1;
-                
-                // Skip this user message - it will appear inside the multi-model columns
-                if (isNextMultiModel) {
-                  return null;
-                }
-              }
+      {messages.length > 0 ? <div className="flex-1 overflow-y-auto py-8 bg-white">
+          {messages.map((message, index) => {
+            // Skip rendering user messages that precede multi-model responses
+            if (message.role === 'user') {
+              const nextMessage = messages[index + 1];
+              const isNextMultiModel = nextMessage && 
+                nextMessage.role === 'assistant' && 
+                typeof nextMessage.content === 'object' && 
+                !Array.isArray(nextMessage.content) &&
+                nextMessage.metadata?.models?.length > 1;
               
+              // Skip this user message - it will appear inside the multi-model columns
+              if (isNextMultiModel) {
+                return null;
+              }
+            }
+
+            // Check if this is a multi-model compare response
+            const isMultiModelResponse = message.role === 'assistant' && 
+              typeof message.content === 'object' && 
+              !Array.isArray(message.content) &&
+              message.metadata?.models?.length > 1;
+
+            // Multi-model responses get full width
+            if (isMultiModelResponse) {
               return (
+                <div key={message.id} className="w-full">
+                  <Message 
+                    message={message} 
+                    allMessages={messages} 
+                    onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')} 
+                  />
+                </div>
+              );
+            }
+
+            // Regular messages get constrained container
+            return (
+              <div key={message.id} className="max-w-[800px] mx-auto px-6">
                 <Message 
-                  key={message.id} 
                   message={message} 
                   allMessages={messages} 
                   onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')} 
                 />
-              );
-            })}
-            {isLoading && <TypingIndicator models={selectedModels} />}
-            <div ref={messagesEndRef} />
-          </div>
+              </div>
+            );
+          })}
+          {isLoading && (
+            <div className="max-w-[800px] mx-auto px-6">
+              <TypingIndicator models={selectedModels} />
+            </div>
+          )}
+          <div ref={messagesEndRef} />
         </div> : (/* Empty State */
     <div className="flex-1 flex items-center justify-center px-4">
           <div className="text-center">

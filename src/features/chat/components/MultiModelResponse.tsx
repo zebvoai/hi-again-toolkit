@@ -201,7 +201,7 @@ export const MultiModelResponse = ({ content, models, userQuestion }: MultiModel
   return (
     <div className="w-full">
       {/* Toggle Button */}
-      <div className="flex justify-end mb-2 pr-2">
+      <div className="flex justify-end mb-2 px-4">
         <div className="flex items-center gap-1 bg-gray-100 rounded-full p-0.5">
           <button 
             onClick={() => setViewMode('single')}
