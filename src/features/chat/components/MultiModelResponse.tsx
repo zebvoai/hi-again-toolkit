@@ -199,7 +199,7 @@ export const MultiModelResponse = ({ content, models, userQuestion }: MultiModel
 
   // Side by Side view (horizontal columns)
   return (
-    <div className="w-full">
+    <div className="w-full overflow-hidden">
       {/* Toggle Button */}
       <div className="flex justify-end mb-2 px-4">
         <div className="flex items-center gap-1 bg-gray-100 rounded-full p-0.5">
