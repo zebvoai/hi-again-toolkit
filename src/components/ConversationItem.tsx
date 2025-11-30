@@ -1,9 +1,12 @@
-import { MoreVertical } from 'lucide-react';
+import { MoreVertical, Share, MessageSquarePlus, Edit, FolderInput, Archive, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { formatDistanceToNow } from 'date-fns';
@@ -19,6 +22,8 @@ interface ConversationItemProps {
   onStartGroupChat?: () => void;
   onRename?: () => void;
   onArchive?: () => void;
+  onMoveToProject?: (projectId: number) => void;
+  projects?: Array<{ id: number; name: string }>;
 }
 
 export const ConversationItem = ({
@@ -31,6 +36,8 @@ export const ConversationItem = ({
   onStartGroupChat,
   onRename,
   onArchive,
+  onMoveToProject,
+  projects = [],
 }: ConversationItemProps) => {
   const timeAgo = formatDistanceToNow(new Date(updatedAt), { addSuffix: true });
 
@@ -64,13 +71,14 @@ export const ConversationItem = ({
             <MoreVertical className="w-4 h-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="min-w-[160px] bg-background border shadow-lg z-[200] rounded-lg">
+        <DropdownMenuContent align="end" className="min-w-[180px] bg-popover border shadow-lg z-[200] rounded-[20px]">
           <DropdownMenuItem
             onClick={(e) => {
               e.stopPropagation();
               onShare?.();
             }}
           >
+            <Share className="w-4 h-4 mr-2" />
             Share
           </DropdownMenuItem>
           <DropdownMenuItem
@@ -79,6 +87,7 @@ export const ConversationItem = ({
               onStartGroupChat?.();
             }}
           >
+            <MessageSquarePlus className="w-4 h-4 mr-2" />
             Start a group chat
           </DropdownMenuItem>
           <DropdownMenuItem
@@ -87,24 +96,54 @@ export const ConversationItem = ({
               onRename?.();
             }}
           >
+            <Edit className="w-4 h-4 mr-2" />
             Rename
           </DropdownMenuItem>
+          
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <FolderInput className="w-4 h-4 mr-2" />
+              Move to project
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent className="rounded-[20px]">
+              {projects.length > 0 ? (
+                projects.map((project) => (
+                  <DropdownMenuItem
+                    key={project.id}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onMoveToProject?.(project.id);
+                    }}
+                  >
+                    {project.name}
+                  </DropdownMenuItem>
+                ))
+              ) : (
+                <DropdownMenuItem disabled>
+                  No projects available
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+
           <DropdownMenuItem
             onClick={(e) => {
               e.stopPropagation();
               onArchive?.();
             }}
           >
+            <Archive className="w-4 h-4 mr-2" />
             Archive
           </DropdownMenuItem>
           <DropdownMenuItem
-            className="text-destructive focus:text-destructive"
+            className="focus:bg-red-50"
             onClick={(e) => {
               e.stopPropagation();
               onDelete();
             }}
           >
-            Delete
+            <Trash2 className="w-4 h-4 mr-2" style={{ color: '#D92D20' }} />
+            <span style={{ color: '#D92D20' }}>Delete</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
