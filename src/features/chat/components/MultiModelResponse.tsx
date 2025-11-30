@@ -36,7 +36,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
 
   if (viewMode === 'compare') {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 ml-auto max-w-[75%]">
         <div className="flex items-center justify-end">
           <Button
             variant="outline"
@@ -48,7 +48,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
             Back to Carousel
           </Button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {models.map((model) => (
             <div key={model} className="bg-white/80 backdrop-blur-sm rounded-lg border border-border/30 p-3 space-y-1.5 shadow-sm">
               <div className="flex items-center justify-between gap-2">
