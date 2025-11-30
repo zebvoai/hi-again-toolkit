@@ -42,7 +42,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         {/* Sticky Header */}
         <div className="sticky top-0 z-50 backdrop-blur-xl bg-white/80 border-b border-slate-200">
-          <div className="w-full px-6 py-4">
+          <div className="flex items-center justify-between px-6 py-4">
             <Button
               variant="ghost"
               size="sm"
@@ -52,64 +52,101 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Carousel
             </Button>
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold shadow-lg">
+              Z
+            </div>
+          </div>
+        </div>
+
+        {/* Question Display */}
+        <div className="px-6 pt-8 pb-6">
+          <div className="flex justify-end">
+            <div className="inline-flex items-center px-5 py-2.5 bg-blue-500 rounded-full shadow-sm">
+              <span className="text-white font-medium text-sm">What is blackhole?</span>
+            </div>
           </div>
         </div>
 
         {/* Model Response Cards */}
-        <div className="w-full px-6 py-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="px-6 pb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {models.map((model) => (
               <div
                 key={model}
-                className="group bg-white rounded-[24px] border border-slate-200 p-8 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-out"
+                className="group bg-white rounded-[20px] border border-slate-200 p-6 shadow-sm hover:shadow-lg hover:scale-[1.02] transition-all duration-300 ease-out"
               >
                 {/* Card Header */}
-                <div className="flex items-start justify-between mb-6">
-                  <h3 className="text-xl font-bold text-slate-900">{formatModelName(model)}</h3>
+                <div className="flex items-start justify-between mb-4">
+                  <h3 className="text-lg font-bold text-slate-900">{formatModelName(model)}</h3>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-9 w-9 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-full transition-all duration-200"
+                    className="h-8 w-8 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-full transition-all duration-200"
                     onClick={() => handleCopy(content[model], model)}
                   >
                     {copiedModel === model ? (
-                      <CheckCircle2 className="w-5 h-5 text-green-500 animate-in zoom-in-50 duration-200" />
+                      <CheckCircle2 className="w-4 h-4 text-green-500 animate-in zoom-in-50 duration-200" />
                     ) : (
-                      <Copy className="w-5 h-5" />
+                      <Copy className="w-4 h-4" />
                     )}
                   </Button>
                 </div>
 
                 {/* Response Text */}
-                <div className="prose prose-slate max-w-none">
-                  <div className="text-[16px] leading-[1.7] text-slate-700 space-y-6">
-                    <ReactMarkdown
-                      components={{
-                        p: ({ children }) => <p className="mb-6 last:mb-0">{children}</p>,
-                        code({ inline, className, children, ...props }: any) {
-                          const match = /language-(\w+)/.exec(className || '');
-                          return !inline && match ? (
-                            <SyntaxHighlighter
-                              style={vscDarkPlus}
-                              language={match[1]}
-                              PreTag="div"
-                              className="rounded-2xl !my-6"
-                              {...props}
-                            >
-                              {String(children).replace(/\n$/, '')}
-                            </SyntaxHighlighter>
-                          ) : (
-                            <code className="bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded text-sm" {...props}>
-                              {children}
-                            </code>
-                          );
-                        },
-                      }}
-                    >
-                      {content[model]}
-                    </ReactMarkdown>
-                  </div>
+                <div className="mb-5">
+                  <p className="text-[15px] leading-[1.7] text-slate-700">
+                    {content[model]}
+                  </p>
                 </div>
+
+                {/* Key Points Section - Hardcoded for demo */}
+                {model.includes('GPT-5') && !model.includes('Mini') && !model.includes('Nano') && (
+                  <div className="pt-5 border-t border-slate-200">
+                    <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3">KEY POINTS</p>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900 mb-1">Formation</p>
+                      <p className="text-[13px] text-slate-600 leading-relaxed">
+                        Most form when massive stars collapse at the end of their lives; others grow via mergers and by pulling in surrounding matter. Supermassive black holes sit at the centers of most galaxies.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {model.includes('Mini') && (
+                  <div className="pt-5 border-t border-slate-200">
+                    <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3">KEY POINTS</p>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900 mb-1">Event horizon</p>
+                      <p className="text-[13px] text-slate-600 leading-relaxed">
+                        the invisible surface around a black hole beyond which escape is impossible.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {model.includes('Nano') && (
+                  <div className="pt-5 border-t border-slate-200">
+                    <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3">KEY POINTS</p>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900 mb-1">Event horizon</p>
+                      <p className="text-[13px] text-slate-600 leading-relaxed">
+                        the invisible boundary around a black hole beyond which escape is impossible (not even for light).
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {model.includes('4.1') && (
+                  <div className="pt-5 border-t border-slate-200">
+                    <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3">KEY POINTS</p>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900 mb-1">Formation</p>
+                      <p className="text-[13px] text-slate-600 leading-relaxed">
+                        Black holes are usually formed from the remnants of massive stars that have ended their life cycles and collapsed.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
