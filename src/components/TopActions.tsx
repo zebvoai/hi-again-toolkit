@@ -1,4 +1,4 @@
-import { Users, Glasses, FlaskConical } from 'lucide-react';
+import { Users, Glasses, Settings } from 'lucide-react';
 import { useState } from 'react';
 import { TestRunner } from '@/components/TestRunnerSimple';
 import { Button } from '@/components/ui/button';
@@ -35,6 +35,8 @@ export function TopActions({ isTemporaryMode, onTemporaryModeToggle }: TopAction
   const [showGroupDialog, setShowGroupDialog] = useState(false);
   const [showTempConfirm, setShowTempConfirm] = useState(false);
   const [showTestRunner, setShowTestRunner] = useState(false);
+  const [groupClicked, setGroupClicked] = useState(false);
+  const [settingsClicked, setSettingsClicked] = useState(false);
 
   const handleTemporaryClick = () => {
     if (!isTemporaryMode) {
@@ -49,38 +51,54 @@ export function TopActions({ isTemporaryMode, onTemporaryModeToggle }: TopAction
     onTemporaryModeToggle();
   };
 
+  const handleGroupClick = () => {
+    setGroupClicked(true);
+    setTimeout(() => setGroupClicked(false), 400);
+    setShowGroupDialog(true);
+  };
+
+  const handleSettingsClick = () => {
+    setSettingsClicked(true);
+    setTimeout(() => setSettingsClicked(false), 300);
+    setShowTestRunner(true);
+  };
+
   return (
     <>
       <div className="fixed top-5 right-6 z-50 flex items-center gap-3">
-        {/* Test Runner Icon */}
-        <TooltipProvider>
+        {/* Settings Icon */}
+        <TooltipProvider delayDuration={400}>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setShowTestRunner(true)}
-                className="w-10 h-10 rounded-lg bg-transparent hover:bg-muted/80 transition-all duration-150 hover:scale-105 active:scale-95"
-                aria-label="Test Runner"
+                onClick={handleSettingsClick}
+                className="w-10 h-10 rounded-lg bg-transparent hover:bg-[#F3F4F6] hover:-translate-y-0.5 hover:shadow-[0_4px_8px_rgba(0,0,0,0.08)] transition-all duration-300 ease-in-out"
+                aria-label="Settings"
               >
-                <FlaskConical className="w-5 h-5 text-muted-foreground" />
+                <Settings className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ease-in-out hover:rotate-45 ${
+                  settingsClicked ? 'rotate-[360deg]' : ''
+                }`} />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom">
-              <p>Run Platform Tests</p>
+              <p>Settings</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
 
         {/* Group Chat Icon */}
-        <TooltipProvider>
+        <TooltipProvider delayDuration={400}>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setShowGroupDialog(true)}
-                className="w-10 h-10 rounded-lg bg-transparent hover:bg-muted/80 transition-all duration-150 hover:scale-105 active:scale-95"
+                onClick={handleGroupClick}
+                className={`w-10 h-10 rounded-lg bg-transparent hover:bg-[#F3F4F6] hover:-translate-y-0.5 hover:shadow-[0_4px_8px_rgba(0,0,0,0.08)] transition-all duration-200 ease-out ${
+                  groupClicked ? 'animate-click-bounce' : ''
+                }`}
                 aria-label="Group Chat"
               >
                 <Users className="w-5 h-5 text-muted-foreground" />
@@ -93,18 +111,18 @@ export function TopActions({ isTemporaryMode, onTemporaryModeToggle }: TopAction
         </TooltipProvider>
 
         {/* Temporary Chat Icon */}
-        <TooltipProvider>
+        <TooltipProvider delayDuration={400}>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={handleTemporaryClick}
-                className={`w-10 h-10 rounded-lg transition-all duration-150 hover:scale-105 active:scale-95 ${
+                className={`w-10 h-10 rounded-lg transition-all duration-200 ease-out ${
                   isTemporaryMode
-                    ? 'bg-blue-50 border border-[#5B9FFF] text-[#5B9FFF] hover:bg-blue-50'
-                    : 'bg-transparent hover:bg-muted/80'
-                }`}
+                    ? 'bg-[#F0F5FF] border-[1.5px] border-[#5B9FFF] text-[#5B9FFF] hover:bg-[#F0F5FF]'
+                    : 'bg-transparent hover:bg-[#F3F4F6] border border-transparent'
+                } hover:-translate-y-0.5 hover:shadow-[0_4px_8px_rgba(0,0,0,0.08)]`}
                 aria-label="Temporary Chat"
               >
                 <Glasses 
