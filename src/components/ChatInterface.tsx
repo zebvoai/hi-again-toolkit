@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ChevronDown, Mic, Volume2, Paperclip, Send, Square, Globe, Image as ImageIcon, LayoutGrid, Sparkles } from 'lucide-react';
+import { ChevronDown, Mic, Volume2, Paperclip, Send, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useChat } from '@/features/chat/hooks/useChat';
 import { useModeStore } from '@/features/modes/store/modeStore';
@@ -12,8 +12,6 @@ import { Badge } from '@/components/ui/badge';
 import { TopActions } from '@/components/TopActions';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useModels } from '@/features/chat/hooks/useModels';
-import { ModelBar } from '@/components/ModelBar';
-import { ExploreSection } from '@/components/ExploreSection';
 export function ChatInterface() {
   const [input, setInput] = useState('');
   const [isTemporaryMode, setIsTemporaryMode] = useState(false);
@@ -128,10 +126,7 @@ export function ChatInterface() {
     })();
     return isTemporaryMode ? `${basePlaceholder} (Temporary Mode)` : basePlaceholder;
   };
-  return <div className="flex flex-col h-full relative bg-background">
-      {/* Model Bar at Top */}
-      <ModelBar />
-
+  return <div className="flex flex-col h-full relative bg-gray-50/50">
       {/* Top Actions */}
       <TopActions isTemporaryMode={isTemporaryMode} onTemporaryModeToggle={handleTemporaryModeToggle} />
 
@@ -145,64 +140,49 @@ export function ChatInterface() {
         </div>}
 
       {/* Messages Area */}
-      {messages.length > 0 ? <div className="flex-1 overflow-y-auto px-6 py-8 pb-[340px] pt-24 bg-background">
+      {messages.length > 0 ? <div className="flex-1 overflow-y-auto px-6 py-8 pb-[240px] bg-white">
           <div className="max-w-[800px] mx-auto">
             {messages.map(message => <Message key={message.id} message={message} onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')} />)}
             {isLoading && <TypingIndicator models={selectedModels} />}
             <div ref={messagesEndRef} />
           </div>
         </div> : (/* Empty State */
-    <div className="flex-1 flex flex-col items-center justify-center px-4 pt-24 overflow-y-auto">
-          <div className="text-center mb-16">
-            <h1 className="text-6xl font-bold text-primary mb-3 animate-logo-entrance animate-float-gentle hover:scale-[1.02] transition-transform duration-300 cursor-default">
+    <div className="flex-1 flex items-center justify-center px-4">
+          <div className="text-center">
+            <h1 className="text-6xl font-bold text-blue-500 mb-3 animate-logo-entrance animate-float-gentle hover:scale-[1.02] transition-transform duration-300 cursor-default">
               Zebvo AI
             </h1>
             <p className="text-muted-foreground text-base mb-6 animate-tagline-entrance">
               The World's Greatest AI Platform
             </p>
             <div className="flex items-center justify-center gap-1.5">
-              <div className="w-2 h-2 rounded-full bg-primary animate-dot-pulse-wave" />
-              <div className="w-2 h-2 rounded-full bg-primary/60 animate-dot-pulse-wave" style={{
+              <div className="w-2 h-2 rounded-full bg-[#5B9FFF] animate-dot-pulse-wave" />
+              <div className="w-2 h-2 rounded-full bg-[#B8D4FF] animate-dot-pulse-wave" style={{
             animationDelay: '0.2s'
           }} />
-              <div className="w-2 h-2 rounded-full bg-primary/60 animate-dot-pulse-wave" style={{
+              <div className="w-2 h-2 rounded-full bg-[#B8D4FF] animate-dot-pulse-wave" style={{
             animationDelay: '0.4s'
           }} />
             </div>
           </div>
-
-          {/* Explore Section */}
-          <ExploreSection />
         </div>)}
 
       {/* Chat Input Area - Fixed at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 p-6 pb-8 bg-background/95 backdrop-blur-sm border-t border-border z-50">
+      <div className="fixed bottom-0 left-0 right-0 p-4 pb-6 bg-gray-50/50 backdrop-blur-sm border-t border-gray-200/50 z-50">
         <div key={selectedMode} className="max-w-4xl mx-auto animate-scale-in">
           {isModelLocked && <div className="flex justify-center mb-3">
-              <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 px-4 py-1.5">
-                <div className="w-2 h-2 rounded-full bg-primary mr-2" />
+              <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200 px-4 py-1.5">
+                <div className="w-2 h-2 rounded-full bg-blue-500 mr-2" />
                 Model locked for this conversation
               </Badge>
             </div>}
           <form onSubmit={handleSubmit}>
-            {/* Mode Buttons Above Input */}
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <Button
-                type="button"
-                variant="outline"
-                className="rounded-full px-6 py-2 h-10 bg-card hover:bg-accent"
-              >
-                <LayoutGrid className="w-4 h-4 mr-2" />
-                Multi-Chat
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="rounded-full px-6 py-2 h-10 bg-card hover:bg-accent"
-              >
-                <Sparkles className="w-4 h-4 mr-2" />
-                Super Fiesta
-              </Button>
+            {/* Dropdowns Row - Keep above input */}
+            <div className="flex items-center gap-2.5 mb-3">
+              <ModeDropdown />
+              {selectedMode !== 'video' && (
+                <ModelSelector values={selectedModels} onChange={setSelectedModels} disabled={isModelLocked} />
+              )}
             </div>
 
             {/* File Attachments Preview */}
@@ -239,15 +219,15 @@ export function ChatInterface() {
             />
 
             {/* New Input Bar Design */}
-            <div className="flex items-center w-full h-[60px] bg-card rounded-[50px] px-5 border border-border shadow-sm focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all duration-200">
+            <div className="flex items-center w-full h-[60px] bg-[#F5F6FA] rounded-[50px] px-5 border-[0.5px] border-gray-300 shadow-[0_1px_2px_rgba(0,0,0,0.08)] focus-within:shadow-[0_0_0_1px_rgba(30,100,255,0.4)] focus-within:border-[#1E64FF] transition-all duration-200">
               {/* Left Plus Button */}
               <button
                 type="button"
                 onClick={triggerFileInput}
-                className="flex-shrink-0 w-[42px] h-[42px] rounded-full bg-background flex items-center justify-center hover:bg-accent transition-colors"
+                className="flex-shrink-0 w-[42px] h-[42px] rounded-full bg-white flex items-center justify-center hover:bg-gray-50 transition-colors shadow-sm"
               >
                 <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-                  <path d="M10 4V16M4 10H16" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M10 4V16M4 10H16" stroke="#1E64FF" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
               </button>
 
@@ -256,49 +236,43 @@ export function ChatInterface() {
                 type="text" 
                 value={input} 
                 onChange={e => setInput(e.target.value)} 
-                placeholder="Ask me anything..." 
+                placeholder="Ask to Zebvo ai" 
                 disabled={isLoading} 
-                className="flex-1 bg-transparent outline-none text-[17px] font-medium placeholder:text-muted-foreground disabled:opacity-50 px-4" 
+                className="flex-1 bg-transparent outline-none text-[17px] font-medium placeholder:text-[#6F7287] placeholder:font-medium disabled:opacity-50 px-4" 
                 maxLength={4000}
               />
 
-              {/* Mic Button */}
+              {/* Right Send Button */}
               <button
-                type="button"
-                onClick={handleMicClick}
-                className="flex-shrink-0 w-[42px] h-[42px] rounded-full bg-background flex items-center justify-center hover:bg-accent transition-colors"
+                type={isLoading ? "button" : "submit"} 
+                onClick={isLoading ? cancelGeneration : undefined} 
+                disabled={!isLoading && (!input.trim() || selectedModels.length === 0)}
+                className={`flex-shrink-0 w-[42px] h-[42px] rounded-full flex items-center justify-center transition-all ${
+                  isLoading 
+                    ? 'bg-gray-700 hover:bg-gray-800 animate-pulse' 
+                    : !input.trim() || selectedModels.length === 0
+                      ? 'bg-white cursor-not-allowed'
+                      : 'bg-white hover:bg-gray-50 active:scale-95'
+                }`}
               >
-                <Mic className="w-5 h-5 text-muted-foreground" />
+                {isLoading ? (
+                  <Square className="w-4 h-4 fill-white" />
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                    <path d="M3 10L17 10M17 10L11 4M17 10L11 16" stroke="#6F7287" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
               </button>
-            </div>
-
-            {/* Action Buttons Below Input */}
-            <div className="flex items-center justify-center gap-3 mt-4">
-              <Button
-                type="button"
-                variant="outline"
-                className="rounded-full px-5 py-2 h-10 bg-card hover:bg-accent"
-              >
-                <Globe className="w-4 h-4 mr-2" />
-                Web Search
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="rounded-full px-5 py-2 h-10 bg-card hover:bg-accent"
-              >
-                <ImageIcon className="w-4 h-4 mr-2" />
-                Generate Image
-              </Button>
-              {selectedMode !== 'video' && (
-                <ModelSelector values={selectedModels} onChange={setSelectedModels} disabled={isModelLocked} />
-              )}
             </div>
           </form>
 
           {/* Bottom Info */}
-          <div className="flex items-center justify-center mt-3 px-4 text-xs text-muted-foreground">
-            <span>~0 tokens • {selectedModels.length} {selectedModels.length === 1 ? 'model' : 'models'} • {input.length}/4000</span>
+          <div className="flex items-center justify-between mt-2 px-4 text-xs text-muted-foreground">
+            <div className="flex items-center gap-3">
+              <span>~0 tokens</span>
+              <span>• {selectedModels.length} {selectedModels.length === 1 ? 'model' : 'models'}</span>
+            </div>
+            <span>{input.length}/4000</span>
           </div>
         </div>
       </div>

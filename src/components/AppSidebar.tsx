@@ -1,4 +1,4 @@
-import { Plus, User, Search, Library, Folder, ChevronDown, ChevronRight, MoreVertical, Edit, MessageSquarePlus, Share, FileDown, Archive, Trash2, LogOut, Settings, UserCircle, Sparkles } from "lucide-react";
+import { Plus, User, Search, Library, Folder, ChevronDown, ChevronRight, MoreVertical, Edit, MessageSquarePlus, Share, FileDown, Archive, Trash2, LogOut, Settings, UserCircle } from "lucide-react";
 import { useState } from "react";
 import {
   Dialog,
@@ -241,21 +241,19 @@ export function AppSidebar() {
             />
           </div>
 
+          {/* Library */}
+          <Button
+            variant="ghost"
+            className="w-full justify-start gap-3 px-3 py-2.5 hover:bg-accent rounded-lg transition-colors"
+          >
+            <Library className="w-5 h-5 text-muted-foreground" />
+            <span className="text-sm">Library</span>
+          </Button>
         </SidebarHeader>
       </div>
 
       <ScrollArea className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
         <SidebarContent className="px-3 pb-4 space-y-6 pr-[6px]">
-          {/* Avatars Section */}
-          <div className="space-y-2">
-            <button
-              className="w-full flex items-center justify-between px-3 py-2 text-sm font-semibold hover:bg-accent rounded-lg transition-colors"
-            >
-              <span>Avatars</span>
-              <Plus className="w-4 h-4 text-muted-foreground" />
-            </button>
-          </div>
-
           {/* Projects Section */}
           <div className="space-y-2">
             {/* Projects Header */}
@@ -412,35 +410,14 @@ export function AppSidebar() {
         </SidebarContent>
       </ScrollArea>
 
-      {/* Free Plan Card */}
-      <div className="flex-none px-4 py-3">
-        <div className="bg-destructive/10 border-2 border-destructive rounded-xl p-4">
-          <div className="text-sm font-semibold text-destructive mb-1">Free Plan</div>
-          <div className="text-xs text-destructive/80 mb-2">Message limit reached</div>
-          <div className="h-1.5 bg-destructive/20 rounded-full mb-3">
-            <div className="h-full w-full bg-destructive rounded-full" />
-          </div>
-          <div className="text-xs text-destructive/70 mb-3">
-            Upgrade for unlimited messages
-          </div>
-          <Button
-            size="sm"
-            className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white font-medium"
-          >
-            <Sparkles className="w-3.5 h-3.5 mr-2" />
-            Upgrade plan
-          </Button>
-        </div>
-      </div>
-
-      <SidebarFooter className="flex-none p-4 border-t mb-5">
+      <SidebarFooter className="flex-none p-4 border-t mt-auto mb-5">
         <DropdownMenu open={isProfileDropdownOpen} onOpenChange={setIsProfileDropdownOpen}>
           <DropdownMenuTrigger asChild>
-            <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-accent/50 cursor-pointer transition-all duration-150 bg-card border border-border">
-              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                <User className="w-5 h-5 text-primary-foreground" />
+            <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-accent/50 cursor-pointer transition-all duration-150 bg-white shadow-sm">
+              <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+                <User className="w-5 h-5 text-white" />
               </div>
-              <span className="text-sm font-medium flex-1 truncate">user@example.com</span>
+              <span className="text-sm font-medium flex-1">user@example.com</span>
               <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-150 ${isProfileDropdownOpen ? 'rotate-180' : ''}`} />
             </div>
           </DropdownMenuTrigger>
