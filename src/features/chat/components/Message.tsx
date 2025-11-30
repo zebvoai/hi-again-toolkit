@@ -14,14 +14,29 @@ import { formatModelName } from '@/lib/utils';
 interface MessageProps {
   message: MessageType;
   onRetry?: () => void;
+  allMessages?: MessageType[];
 }
 
-export const Message = ({ message, onRetry }: MessageProps) => {
+export const Message = ({ message, onRetry, allMessages = [] }: MessageProps) => {
   const isUser = message.role === 'user';
   const isMultiModel = !isUser && typeof message.content === 'object' && !Array.isArray(message.content);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
+  
+  // Find the preceding user message for multi-model responses
+  const getUserQuestion = (): string => {
+    if (!isMultiModel) return '';
+    const currentIndex = allMessages.findIndex(msg => msg.id === message.id);
+    for (let i = currentIndex - 1; i >= 0; i--) {
+      if (allMessages[i].role === 'user' && typeof allMessages[i].content === 'string') {
+        return allMessages[i].content as string;
+      }
+    }
+    return '';
+  };
+  
+  const userQuestion = getUserQuestion();
   
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -65,13 +80,8 @@ export const Message = ({ message, onRetry }: MessageProps) => {
     }
     
     return (
-      <div className="flex justify-start mb-4 animate-fade-in">
-        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-200 to-blue-300 flex items-center justify-center shadow-[0_2px_4px_rgba(0,0,0,0.08)] mr-2 flex-shrink-0">
-          <span className="text-blue-700 font-semibold text-sm">Z</span>
-        </div>
-        <div className="flex-1 max-w-[75%]">
-          <MultiModelResponse content={multiContent} models={models} />
-        </div>
+      <div className="flex justify-start mb-4 animate-fade-in w-full">
+        <MultiModelResponse content={multiContent} models={models} userQuestion={userQuestion} />
       </div>
     );
   }
