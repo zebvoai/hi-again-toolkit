@@ -1,12 +1,9 @@
-import { MoreVertical, Share, MessageSquarePlus, Edit, FolderInput, Archive, Trash2 } from 'lucide-react';
+import { MoreVertical, Share, Edit, Archive, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { formatDistanceToNow } from 'date-fns';
@@ -19,11 +16,8 @@ interface ConversationItemProps {
   onClick: () => void;
   onDelete: () => void;
   onShare?: () => void;
-  onStartGroupChat?: () => void;
   onRename?: () => void;
   onArchive?: () => void;
-  onMoveToProject?: (projectId: number) => void;
-  projects?: Array<{ id: number; name: string }>;
 }
 
 export const ConversationItem = ({
@@ -33,11 +27,8 @@ export const ConversationItem = ({
   onClick,
   onDelete,
   onShare,
-  onStartGroupChat,
   onRename,
   onArchive,
-  onMoveToProject,
-  projects = [],
 }: ConversationItemProps) => {
   const timeAgo = formatDistanceToNow(new Date(updatedAt), { addSuffix: true });
 
@@ -84,48 +75,12 @@ export const ConversationItem = ({
           <DropdownMenuItem
             onClick={(e) => {
               e.stopPropagation();
-              onStartGroupChat?.();
-            }}
-          >
-            <MessageSquarePlus className="w-4 h-4 mr-2" />
-            Start a group chat
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={(e) => {
-              e.stopPropagation();
               onRename?.();
             }}
           >
             <Edit className="w-4 h-4 mr-2" />
             Rename
           </DropdownMenuItem>
-          
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger>
-              <FolderInput className="w-4 h-4 mr-2" />
-              Move to project
-            </DropdownMenuSubTrigger>
-            <DropdownMenuSubContent className="rounded-[20px]">
-              {projects.length > 0 ? (
-                projects.map((project) => (
-                  <DropdownMenuItem
-                    key={project.id}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onMoveToProject?.(project.id);
-                    }}
-                  >
-                    {project.name}
-                  </DropdownMenuItem>
-                ))
-              ) : (
-                <DropdownMenuItem disabled>
-                  No projects available
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuSubContent>
-          </DropdownMenuSub>
-
           <DropdownMenuItem
             onClick={(e) => {
               e.stopPropagation();

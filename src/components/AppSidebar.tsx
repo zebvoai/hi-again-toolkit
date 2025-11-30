@@ -108,12 +108,6 @@ export function AppSidebar() {
     }
   };
 
-  const handleStartGroupChat = (conversationId: string) => {
-    const conversation = conversations.find((c) => c.id === conversationId);
-    alert(`Starting group chat based on: ${conversation?.title}`);
-    // TODO: Open group chat modal with this conversation preselected
-  };
-
   const handleRename = (conversationId: string) => {
     const conversation = conversations.find((c) => c.id === conversationId);
     if (!conversation) return;
@@ -404,14 +398,8 @@ export function AppSidebar() {
                         onClick={() => handleLoadConversation(conv.id)}
                         onDelete={() => handleDeleteConversation(conv.id)}
                         onShare={() => handleShare(conv.id)}
-                        onStartGroupChat={() => handleStartGroupChat(conv.id)}
                         onRename={() => handleRename(conv.id)}
                         onArchive={() => handleArchive(conv.id)}
-                        onMoveToProject={(projectId) => {
-                          console.log(`Moving conversation ${conv.id} to project ${projectId}`);
-                          // TODO: Implement move to project functionality
-                        }}
-                        projects={projects}
                       />
                     ))}
                   </div>
