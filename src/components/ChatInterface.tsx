@@ -140,7 +140,7 @@ export function ChatInterface() {
         </div>}
 
       {/* Messages Area */}
-      {messages.length > 0 ? <div className="flex-1 overflow-y-auto px-6 py-8 bg-white">
+      {messages.length > 0 ? <div className="flex-1 overflow-y-auto px-6 py-8 pb-[240px] bg-white">
           <div className="max-w-[800px] mx-auto">
             {messages.map(message => <Message key={message.id} message={message} onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')} />)}
             {isLoading && <TypingIndicator models={selectedModels} />}
@@ -167,8 +167,8 @@ export function ChatInterface() {
           </div>
         </div>)}
 
-      {/* Chat Input Area */}
-      <div className="p-4 pb-6">
+      {/* Chat Input Area - Fixed at bottom */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 pb-6 bg-gray-50/50 backdrop-blur-sm border-t border-gray-200/50 z-50">
         <div key={selectedMode} className="max-w-4xl mx-auto animate-scale-in">
           {isModelLocked && <div className="flex justify-center mb-3">
               <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200 px-4 py-1.5">
