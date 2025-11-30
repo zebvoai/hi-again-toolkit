@@ -219,14 +219,14 @@ export function ChatInterface() {
             />
 
             {/* New Input Bar Design */}
-            <div className="flex items-center h-[58px] bg-[#F2F3F7] rounded-full px-[22px] gap-[14px]">
+            <div className="flex items-center w-full bg-[#F5F6FA] rounded-full px-4 py-2 shadow-[0_2px_8px_rgba(0,0,0,0.06)] focus-within:shadow-[0_0_0_2px_rgba(78,168,255,0.4)] focus-within:scale-[1.01] transition-all duration-200">
               {/* Left Plus Button */}
               <button
                 type="button"
                 onClick={triggerFileInput}
-                className="flex-shrink-0 w-10 h-10 rounded-full bg-white flex items-center justify-center hover:bg-gray-50 transition-colors"
+                className="flex-shrink-0 w-9 h-9 rounded-full bg-white flex items-center justify-center hover:bg-gray-50 transition-colors shadow-sm"
               >
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
                   <path d="M10 4V16M4 10H16" stroke="#1A73E8" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
               </button>
@@ -238,7 +238,7 @@ export function ChatInterface() {
                 onChange={e => setInput(e.target.value)} 
                 placeholder="Ask to Zebvo ai" 
                 disabled={isLoading} 
-                className="flex-1 bg-transparent outline-none text-[17px] placeholder:text-[#8A8F9A] disabled:opacity-50" 
+                className="flex-1 bg-transparent outline-none text-[17px] placeholder:text-[#8A8F9A] disabled:opacity-50 px-3" 
                 maxLength={4000}
               />
 
@@ -247,18 +247,18 @@ export function ChatInterface() {
                 type={isLoading ? "button" : "submit"} 
                 onClick={isLoading ? cancelGeneration : undefined} 
                 disabled={!isLoading && (!input.trim() || selectedModels.length === 0)}
-                className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all shadow-sm ${
                   isLoading 
                     ? 'bg-gray-700 hover:bg-gray-800 animate-pulse' 
                     : !input.trim() || selectedModels.length === 0
-                      ? 'bg-[#E5E7EB] opacity-60 cursor-not-allowed'
+                      ? 'bg-[#D1D5DB] cursor-not-allowed'
                       : 'bg-[#1A73E8] hover:bg-[#1557B0] hover:scale-105 active:scale-95'
                 }`}
               >
                 {isLoading ? (
                   <Square className="w-4 h-4 fill-white" />
                 ) : (
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
                     <path d="M3 10L17 10M17 10L11 4M17 10L11 16" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 )}
