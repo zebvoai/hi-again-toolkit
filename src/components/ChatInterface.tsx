@@ -149,18 +149,18 @@ export function ChatInterface() {
         </div> : (/* Empty State */
     <div className="flex-1 flex items-center justify-center px-4">
           <div className="text-center">
-            <h1 className="text-6xl font-bold text-blue-500 mb-3">
+            <h1 className="text-6xl font-bold text-blue-500 mb-3 animate-logo-entrance animate-float-gentle hover:scale-[1.02] transition-transform duration-300 cursor-default">
               Zebvo AI
             </h1>
-            <p className="text-muted-foreground text-base mb-6">
+            <p className="text-muted-foreground text-base mb-6 animate-tagline-entrance">
               The World's Greatest AI Platform
             </p>
             <div className="flex items-center justify-center gap-1.5">
-              <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-              <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" style={{
+              <div className="w-2 h-2 rounded-full bg-[#5B9FFF] animate-dot-pulse-wave" />
+              <div className="w-2 h-2 rounded-full bg-[#B8D4FF] animate-dot-pulse-wave" style={{
             animationDelay: '0.2s'
           }} />
-              <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" style={{
+              <div className="w-2 h-2 rounded-full bg-[#B8D4FF] animate-dot-pulse-wave" style={{
             animationDelay: '0.4s'
           }} />
             </div>
