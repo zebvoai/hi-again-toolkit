@@ -197,7 +197,7 @@ export const MultiModelResponse = ({ content, models, userQuestion }: MultiModel
   return (
     <div className="w-full">
       {/* Toggle Button */}
-      <div className="flex justify-end mb-3 pr-4">
+      <div className="flex justify-end mb-3">
         <Button
           variant="outline"
           size="sm"
@@ -209,16 +209,12 @@ export const MultiModelResponse = ({ content, models, userQuestion }: MultiModel
       </div>
 
       {/* Horizontal Scroll Container */}
-      <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 w-full">
-        <div className="flex" style={{ minWidth: models.length <= 3 ? '100%' : `${models.length * 350}px` }}>
+      <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 -mx-4">
+        <div className="flex min-w-max">
           {models.map((model, index) => (
             <div
               key={model}
-              className={`flex-shrink-0 ${index !== models.length - 1 ? 'border-r border-gray-200' : ''}`}
-              style={{ 
-                width: models.length <= 3 ? `${100 / models.length}%` : '25%',
-                minWidth: '350px'
-              }}
+              className={`flex-shrink-0 w-[420px] ${index !== models.length - 1 ? 'border-r border-gray-200' : ''}`}
             >
               {/* Model Column Header */}
               <div className="px-6 py-4 border-b border-gray-100 bg-white">
