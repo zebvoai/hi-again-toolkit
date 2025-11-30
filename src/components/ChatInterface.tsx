@@ -125,7 +125,7 @@ export function ChatInterface() {
     })();
     return isTemporaryMode ? `${basePlaceholder} (Temporary Mode)` : basePlaceholder;
   };
-  return <div className="flex flex-col h-full relative bg-gray-50/50">
+  return <div className="flex flex-col h-full relative bg-gray-50/50 overflow-hidden">
       {/* Top Actions */}
       
 
@@ -139,7 +139,7 @@ export function ChatInterface() {
         </div>}
 
       {/* Messages Area */}
-      {messages.length > 0 ? <div className="flex-1 overflow-y-auto py-8 bg-white">
+      {messages.length > 0 ? <div className="flex-1 overflow-y-auto overflow-x-hidden py-8 bg-white">
           {messages.map((message, index) => {
             // Skip rendering user messages that precede multi-model responses
             if (message.role === 'user') {
@@ -214,7 +214,7 @@ export function ChatInterface() {
         </div>)}
 
       {/* Chat Input Area */}
-      <div className="p-4 pb-6">
+      <div className="flex-shrink-0 p-4 pb-6 bg-gray-50/50 border-t border-gray-100">
         <div key={selectedMode} className="max-w-4xl mx-auto animate-scale-in">
           <form onSubmit={handleSubmit}>
             {/* Dropdowns Row - Keep above input */}
