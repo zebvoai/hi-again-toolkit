@@ -43,10 +43,10 @@ export const ConversationItem = ({
 
   return (
     <div
-      className={`group relative flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 ease-out overflow-hidden ${
+      className={`group relative flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-150 ease-out overflow-hidden ${
         isActive 
           ? 'bg-white border-l-[3px] border-[#5B9FFF] pl-2.5 shadow-sm' 
-          : 'hover:bg-white hover:translate-x-1 hover:shadow-[0_2px_6px_rgba(0,0,0,0.06)] border-l-[3px] border-transparent'
+          : 'hover:bg-[#F0F5FF] hover:border hover:border-[#E5E7EB] border-l-[3px] border-transparent'
       }`}
       onClick={onClick}
     >
