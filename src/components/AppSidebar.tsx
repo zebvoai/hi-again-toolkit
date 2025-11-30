@@ -152,7 +152,7 @@ export function AppSidebar() {
       <Sidebar className="w-[60px] border-r bg-background flex flex-col h-screen fixed" collapsible="icon">
         <div className="flex-none">
           <SidebarHeader className="p-4 flex flex-col items-center gap-4">
-            <SidebarTrigger className="w-8 h-8" />
+            <SidebarTrigger className="w-8 h-8 hover:bg-[#F3F4F6] hover:text-[#374151] hover:scale-[1.08] active:scale-[0.92] transition-all duration-150 ease-in-out rounded-full" />
             <Button
               variant="ghost"
               size="icon"
@@ -184,13 +184,13 @@ export function AppSidebar() {
       <div className="flex-none">
         <SidebarHeader className="p-4 space-y-2">
           <div className="flex items-center mb-2">
-            <SidebarTrigger className="w-6 h-6" />
+            <SidebarTrigger className="w-6 h-6 hover:bg-[#F3F4F6] hover:text-[#374151] hover:scale-[1.08] active:scale-[0.92] transition-all duration-150 ease-in-out rounded-full" />
           </div>
 
           {/* New Chat */}
           <Button
             variant="ghost"
-            className="w-full justify-start gap-3 px-3 py-2.5 hover:bg-accent rounded-lg transition-colors"
+            className="w-full justify-start gap-3 px-3 py-2.5 hover:bg-accent rounded-lg hover:scale-[1.06] hover:shadow-[0_6px_20px_rgba(91,159,255,0.45)] active:scale-[0.94] transition-all duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
             onClick={handleNewChat}
           >
             <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
@@ -354,11 +354,15 @@ export function AppSidebar() {
       </ScrollArea>
 
       <SidebarFooter className="flex-none p-4 border-t mt-auto mb-5">
-        <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-accent/50 cursor-pointer transition-all duration-150 bg-white shadow-sm">
+        <div className="group flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-accent/50 hover:shadow-md hover:-translate-y-0.5 cursor-pointer transition-all duration-200 bg-white shadow-sm">
           <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
             <User className="w-5 h-5 text-white" />
           </div>
-          <span className="text-sm font-medium">user@example.com</span>
+          <span className="text-sm font-medium flex-1">user@example.com</span>
+          <svg className="w-4 h-4 text-muted-foreground transition-transform duration-200 group-hover:rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
         </div>
       </SidebarFooter>
     </Sidebar>
