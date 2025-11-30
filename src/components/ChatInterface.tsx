@@ -219,15 +219,15 @@ export function ChatInterface() {
             />
 
             {/* New Input Bar Design */}
-            <div className="flex items-center w-full bg-[#F5F6FA] rounded-full px-4 py-2 border-[0.5px] border-gray-300 shadow-[0_2px_8px_rgba(0,0,0,0.06)] focus-within:shadow-[0_0_0_2px_rgba(78,168,255,0.4)] focus-within:scale-[1.01] transition-all duration-200">
+            <div className="flex items-center w-full h-[60px] bg-[#F5F6FA] rounded-[50px] px-5 border-[0.5px] border-gray-300 shadow-[0_1px_2px_rgba(0,0,0,0.08)] focus-within:shadow-[0_0_0_1px_rgba(30,100,255,0.4)] focus-within:border-[#1E64FF] transition-all duration-200">
               {/* Left Plus Button */}
               <button
                 type="button"
                 onClick={triggerFileInput}
-                className="flex-shrink-0 w-9 h-9 rounded-full bg-white flex items-center justify-center hover:bg-gray-50 transition-colors shadow-sm"
+                className="flex-shrink-0 w-[42px] h-[42px] rounded-full bg-white flex items-center justify-center hover:bg-gray-50 transition-colors shadow-sm"
               >
                 <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-                  <path d="M10 4V16M4 10H16" stroke="#1A73E8" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M10 4V16M4 10H16" stroke="#1E64FF" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
               </button>
 
@@ -238,7 +238,7 @@ export function ChatInterface() {
                 onChange={e => setInput(e.target.value)} 
                 placeholder="Ask to Zebvo ai" 
                 disabled={isLoading} 
-                className="flex-1 bg-transparent outline-none text-[17px] placeholder:text-[#8A8F9A] disabled:opacity-50 px-3" 
+                className="flex-1 bg-transparent outline-none text-[17px] font-medium placeholder:text-[#6F7287] placeholder:font-medium disabled:opacity-50 px-4" 
                 maxLength={4000}
               />
 
@@ -247,19 +247,19 @@ export function ChatInterface() {
                 type={isLoading ? "button" : "submit"} 
                 onClick={isLoading ? cancelGeneration : undefined} 
                 disabled={!isLoading && (!input.trim() || selectedModels.length === 0)}
-                className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all shadow-sm ${
+                className={`flex-shrink-0 w-[42px] h-[42px] rounded-full flex items-center justify-center transition-all ${
                   isLoading 
                     ? 'bg-gray-700 hover:bg-gray-800 animate-pulse' 
                     : !input.trim() || selectedModels.length === 0
-                      ? 'bg-[#D1D5DB] cursor-not-allowed'
-                      : 'bg-[#1A73E8] hover:bg-[#1557B0] hover:scale-105 active:scale-95'
+                      ? 'bg-white cursor-not-allowed'
+                      : 'bg-white hover:bg-gray-50 active:scale-95'
                 }`}
               >
                 {isLoading ? (
                   <Square className="w-4 h-4 fill-white" />
                 ) : (
                   <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-                    <path d="M3 10L17 10M17 10L11 4M17 10L11 16" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M3 10L17 10M17 10L11 4M17 10L11 16" stroke="#6F7287" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 )}
               </button>

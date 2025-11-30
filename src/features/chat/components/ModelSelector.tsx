@@ -590,7 +590,7 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
             "max-h-[600px] flex flex-col",
             "bg-white dark:bg-gray-900 border border-gray-200/50 dark:border-gray-700/50",
             "shadow-[0_8px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)]",
-            "rounded-2xl p-0 z-[100]",
+            "rounded-[20px] p-0 z-[100]",
             "animate-in fade-in-0 zoom-in-95 duration-200"
           )}
           align="start"
@@ -718,9 +718,8 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
               </div>
             </div>
           
-            {/* Search & Sort */}
-            <div className="px-6 py-3 space-y-2.5 border-t border-gray-100 dark:border-gray-800">
-              {/* Search Bar */}
+            {/* Search Bar */}
+            <div className="px-6 py-3 border-t border-gray-100 dark:border-gray-800">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 pointer-events-none" />
                 <Input
@@ -728,9 +727,10 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className={cn(
-                    "h-9 pl-10 pr-9 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700",
-                    "rounded-lg text-sm placeholder:text-gray-500 dark:placeholder:text-gray-500",
-                    "focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-0 focus-visible:border-blue-500",
+                    "h-10 pl-10 pr-9 bg-[#F5F6FA] dark:bg-gray-800 border-none",
+                    "rounded-[12px] text-sm placeholder:text-[#6F7287] dark:placeholder:text-gray-500",
+                    "shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]",
+                    "focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-0",
                     "transition-all duration-200"
                   )}
                 />
@@ -743,19 +743,6 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
                   </button>
                 )}
               </div>
-              
-              {/* Sort Dropdown */}
-              <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
-                <SelectTrigger className="h-9 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
-                  <SelectValue placeholder="Sort by..." />
-                </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl">
-                  <SelectItem value="provider" className="text-sm">By Provider</SelectItem>
-                  <SelectItem value="speed" className="text-sm">By Speed</SelectItem>
-                  <SelectItem value="quality" className="text-sm">By Cost</SelectItem>
-                  <SelectItem value="alphabetical" className="text-sm">Alphabetical</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           
             {/* Models List */}
