@@ -23,12 +23,23 @@ const getModelMapping = (displayName: string): { apiModel: string, provider: str
     'Claude Sonnet 4.5': { apiModel: 'claude-sonnet-4-5', provider: 'anthropic' },
     'Claude Opus 4.1': { apiModel: 'claude-opus-4-1-20250805', provider: 'anthropic' },
     'Claude Sonnet 4': { apiModel: 'claude-sonnet-4-20250514', provider: 'anthropic' },
+    'Claude Opus 4': { apiModel: 'anthropic/claude-opus-4', provider: 'openrouter' },
     'Claude 3.7 Sonnet': { apiModel: 'claude-3-7-sonnet-20250219', provider: 'anthropic' },
+    'Claude Haiku 3.5': { apiModel: 'anthropic/claude-3.5-haiku', provider: 'openrouter' },
+    'Claude Sonnet 3.5': { apiModel: 'anthropic/claude-3.5-sonnet', provider: 'openrouter' },
     'Claude 3.5 Haiku': { apiModel: 'claude-3-5-haiku-20241022', provider: 'anthropic' },
     'Gemini 2.5 Pro': { apiModel: 'gemini-2.5-pro', provider: 'google' },
     'Gemini 3 Pro': { apiModel: 'gemini-3-pro-preview', provider: 'google' },
     'Gemini 2.5 Flash': { apiModel: 'gemini-2.5-flash', provider: 'google' },
-    'Gemini 2.5 Flash Lite': { apiModel: 'gemini-2.5-flash-lite', provider: 'google' }
+    'Gemini 2.5 Flash Lite': { apiModel: 'gemini-2.5-flash-lite', provider: 'google' },
+    'Gemini 1.5 Pro': { apiModel: 'gemini-1.5-pro', provider: 'google' },
+    'Gemini 1.5 Flash': { apiModel: 'gemini-1.5-flash', provider: 'google' },
+    'Gemini 2.0 Flash': { apiModel: 'gemini-2.0-flash-exp', provider: 'google' },
+    'OpenAI: GPT-4o Audio': { apiModel: 'openai/gpt-4o-audio-preview', provider: 'openrouter' },
+    'OpenAI: GPT-4 Turbo Preview': { apiModel: 'openai/gpt-4-turbo-preview', provider: 'openrouter' },
+    'OpenAI: GPT-4 Turbo (older v1106)': { apiModel: 'openai/gpt-4-1106-preview', provider: 'openrouter' },
+    'TNG: R1T Chimera': { apiModel: 'tng/r1t-chimera', provider: 'openrouter' },
+    'TNG: R1T Chimera (free)': { apiModel: 'tng/r1t-chimera:free', provider: 'openrouter' }
   };
   
   // If not in base mappings, assume it's an OpenRouter model (use display name as model ID)
