@@ -159,61 +159,6 @@ html {
   }
 }
 
-@keyframes fab-entrance {
-  0% {
-    opacity: 0;
-    transform: scale(0) translateY(20px);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-@keyframes fab-float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-4px);
-  }
-}
-
-@keyframes fab-click {
-  0% {
-    transform: scale(1) rotate(0deg);
-  }
-  30% {
-    transform: scale(0.9) rotate(90deg);
-  }
-  60% {
-    transform: scale(1.2) rotate(270deg);
-  }
-  100% {
-    transform: scale(1) rotate(360deg);
-  }
-}
-
-@keyframes ripple {
-  0% {
-    transform: scale(0);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(2.5);
-    opacity: 0;
-  }
-}
-
-@keyframes shadow-pulse {
-  0%, 100% {
-    box-shadow: 0 4px 12px rgba(91, 159, 255, 0.3);
-  }
-  50% {
-    box-shadow: 0 6px 16px rgba(91, 159, 255, 0.4);
-  }
-}
-
 .animate-fade-in {
   animation: fade-in 0.3s ease-out;
 }
@@ -250,22 +195,6 @@ html {
 
 .animate-dot-pulse-wave {
   animation: dot-pulse-wave 1.5s ease-in-out infinite;
-}
-
-.animate-fab-entrance {
-  animation: fab-entrance 400ms cubic-bezier(0.34, 1.56, 0.64, 1) 800ms both;
-}
-
-.animate-fab-float {
-  animation: fab-float 3s ease-in-out infinite, shadow-pulse 3s ease-in-out infinite;
-}
-
-.animate-fab-click {
-  animation: fab-click 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.animate-ripple {
-  animation: ripple 600ms ease-out;
 }
 
 /* Respect reduced motion preference */
