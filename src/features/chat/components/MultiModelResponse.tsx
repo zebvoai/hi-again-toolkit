@@ -94,7 +94,7 @@ export const MultiModelResponse = ({ content, models, userQuestion }: MultiModel
     return (
       <div className="w-full space-y-3">
         {/* Toggle Button */}
-        <div className="flex justify-end px-4">
+        <div className="flex justify-end">
           <div className="flex items-center gap-1 bg-gray-100 rounded-full p-0.5">
             <button 
               onClick={() => setViewMode('single')}
@@ -201,7 +201,7 @@ export const MultiModelResponse = ({ content, models, userQuestion }: MultiModel
   return (
     <div className="w-full">
       {/* Toggle Button */}
-      <div className="flex justify-end mb-3">
+      <div className="flex justify-end mb-2 pr-2">
         <div className="flex items-center gap-1 bg-gray-100 rounded-full p-0.5">
           <button 
             onClick={() => setViewMode('single')}
@@ -219,15 +219,15 @@ export const MultiModelResponse = ({ content, models, userQuestion }: MultiModel
       </div>
 
       {/* Horizontal Scroll Container */}
-      <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 -mx-4">
+      <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
         <div className="flex min-w-max">
           {models.map((model, index) => (
             <div
               key={model}
-              className={`flex-shrink-0 w-[420px] ${index !== models.length - 1 ? 'border-r border-gray-200' : ''}`}
+              className={`flex-shrink-0 min-w-[320px] flex-1 ${index !== models.length - 1 ? 'border-r border-gray-200' : ''}`}
             >
               {/* Model Column Header */}
-              <div className="px-6 py-4 border-b border-gray-100 bg-white">
+              <div className="px-4 py-3 border-b border-gray-100 bg-white">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     {getProviderIcon(model)}
@@ -253,7 +253,7 @@ export const MultiModelResponse = ({ content, models, userQuestion }: MultiModel
               </div>
 
               {/* Content Area */}
-              <div className="px-6 py-6 bg-white">
+              <div className="px-4 py-4 bg-white">
                 {/* User Question */}
                 {userQuestion && (
                   <div className="flex justify-end mb-6">
@@ -302,7 +302,7 @@ export const MultiModelResponse = ({ content, models, userQuestion }: MultiModel
               </div>
 
               {/* Action Buttons */}
-              <div className="px-6 py-4 border-t border-gray-100 bg-white">
+              <div className="px-4 py-3 border-t border-gray-100 bg-white">
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => handleCopy(model)}
