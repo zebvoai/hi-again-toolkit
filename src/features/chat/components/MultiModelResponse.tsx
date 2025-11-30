@@ -195,9 +195,9 @@ export const MultiModelResponse = ({ content, models, userQuestion }: MultiModel
 
   // Side by Side view (horizontal columns)
   return (
-    <div className="w-full space-y-3">
+    <div className="w-full">
       {/* Toggle Button */}
-      <div className="flex justify-end px-4">
+      <div className="flex justify-end mb-3">
         <Button
           variant="outline"
           size="sm"
@@ -209,7 +209,7 @@ export const MultiModelResponse = ({ content, models, userQuestion }: MultiModel
       </div>
 
       {/* Horizontal Scroll Container */}
-      <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+      <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 -mx-4">
         <div className="flex min-w-max">
           {models.map((model, index) => (
             <div
