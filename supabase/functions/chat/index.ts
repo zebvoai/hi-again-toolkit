@@ -161,7 +161,7 @@ async function handleMultiModelRequest(
                 { role: 'user', content: message }
               ];
               
-              body = { model: openrouterModelId, messages, stream: true };
+              body = { model: openrouterModelId, messages, stream: true, max_tokens: mode === 'build' ? 4096 : 2048 };
             }
             
             const response = await fetch(apiUrl, {
@@ -459,7 +459,8 @@ serve(async (req) => {
       body = {
         model: await getOpenRouterModelId(model),
         messages,
-        stream
+        stream,
+        max_tokens: mode === 'build' ? 4096 : 2048
       };
     } else {
       throw new Error(`Unsupported provider: ${selectedProvider}`);
