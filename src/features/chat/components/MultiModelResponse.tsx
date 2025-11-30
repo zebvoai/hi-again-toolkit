@@ -224,7 +224,7 @@ export const MultiModelResponse = ({ content, models, userQuestion }: MultiModel
           {models.map((model, index) => (
             <div
               key={model}
-              className={`flex-shrink-0 min-w-[320px] flex-1 ${index !== models.length - 1 ? 'border-r border-gray-200' : ''}`}
+              className={`flex-shrink-0 min-w-[320px] max-w-[480px] flex-1 ${index !== models.length - 1 ? 'border-r border-gray-200' : ''}`}
             >
               {/* Model Column Header */}
               <div className="px-4 py-3 border-b border-gray-100 bg-white">
