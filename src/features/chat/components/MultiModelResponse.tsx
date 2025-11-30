@@ -219,7 +219,7 @@ export const MultiModelResponse = ({ content, models, userQuestion }: MultiModel
       </div>
 
       {/* Horizontal Scroll Container */}
-      <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+      <div className="overflow-x-auto scrollbar-hide">
         <div className="flex min-w-max">
           {models.map((model, index) => (
             <div
