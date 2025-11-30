@@ -177,91 +177,92 @@ export function ChatInterface() {
               </Badge>
             </div>}
           <form onSubmit={handleSubmit}>
-            <div className="group relative bg-white rounded-3xl shadow-lg border border-gray-200 transition-all duration-200 ease-out hover:border-[#D1D5DB] hover:shadow-[0_3px_12px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 focus-within:border-[2px] focus-within:border-[#5B9FFF] focus-within:shadow-[0_0_0_4px_rgba(91,159,255,0.08)]">
-              {/* Dropdowns Row */}
-              <div className="absolute -top-11 left-4 flex items-center gap-2.5">
-                <ModeDropdown />
-                {selectedMode !== 'video' && (
-                  <ModelSelector values={selectedModels} onChange={setSelectedModels} disabled={isModelLocked} />
-                )}
-              </div>
+            {/* Dropdowns Row - Keep above input */}
+            <div className="flex items-center gap-2.5 mb-3">
+              <ModeDropdown />
+              {selectedMode !== 'video' && (
+                <ModelSelector values={selectedModels} onChange={setSelectedModels} disabled={isModelLocked} />
+              )}
+            </div>
 
-              {/* File Attachments Preview */}
-              {attachedFiles.length > 0 && <div className="px-4 pt-3 pb-2 border-b border-gray-100">
-                  <div className="flex flex-wrap gap-2">
-                    {attachedFiles.map((file, index) => <div key={index} className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 text-sm">
-                        <span className="text-gray-700 truncate max-w-[200px]">{file.name}</span>
-                        <span className="text-gray-400 text-xs">
-                          ({(file.size / 1024).toFixed(1)} KB)
-                        </span>
-                        <button type="button" onClick={() => handleRemoveFile(index)} className="text-gray-400 hover:text-gray-600 ml-1">
-                          ×
-                        </button>
-                      </div>)}
-                  </div>
-                </div>}
-
-              {/* Hidden File Input */}
-              <input ref={fileInputRef} type="file" multiple accept="*/*" onChange={handleFileSelect} className="hidden" />
-
-              {/* Input Row */}
-              <div className="flex items-center gap-2 p-4">
-                <Button type="button" variant="ghost" size="icon" className="w-9 h-9 flex-shrink-0">
-                  <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                </Button>
-
-                <input type="text" value={input} onChange={e => setInput(e.target.value)} placeholder={getPlaceholder()} disabled={isLoading} className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted-foreground disabled:opacity-50" maxLength={4000} />
-
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <Button 
-                    type="button" 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={handleMicClick}
-                    className={`w-9 h-9 transition-all duration-150 ease-in-out ${
-                      isRecording 
-                        ? 'bg-[#EF4444] hover:bg-[#DC2626] animate-pulse' 
-                        : 'hover:bg-[#F0F5FF] hover:scale-[1.15]'
-                    }`}
-                  >
-                    <Mic className={`w-5 h-5 transition-colors duration-150 ${
-                      isRecording ? 'text-white' : 'text-muted-foreground hover:text-[#5B9FFF]'
-                    }`} />
-                  </Button>
-
-                  <Button type="button" variant="ghost" size="icon" className="w-9 h-9">
-                    <Volume2 className="w-5 h-5 text-muted-foreground" />
-                  </Button>
-
-                  <Button 
-                    type="button" 
-                    variant="ghost" 
-                    size="icon" 
-                    className="w-9 h-9 hover:bg-[#F0F5FF] transition-all duration-150" 
-                    onClick={triggerFileInput}
-                  >
-                    <Paperclip className={`w-5 h-5 text-muted-foreground transition-all duration-150 hover:text-[#5B9FFF] hover:scale-[1.15] hover:-rotate-[15deg] ${
-                      isAttachmentClicked ? '-rotate-[45deg] scale-[1.2]' : ''
-                    }`} />
-                  </Button>
-
-                  <Button 
-                    type={isLoading ? "button" : "submit"} 
-                    onClick={isLoading ? cancelGeneration : undefined} 
-                    disabled={!isLoading && (!input.trim() || selectedModels.length === 0)} 
-                    size="icon" 
-                    className={`text-white transition-all duration-150 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
-                      isLoading 
-                        ? 'w-8 h-8 rounded-full bg-gray-700 hover:bg-gray-800 animate-pulse' 
-                        : !input.trim() || selectedModels.length === 0
-                          ? 'w-9 h-9 bg-[#E5E7EB] opacity-60 cursor-not-allowed'
-                          : 'w-9 h-9 bg-gradient-to-r from-[#5B9FFF] to-[#4A8FEF] shadow-[0_2px_8px_rgba(91,159,255,0.25)] hover:scale-[1.08] hover:shadow-[0_4px_12px_rgba(91,159,255,0.35)] active:scale-[0.9]'
-                    }`}
-                  >
-                    {isLoading ? <Square className="w-3.5 h-3.5 fill-current" /> : <Send className="w-4 h-4" />}
-                  </Button>
+            {/* File Attachments Preview */}
+            {attachedFiles.length > 0 && (
+              <div className="mb-3 p-3 bg-white rounded-2xl border border-gray-200">
+                <div className="flex flex-wrap gap-2">
+                  {attachedFiles.map((file, index) => (
+                    <div key={index} className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 text-sm">
+                      <span className="text-gray-700 truncate max-w-[200px]">{file.name}</span>
+                      <span className="text-gray-400 text-xs">
+                        ({(file.size / 1024).toFixed(1)} KB)
+                      </span>
+                      <button 
+                        type="button" 
+                        onClick={() => handleRemoveFile(index)} 
+                        className="text-gray-400 hover:text-gray-600 ml-1"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </div>
+            )}
+
+            {/* Hidden File Input */}
+            <input 
+              ref={fileInputRef} 
+              type="file" 
+              multiple 
+              accept="*/*" 
+              onChange={handleFileSelect} 
+              className="hidden" 
+            />
+
+            {/* New Input Bar Design */}
+            <div className="flex items-center h-[58px] bg-[#F2F3F7] rounded-full px-[22px] gap-[14px]">
+              {/* Left Plus Button */}
+              <button
+                type="button"
+                onClick={triggerFileInput}
+                className="flex-shrink-0 w-10 h-10 rounded-full bg-white flex items-center justify-center hover:bg-gray-50 transition-colors"
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M10 4V16M4 10H16" stroke="#1A73E8" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </button>
+
+              {/* Input Field */}
+              <input 
+                type="text" 
+                value={input} 
+                onChange={e => setInput(e.target.value)} 
+                placeholder="Ask to Zebvo ai" 
+                disabled={isLoading} 
+                className="flex-1 bg-transparent outline-none text-[17px] placeholder:text-[#8A8F9A] disabled:opacity-50" 
+                maxLength={4000}
+              />
+
+              {/* Right Send Button */}
+              <button
+                type={isLoading ? "button" : "submit"} 
+                onClick={isLoading ? cancelGeneration : undefined} 
+                disabled={!isLoading && (!input.trim() || selectedModels.length === 0)}
+                className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                  isLoading 
+                    ? 'bg-gray-700 hover:bg-gray-800 animate-pulse' 
+                    : !input.trim() || selectedModels.length === 0
+                      ? 'bg-[#E5E7EB] opacity-60 cursor-not-allowed'
+                      : 'bg-[#1A73E8] hover:bg-[#1557B0] hover:scale-105 active:scale-95'
+                }`}
+              >
+                {isLoading ? (
+                  <Square className="w-4 h-4 fill-white" />
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M3 10L17 10M17 10L11 4M17 10L11 16" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+              </button>
             </div>
           </form>
 
