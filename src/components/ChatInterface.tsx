@@ -16,6 +16,8 @@ export function ChatInterface() {
   const [input, setInput] = useState('');
   const [isTemporaryMode, setIsTemporaryMode] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isAttachmentClicked, setIsAttachmentClicked] = useState(false);
   const {
     messages,
     sendMessage,
@@ -97,7 +99,14 @@ export function ChatInterface() {
     setAttachedFiles(prev => prev.filter((_, i) => i !== index));
   };
   const triggerFileInput = () => {
+    setIsAttachmentClicked(true);
+    setTimeout(() => setIsAttachmentClicked(false), 200);
     fileInputRef.current?.click();
+  };
+
+  const handleMicClick = () => {
+    setIsRecording(!isRecording);
+    // TODO: Implement actual recording functionality
   };
   const handleTemporaryModeToggle = () => {
     setIsTemporaryMode(!isTemporaryMode);
@@ -168,7 +177,7 @@ export function ChatInterface() {
               </Badge>
             </div>}
           <form onSubmit={handleSubmit}>
-            <div className="relative bg-white rounded-3xl shadow-lg border border-gray-200">
+            <div className="group relative bg-white rounded-3xl shadow-lg border border-gray-200 transition-all duration-200 ease-out hover:border-[#D1D5DB] hover:shadow-[0_3px_12px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 focus-within:border-[2px] focus-within:border-[#5B9FFF] focus-within:shadow-[0_0_0_4px_rgba(91,159,255,0.08)]">
               {/* Dropdowns Row */}
               <div className="absolute -top-11 left-4 flex items-center gap-2.5">
                 <ModeDropdown />
@@ -204,19 +213,51 @@ export function ChatInterface() {
                 <input type="text" value={input} onChange={e => setInput(e.target.value)} placeholder={getPlaceholder()} disabled={isLoading} className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted-foreground disabled:opacity-50" maxLength={4000} />
 
                 <div className="flex items-center gap-1 flex-shrink-0">
-                  <Button type="button" variant="ghost" size="icon" className="w-9 h-9">
-                    <Mic className="w-5 h-5 text-muted-foreground" />
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={handleMicClick}
+                    className={`w-9 h-9 transition-all duration-150 ease-in-out ${
+                      isRecording 
+                        ? 'bg-[#EF4444] hover:bg-[#DC2626] animate-pulse' 
+                        : 'hover:bg-[#F0F5FF] hover:scale-[1.15]'
+                    }`}
+                  >
+                    <Mic className={`w-5 h-5 transition-colors duration-150 ${
+                      isRecording ? 'text-white' : 'text-muted-foreground hover:text-[#5B9FFF]'
+                    }`} />
                   </Button>
 
                   <Button type="button" variant="ghost" size="icon" className="w-9 h-9">
                     <Volume2 className="w-5 h-5 text-muted-foreground" />
                   </Button>
 
-                  <Button type="button" variant="ghost" size="icon" className="w-9 h-9" onClick={triggerFileInput}>
-                    <Paperclip className="w-5 h-5 text-muted-foreground" />
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="icon" 
+                    className="w-9 h-9 hover:bg-[#F0F5FF] transition-all duration-150" 
+                    onClick={triggerFileInput}
+                  >
+                    <Paperclip className={`w-5 h-5 text-muted-foreground transition-all duration-150 hover:text-[#5B9FFF] hover:scale-[1.15] hover:-rotate-[15deg] ${
+                      isAttachmentClicked ? '-rotate-[45deg] scale-[1.2]' : ''
+                    }`} />
                   </Button>
 
-                  <Button type={isLoading ? "button" : "submit"} onClick={isLoading ? cancelGeneration : undefined} disabled={!isLoading && (!input.trim() || selectedModels.length === 0)} size="icon" className={`${isLoading ? 'w-8 h-8 rounded-full bg-gray-700 hover:bg-gray-800 animate-pulse' : 'w-9 h-9 bg-blue-600 hover:bg-blue-700'} text-white transition-all duration-200 disabled:opacity-50`}>
+                  <Button 
+                    type={isLoading ? "button" : "submit"} 
+                    onClick={isLoading ? cancelGeneration : undefined} 
+                    disabled={!isLoading && (!input.trim() || selectedModels.length === 0)} 
+                    size="icon" 
+                    className={`text-white transition-all duration-150 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+                      isLoading 
+                        ? 'w-8 h-8 rounded-full bg-gray-700 hover:bg-gray-800 animate-pulse' 
+                        : !input.trim() || selectedModels.length === 0
+                          ? 'w-9 h-9 bg-[#E5E7EB] opacity-60 cursor-not-allowed'
+                          : 'w-9 h-9 bg-gradient-to-r from-[#5B9FFF] to-[#4A8FEF] shadow-[0_2px_8px_rgba(91,159,255,0.25)] hover:scale-[1.08] hover:shadow-[0_4px_12px_rgba(91,159,255,0.35)] active:scale-[0.9]'
+                    }`}
+                  >
                     {isLoading ? <Square className="w-3.5 h-3.5 fill-current" /> : <Send className="w-4 h-4" />}
                   </Button>
                 </div>
