@@ -42,66 +42,76 @@ export const ConversationItem = ({
       onClick={onClick}
     >
       <div className="flex-1 min-w-0 overflow-hidden">
-        <p className={`text-sm truncate whitespace-nowrap overflow-hidden text-ellipsis ${isActive ? 'font-medium text-blue-600' : 'text-foreground'}`}>
-          {title}
-        </p>
+        <div className="flex items-center gap-1">
+          <p
+            className={`text-sm flex-1 truncate whitespace-nowrap overflow-hidden text-ellipsis ${
+              isActive ? 'font-medium text-blue-600' : 'text-foreground'
+            }`}
+          >
+            {title}
+          </p>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-5 w-5 flex-shrink-0 text-muted-foreground hover:bg-accent transition-all duration-150 rounded"
+                onClick={(e) => e.stopPropagation()}
+                aria-label="More options"
+              >
+                <MoreVertical className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="min-w-[180px] bg-popover border shadow-lg z-[200] rounded-[20px]"
+            >
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onShare?.();
+                }}
+              >
+                <Share className="w-4 h-4 mr-2" />
+                Share
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRename?.();
+                }}
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                Rename
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onArchive?.();
+                }}
+              >
+                <Archive className="w-4 h-4 mr-2" />
+                Archive
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="focus:bg-red-50"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete();
+                }}
+              >
+                <Trash2 className="w-4 h-4 mr-2" style={{ color: '#D92D20' }} />
+                <span style={{ color: '#D92D20' }}>Delete</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
         <p className="text-xs text-muted-foreground mt-0.5 truncate whitespace-nowrap overflow-hidden text-ellipsis">
           {timeAgo}
         </p>
       </div>
-
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 flex-shrink-0 text-muted-foreground hover:bg-accent transition-all duration-150 rounded"
-            onClick={(e) => e.stopPropagation()}
-            aria-label="More options"
-          >
-            <MoreVertical className="w-4 h-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="min-w-[180px] bg-popover border shadow-lg z-[200] rounded-[20px]">
-          <DropdownMenuItem
-            onClick={(e) => {
-              e.stopPropagation();
-              onShare?.();
-            }}
-          >
-            <Share className="w-4 h-4 mr-2" />
-            Share
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={(e) => {
-              e.stopPropagation();
-              onRename?.();
-            }}
-          >
-            <Edit className="w-4 h-4 mr-2" />
-            Rename
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={(e) => {
-              e.stopPropagation();
-              onArchive?.();
-            }}
-          >
-            <Archive className="w-4 h-4 mr-2" />
-            Archive
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            className="focus:bg-red-50"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete();
-            }}
-          >
-            <Trash2 className="w-4 h-4 mr-2" style={{ color: '#D92D20' }} />
-            <span style={{ color: '#D92D20' }}>Delete</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
     </div>
   );
 };
