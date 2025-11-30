@@ -1,5 +1,13 @@
-import { Plus, User, Search, Library, Folder, ChevronDown, ChevronRight, MoreVertical, Edit, MessageSquarePlus, Share, FileDown, Archive, Trash2 } from "lucide-react";
+import { Plus, User, Search, Library, Folder, ChevronDown, ChevronRight, MoreVertical, Edit, MessageSquarePlus, Share, FileDown, Archive, Trash2, LogOut, Settings, UserCircle } from "lucide-react";
 import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import {
   Sidebar,
   SidebarContent,
@@ -35,6 +43,16 @@ export function AppSidebar() {
     { id: 2, name: "Zebvo" },
   ]);
   const [hoveredProject, setHoveredProject] = useState<number | null>(null);
+  
+  // Search state
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  // New project dialog
+  const [isNewProjectDialogOpen, setIsNewProjectDialogOpen] = useState(false);
+  const [newProjectName, setNewProjectName] = useState("");
+  
+  // Profile dropdown
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
 
   const handleNewChat = () => {
     clearMessages();
@@ -123,9 +141,27 @@ export function AppSidebar() {
 
     refreshConversations();
   };
+  
+  const handleCreateProject = () => {
+    if (!newProjectName.trim()) return;
+    
+    const newProject = {
+      id: projects.length > 0 ? Math.max(...projects.map(p => p.id)) + 1 : 1,
+      name: newProjectName.trim()
+    };
+    
+    setProjects([...projects, newProject]);
+    setNewProjectName("");
+    setIsNewProjectDialogOpen(false);
+  };
+  
+  // Filter conversations by search query
+  const filteredConversations = conversations.filter(conv => 
+    conv.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-  // Group conversations by date
-  const groupedConversations = conversations.reduce(
+  // Group conversations by date (using filtered list)
+  const groupedConversations = filteredConversations.reduce(
     (acc, conv) => {
       const date = new Date(conv.updated_at);
       let label = "";
@@ -144,7 +180,7 @@ export function AppSidebar() {
       acc[label].push(conv);
       return acc;
     },
-    {} as Record<string, typeof conversations>,
+    {} as Record<string, typeof filteredConversations>,
   );
 
   if (isCollapsed) {
@@ -200,13 +236,16 @@ export function AppSidebar() {
           </Button>
 
           {/* Search Chats */}
-          <Button
-            variant="ghost"
-            className="w-full justify-start gap-3 px-3 py-2.5 hover:bg-accent rounded-lg transition-colors"
-          >
-            <Search className="w-5 h-5 text-muted-foreground" />
-            <span className="text-sm">Search chats</span>
-          </Button>
+          <div className="relative w-full">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
+            <Input
+              type="text"
+              placeholder="Search chats"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-3 py-2.5 text-sm rounded-lg"
+            />
+          </div>
 
           {/* Library */}
           <Button
@@ -243,6 +282,7 @@ export function AppSidebar() {
                 <Button
                   variant="ghost"
                   className="w-full justify-start gap-3 px-3 py-2 hover:bg-accent rounded-lg transition-colors"
+                  onClick={() => setIsNewProjectDialogOpen(true)}
                 >
                   <Plus className="w-4 h-4 text-muted-foreground" />
                   <span className="text-sm">New project</span>
@@ -344,6 +384,8 @@ export function AppSidebar() {
             <div className="text-sm text-muted-foreground text-center py-8">Loading...</div>
           ) : conversations.length === 0 ? (
             <div className="text-sm text-muted-foreground text-center py-8">No conversations yet</div>
+          ) : filteredConversations.length === 0 ? (
+            <div className="text-sm text-muted-foreground text-center py-8">No chats found</div>
           ) : (
             <div className="space-y-6">
               {Object.entries(groupedConversations).map(([label, convs]) => (
@@ -381,17 +423,65 @@ export function AppSidebar() {
       </ScrollArea>
 
       <SidebarFooter className="flex-none p-4 border-t mt-auto mb-5">
-        <div className="group flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-accent/50 hover:shadow-md hover:-translate-y-0.5 cursor-pointer transition-all duration-200 bg-white shadow-sm">
-          <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
-            <User className="w-5 h-5 text-white" />
-          </div>
-          <span className="text-sm font-medium flex-1">user@example.com</span>
-          <svg className="w-4 h-4 text-muted-foreground transition-transform duration-200 group-hover:rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-        </div>
+        <DropdownMenu open={isProfileDropdownOpen} onOpenChange={setIsProfileDropdownOpen}>
+          <DropdownMenuTrigger asChild>
+            <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-accent/50 cursor-pointer transition-all duration-150 bg-white shadow-sm">
+              <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+                <User className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-sm font-medium flex-1">user@example.com</span>
+              <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-150 ${isProfileDropdownOpen ? 'rotate-180' : ''}`} />
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48 rounded-[20px]">
+            <DropdownMenuItem>
+              <UserCircle className="w-4 h-4 mr-2" />
+              Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <User className="w-4 h-4 mr-2" />
+              Account
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Settings className="w-4 h-4 mr-2" />
+              Settings
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </SidebarFooter>
+      
+      {/* New Project Dialog */}
+      <Dialog open={isNewProjectDialogOpen} onOpenChange={setIsNewProjectDialogOpen}>
+        <DialogContent className="rounded-[20px]">
+          <DialogHeader>
+            <DialogTitle>Create New Project</DialogTitle>
+          </DialogHeader>
+          <Input
+            type="text"
+            placeholder="Enter project name"
+            value={newProjectName}
+            onChange={(e) => setNewProjectName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleCreateProject();
+              }
+            }}
+            className="w-full"
+          />
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsNewProjectDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateProject} disabled={!newProjectName.trim()}>
+              Create Project
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Sidebar>
   );
 }
