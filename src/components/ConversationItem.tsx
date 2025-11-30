@@ -36,10 +36,10 @@ export const ConversationItem = ({
 
   return (
     <div
-      className={`group relative flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-all overflow-hidden ${
+      className={`group relative flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 ease-out overflow-hidden ${
         isActive 
-          ? 'bg-blue-50 border-l-4 border-blue-600 pl-2.5' 
-          : 'hover:bg-accent/50 border-l-4 border-transparent'
+          ? 'bg-white border-l-[3px] border-[#5B9FFF] pl-2.5 shadow-sm' 
+          : 'hover:bg-white hover:translate-x-1 hover:shadow-[0_2px_6px_rgba(0,0,0,0.06)] border-l-[3px] border-transparent'
       }`}
       onClick={onClick}
     >
@@ -57,7 +57,7 @@ export const ConversationItem = ({
           <Button
             variant="ghost"
             size="icon"
-            className="h-[22px] w-[22px] flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-[120ms] rounded"
+            className="h-[22px] w-[22px] flex-shrink-0 opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-200 rounded"
             onClick={(e) => e.stopPropagation()}
             aria-label="More options"
           >
