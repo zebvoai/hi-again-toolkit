@@ -162,7 +162,7 @@ export function ChatInterface() {
               !Array.isArray(message.content) &&
               message.metadata?.models?.length > 1;
 
-            // Multi-model responses get full width
+            // Multi-model responses get full width with all messages passed
             if (isMultiModelResponse) {
               return (
                 <div key={message.id} className="w-full">
