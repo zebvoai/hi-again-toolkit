@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import type { MultiModelContent } from '@/types';
+import type { MultiModelContent, Message } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { formatModelName } from '@/lib/utils';
 
@@ -12,13 +12,57 @@ interface MultiModelResponseProps {
   content: MultiModelContent;
   models: string[];
   userQuestion: string;
+  allMessages?: Message[];
 }
 
-export const MultiModelResponse = ({ content, models, userQuestion }: MultiModelResponseProps) => {
+export const MultiModelResponse = ({ content, models, userQuestion, allMessages = [] }: MultiModelResponseProps) => {
   const [viewMode, setViewMode] = useState<'single' | 'sideBySide'>('sideBySide');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [copiedModel, setCopiedModel] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // Extract all multi-model Q&A pairs grouped by model
+  const getModelConversationHistory = () => {
+    const modelHistory: Record<string, Array<{ userQuestion: string; aiResponse: string }>> = {};
+    
+    // Initialize history for each model
+    models.forEach(model => {
+      modelHistory[model] = [];
+    });
+
+    // Iterate through all messages to find multi-model pairs
+    for (let i = 0; i < allMessages.length; i++) {
+      const message = allMessages[i];
+      
+      // Check if this is a multi-model assistant response
+      if (
+        message.role === 'assistant' &&
+        typeof message.content === 'object' &&
+        !Array.isArray(message.content) &&
+        message.metadata?.models?.length > 1
+      ) {
+        // Find the preceding user message
+        const userMessage = i > 0 ? allMessages[i - 1] : null;
+        const userQ = userMessage?.role === 'user' && typeof userMessage.content === 'string' 
+          ? userMessage.content 
+          : '';
+
+        // Add this Q&A pair to each model's history
+        Object.keys(message.content).forEach(model => {
+          if (modelHistory[model]) {
+            modelHistory[model].push({
+              userQuestion: userQ,
+              aiResponse: message.content[model] as string
+            });
+          }
+        });
+      }
+    }
+
+    return modelHistory;
+  };
+
+  const modelHistory = getModelConversationHistory();
 
   const getProviderIcon = (model: string) => {
     const modelLower = model.toLowerCase();
@@ -197,7 +241,7 @@ export const MultiModelResponse = ({ content, models, userQuestion }: MultiModel
     );
   }
 
-  // Side by Side view (horizontal columns)
+  // Side by Side view (continuous vertical columns like AI Fiesta)
   return (
     <div className="w-full overflow-hidden">
       {/* Toggle Button */}
@@ -218,16 +262,16 @@ export const MultiModelResponse = ({ content, models, userQuestion }: MultiModel
         </div>
       </div>
 
-      {/* Horizontal Scroll Container */}
+      {/* Horizontal Scroll Container with Persistent Vertical Columns */}
       <div className="overflow-x-auto scrollbar-hide">
-        <div className="flex min-w-max">
+        <div className="flex min-w-max h-[calc(100vh-280px)]">
           {models.map((model, index) => (
             <div
               key={model}
-              className={`flex-shrink-0 min-w-[320px] max-w-[480px] flex-1 ${index !== models.length - 1 ? 'border-r border-gray-200' : ''}`}
+              className={`flex-shrink-0 w-[380px] flex flex-col ${index !== models.length - 1 ? 'border-r border-gray-200' : ''}`}
             >
-              {/* Model Column Header */}
-              <div className="px-4 py-3 border-b border-gray-100 bg-white">
+              {/* Sticky Model Header */}
+              <div className="sticky top-0 z-10 px-4 py-3 border-b border-gray-100 bg-white">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     {getProviderIcon(model)}
@@ -252,89 +296,101 @@ export const MultiModelResponse = ({ content, models, userQuestion }: MultiModel
                 </div>
               </div>
 
-              {/* Content Area */}
-              <div className="px-4 py-4 bg-white">
-                {/* User Question */}
-                {userQuestion && (
-                  <div className="flex justify-end mb-6">
-                    <div className="max-w-[85%] rounded-[18px_18px_4px_18px] bg-gradient-to-br from-[#5B9FFF] to-[#4A8FFF] text-white px-4 py-3 shadow-sm">
-                      <p className="text-[15px] leading-[1.5] whitespace-pre-wrap break-words">
-                        {userQuestion}
-                      </p>
+              {/* Scrollable Content Area - Shows ALL conversation history for this model */}
+              <div className="flex-1 overflow-y-auto px-4 py-4 bg-white">
+                {modelHistory[model]?.map((qa, qaIndex) => (
+                  <div key={qaIndex} className="mb-8 last:mb-4">
+                    {/* User Question */}
+                    {qa.userQuestion && (
+                      <div className="flex justify-end mb-4">
+                        <div className="max-w-[85%] rounded-[18px_18px_4px_18px] bg-gradient-to-br from-[#5B9FFF] to-[#4A8FFF] text-white px-4 py-3 shadow-sm">
+                          <p className="text-[15px] leading-[1.5] whitespace-pre-wrap break-words">
+                            {qa.userQuestion}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* AI Response */}
+                    <div className="text-[15px] leading-[1.6] text-[#1A1A1A] rounded-[18px_18px_18px_4px] bg-[#F0F0F0] px-4 py-3">
+                      <ReactMarkdown
+                        components={{
+                          code({ inline, className, children, ...props }: any) {
+                            const match = /language-(\w+)/.exec(className || '');
+                            return !inline && match ? (
+                              <div className="my-3 rounded-lg overflow-hidden">
+                                <SyntaxHighlighter
+                                  style={vscDarkPlus}
+                                  language={match[1]}
+                                  PreTag="div"
+                                  {...props}
+                                >
+                                  {String(children).replace(/\n$/, '')}
+                                </SyntaxHighlighter>
+                              </div>
+                            ) : (
+                              <code className="bg-gray-200/60 px-1.5 py-0.5 rounded text-sm font-mono" {...props}>
+                                {children}
+                              </code>
+                            );
+                          },
+                          p: ({ children }) => <p className="mb-3 last:mb-0">{children}</p>,
+                          ul: ({ children }) => <ul className="list-disc list-inside mb-3 space-y-1">{children}</ul>,
+                          ol: ({ children }) => <ol className="list-decimal list-inside mb-3 space-y-1">{children}</ol>,
+                          h1: ({ children }) => <h1 className="text-xl font-bold mb-2">{children}</h1>,
+                          h2: ({ children }) => <h2 className="text-lg font-bold mb-2">{children}</h2>,
+                          h3: ({ children }) => <h3 className="text-base font-semibold mb-2">{children}</h3>,
+                        }}
+                      >
+                        {qa.aiResponse}
+                      </ReactMarkdown>
+
+                      {/* Action Buttons for each response */}
+                      <div className="flex items-center gap-2 mt-3 pt-2 border-t border-gray-200/60">
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(qa.aiResponse);
+                            toast({ description: 'Response copied', duration: 2000 });
+                          }}
+                          className="p-1.5 hover:bg-white/60 rounded-lg transition-colors"
+                          title="Copy response"
+                        >
+                          <Copy className="w-3.5 h-3.5 text-gray-600" />
+                        </button>
+                        <button
+                          className="p-1.5 hover:bg-white/60 rounded-lg transition-colors"
+                          title="Good response"
+                        >
+                          <ThumbsUp className="w-3.5 h-3.5 text-gray-600" />
+                        </button>
+                        <button
+                          className="p-1.5 hover:bg-white/60 rounded-lg transition-colors"
+                          title="Bad response"
+                        >
+                          <ThumbsDown className="w-3.5 h-3.5 text-gray-600" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            const blob = new Blob([qa.aiResponse], { type: 'text/plain' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `${formatModelName(model)}-response-${qaIndex + 1}.txt`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                            toast({ description: 'Response downloaded', duration: 2000 });
+                          }}
+                          className="flex items-center gap-1.5 px-2 py-1 hover:bg-white/60 rounded-lg transition-colors text-xs text-gray-700 ml-auto"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          <span>Download</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
-                )}
-
-                {/* AI Response */}
-                <div className="text-[15px] leading-[1.6] text-[#1A1A1A]">
-                  <ReactMarkdown
-                    components={{
-                      code({ inline, className, children, ...props }: any) {
-                        const match = /language-(\w+)/.exec(className || '');
-                        return !inline && match ? (
-                          <div className="my-3 rounded-lg overflow-hidden">
-                            <SyntaxHighlighter
-                              style={vscDarkPlus}
-                              language={match[1]}
-                              PreTag="div"
-                              {...props}
-                            >
-                              {String(children).replace(/\n$/, '')}
-                            </SyntaxHighlighter>
-                          </div>
-                        ) : (
-                          <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono" {...props}>
-                            {children}
-                          </code>
-                        );
-                      },
-                      p: ({ children }) => <p className="mb-4 last:mb-0">{children}</p>,
-                      ul: ({ children }) => <ul className="list-disc list-inside mb-4 space-y-1">{children}</ul>,
-                      ol: ({ children }) => <ol className="list-decimal list-inside mb-4 space-y-1">{children}</ol>,
-                      h1: ({ children }) => <h1 className="text-2xl font-bold mb-3">{children}</h1>,
-                      h2: ({ children }) => <h2 className="text-xl font-bold mb-3">{children}</h2>,
-                      h3: ({ children }) => <h3 className="text-lg font-semibold mb-2">{children}</h3>,
-                    }}
-                  >
-                    {content[model]}
-                  </ReactMarkdown>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="px-4 py-3 border-t border-gray-100 bg-white">
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => handleCopy(model)}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                    title="Copy response"
-                  >
-                    {copiedModel === model ? (
-                      <Check className="w-4 h-4 text-green-600" />
-                    ) : (
-                      <Copy className="w-4 h-4 text-gray-600" />
-                    )}
-                  </button>
-                  <button
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                    title="Good response"
-                  >
-                    <ThumbsUp className="w-4 h-4 text-gray-600" />
-                  </button>
-                  <button
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                    title="Bad response"
-                  >
-                    <ThumbsDown className="w-4 h-4 text-gray-600" />
-                  </button>
-                  <button
-                    onClick={() => handleDownload(model)}
-                    className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded-lg transition-colors text-sm text-gray-700 ml-auto"
-                  >
-                    <Download className="w-4 h-4" />
-                    <span>Download Response</span>
-                  </button>
-                </div>
+                ))}
               </div>
             </div>
           ))}

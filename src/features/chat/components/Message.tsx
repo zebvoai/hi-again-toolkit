@@ -81,7 +81,12 @@ export const Message = ({ message, onRetry, allMessages = [] }: MessageProps) =>
     
     return (
       <div className="w-full">
-        <MultiModelResponse content={multiContent} models={models} userQuestion={userQuestion} />
+        <MultiModelResponse 
+          content={multiContent} 
+          models={models} 
+          userQuestion={userQuestion}
+          allMessages={allMessages}
+        />
       </div>
     );
   }
