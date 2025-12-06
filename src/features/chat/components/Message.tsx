@@ -85,7 +85,6 @@ export const Message = ({ message, onRetry, allMessages = [] }: MessageProps) =>
           content={multiContent} 
           models={models} 
           userQuestion={userQuestion}
-          allMessages={allMessages}
         />
       </div>
     );
