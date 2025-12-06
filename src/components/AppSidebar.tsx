@@ -179,14 +179,14 @@ export function AppSidebar() {
 
   if (isCollapsed) {
     return (
-      <Sidebar className="w-[60px] border-r bg-background flex flex-col h-screen fixed" collapsible="icon">
+      <Sidebar className="w-[60px] border-r border-border/50 glass-panel flex flex-col h-screen fixed" collapsible="icon">
         <div className="flex-none">
           <SidebarHeader className="p-4 flex flex-col items-center gap-4">
-            <SidebarTrigger className="w-8 h-8 hover:bg-[#F3F4F6] hover:text-[#374151] hover:scale-[1.08] active:scale-[0.92] transition-all duration-150 ease-in-out rounded-full" />
+            <SidebarTrigger className="w-8 h-8 hover:bg-muted hover:text-foreground hover:scale-[1.08] active:scale-[0.92] transition-all duration-[220ms] ease-[cubic-bezier(0.25,0.1,0.25,1)] rounded-full" />
             <Button
               variant="ghost"
               size="icon"
-              className="w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-700 text-white"
+              className="w-8 h-8 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground apple-interactive"
               onClick={handleNewChat}
             >
               <Plus className="w-5 h-5" />
@@ -200,7 +200,7 @@ export function AppSidebar() {
           <Button
             variant="ghost"
             size="icon"
-            className="w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150"
+            className="w-8 h-8 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-[220ms] ease-[cubic-bezier(0.25,0.1,0.25,1)]"
           >
             <User className="w-5 h-5" />
           </Button>
@@ -210,23 +210,23 @@ export function AppSidebar() {
   }
 
   return (
-    <Sidebar className="w-[280px] border-r bg-background flex flex-col h-screen fixed" collapsible="icon">
+    <Sidebar className="w-[280px] border-r border-border/50 glass-panel flex flex-col h-screen fixed" collapsible="icon">
       <div className="flex-none">
         <SidebarHeader className="p-4 space-y-2">
           <div className="flex items-center mb-2">
-            <SidebarTrigger className="w-6 h-6 hover:bg-[#F3F4F6] hover:text-[#374151] hover:scale-[1.08] active:scale-[0.92] transition-all duration-150 ease-in-out rounded-full" />
+            <SidebarTrigger className="w-6 h-6 hover:bg-muted hover:text-foreground hover:scale-[1.08] active:scale-[0.92] transition-all duration-[220ms] ease-[cubic-bezier(0.25,0.1,0.25,1)] rounded-full" />
           </div>
 
           {/* New Chat */}
           <Button
             variant="ghost"
-            className="w-full h-[44px] justify-start gap-3 px-3 bg-transparent hover:bg-[#F0F5FF] hover:border hover:border-[#E5E7EB] active:bg-[#E8F4FF] active:scale-[0.99] rounded-lg transition-all duration-150 ease-out border border-transparent"
+            className="w-full h-[44px] justify-start gap-3 px-3 bg-transparent hover:bg-primary/5 hover:border hover:border-border active:bg-primary/10 active:scale-[0.99] rounded-xl transition-all duration-[220ms] ease-[cubic-bezier(0.25,0.1,0.25,1)] border border-transparent"
             onClick={handleNewChat}
           >
-            <div className="w-8 h-8 rounded-full bg-[#5B9FFF] flex items-center justify-center flex-shrink-0">
-              <Plus className="w-4 h-4 text-white" />
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+              <Plus className="w-4 h-4 text-primary-foreground" />
             </div>
-            <span className="text-sm font-medium text-[#374151]">New Chat</span>
+            <span className="text-sm font-medium text-foreground">New Chat</span>
           </Button>
 
           {/* Search Chats */}
@@ -237,14 +237,14 @@ export function AppSidebar() {
               placeholder="Search chats"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-3 py-2.5 text-sm rounded-lg"
+              className="w-full pl-10 pr-3 py-2.5 text-sm rounded-xl bg-card/80 backdrop-blur-sm border-border/50 focus:border-primary/50 transition-all duration-[220ms]"
             />
           </div>
 
           {/* Library */}
           <Button
             variant="ghost"
-            className="w-full justify-start gap-3 px-3 py-2.5 hover:bg-accent rounded-lg transition-colors"
+            className="w-full justify-start gap-3 px-3 py-2.5 hover:bg-muted rounded-xl transition-all duration-[220ms] ease-[cubic-bezier(0.25,0.1,0.25,1)]"
           >
             <Library className="w-5 h-5 text-muted-foreground" />
             <span className="text-sm">Library</span>
@@ -410,18 +410,18 @@ export function AppSidebar() {
         </SidebarContent>
       </ScrollArea>
 
-      <SidebarFooter className="flex-none p-4 border-t mt-auto mb-5">
+      <SidebarFooter className="flex-none p-4 border-t border-border/50 mt-auto mb-5">
         <DropdownMenu open={isProfileDropdownOpen} onOpenChange={setIsProfileDropdownOpen}>
           <DropdownMenuTrigger asChild>
-            <div className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-accent/50 cursor-pointer transition-all duration-150 bg-white shadow-sm">
-              <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
-                <User className="w-5 h-5 text-white" />
+            <div className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-muted/50 cursor-pointer transition-all duration-[220ms] ease-[cubic-bezier(0.25,0.1,0.25,1)] glass-panel-hover">
+              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                <User className="w-5 h-5 text-primary-foreground" />
               </div>
-              <span className="text-sm font-medium flex-1">user@example.com</span>
-              <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-150 ${isProfileDropdownOpen ? 'rotate-180' : ''}`} />
+              <span className="text-sm font-medium flex-1 text-foreground">user@example.com</span>
+              <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-[220ms] ${isProfileDropdownOpen ? 'rotate-180' : ''}`} />
             </div>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48 rounded-[20px]">
+          <DropdownMenuContent align="end" className="w-48 rounded-[18px] glass-panel border-border/50">
             <DropdownMenuItem>
               <UserCircle className="w-4 h-4 mr-2" />
               Profile
