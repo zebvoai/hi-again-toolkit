@@ -260,10 +260,37 @@ export function ChatInterface() {
               <input type="text" value={input} onChange={e => setInput(e.target.value)} placeholder="Ask Zebvo ai" disabled={isLoading} className="flex-1 bg-transparent outline-none text-[17px] font-medium placeholder:text-muted-foreground/70 disabled:opacity-50 px-4 text-foreground" maxLength={4000} />
 
               {/* Right Send Button */}
-              <button type={isLoading ? "button" : "submit"} onClick={isLoading ? cancelGeneration : undefined} disabled={!isLoading && (!input.trim() || selectedModels.length === 0)} className={`flex-shrink-0 w-[42px] h-[42px] rounded-full flex items-center justify-center transition-all duration-[180ms] ease-[cubic-bezier(0.25,0.1,0.25,1)] ${isLoading ? 'bg-foreground hover:bg-foreground/90 animate-pulse' : !input.trim() || selectedModels.length === 0 ? 'bg-card/80 cursor-not-allowed border border-border/30' : 'bg-card/80 hover:bg-muted hover:scale-[1.05] active:scale-[0.95] border border-border/30'}`}>
-                {isLoading ? <Square className="w-4 h-4 fill-background" /> : <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-                    <path d="M3 10L17 10M17 10L11 4M17 10L11 16" stroke="hsl(var(--muted-foreground))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>}
+              <button 
+                type={isLoading ? "button" : "submit"} 
+                onClick={isLoading ? cancelGeneration : undefined} 
+                disabled={!isLoading && (!input.trim() || selectedModels.length === 0)} 
+                className={`flex-shrink-0 w-[42px] h-[42px] rounded-full flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] ${
+                  isLoading 
+                    ? 'bg-destructive hover:bg-destructive/90 animate-pulse' 
+                    : !input.trim() || selectedModels.length === 0 
+                      ? 'bg-muted text-muted-foreground cursor-not-allowed border border-border/50' 
+                      : 'bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-110 hover:shadow-lg hover:shadow-primary/25 animate-scale-in'
+                }`}
+              >
+                {isLoading ? (
+                  <Square className="w-4 h-4 fill-current" />
+                ) : (
+                  <svg 
+                    width="18" 
+                    height="18" 
+                    viewBox="0 0 20 20" 
+                    fill="none"
+                    className={`transition-all duration-300 ${input.trim() ? 'translate-x-0' : ''}`}
+                  >
+                    <path 
+                      d="M3 10L17 10M17 10L11 4M17 10L11 16" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                    />
+                  </svg>
+                )}
               </button>
             </div>
           </form>
