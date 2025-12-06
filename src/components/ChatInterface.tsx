@@ -267,6 +267,15 @@ export function ChatInterface() {
               </button>
             </div>
           </form>
+
+          {/* Bottom Info */}
+          <div className="flex items-center justify-between mt-2 px-4 text-xs text-muted-foreground">
+            <div className="flex items-center gap-3">
+              <span>~0 tokens</span>
+              <span>• {selectedModels.length} {selectedModels.length === 1 ? 'model' : 'models'}</span>
+            </div>
+            <span>{input.length}/4000</span>
+          </div>
         </div>
       </div>
 
