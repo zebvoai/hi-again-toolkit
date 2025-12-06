@@ -41,15 +41,15 @@ export const ConversationItem = ({
       className={`group relative flex items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 ${
         isActive 
           ? 'bg-white dark:bg-white/10 shadow-[0_1px_3px_rgba(0,0,0,0.08)]' 
-          : 'hover:bg-black/[0.04] dark:hover:bg-white/[0.08] active:scale-[0.98]'
+          : 'hover:bg-muted/50 dark:hover:bg-white/[0.06] active:scale-[0.98]'
       }`}
       onClick={onClick}
     >
-      {/* Content area with fixed width to prevent layout shift */}
-      <div className="flex-1 min-w-0 pr-7">
+      {/* Content area - uses right padding to reserve space for menu */}
+      <div className="flex-1 min-w-0 pr-8">
         <p
-          className={`text-[13px] truncate ${
-            isActive ? 'font-medium text-primary' : 'text-foreground/80'
+          className={`text-[13px] truncate leading-snug ${
+            isActive ? 'font-medium text-primary' : 'text-foreground/90 dark:text-foreground/80'
           }`}
         >
           {title}
@@ -59,21 +59,21 @@ export const ConversationItem = ({
         </p>
       </div>
 
-      {/* Three-dots menu - absolutely positioned to prevent layout shift */}
-      <div className="absolute right-2 top-1/2 -translate-y-1/2">
+      {/* Three-dots menu - absolutely positioned, fades in on hover */}
+      <div 
+        className={`absolute right-2 top-1/2 -translate-y-1/2 transition-opacity duration-200 ease-out ${
+          isOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+        }`}
+      >
         <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
               size="icon"
-              className={`h-7 w-7 rounded-lg transition-all duration-200 ease-out
-                ${isOpen 
-                  ? 'opacity-100 bg-black/[0.06] dark:bg-white/10' 
-                  : 'opacity-0 group-hover:opacity-100'
-                }
-                hover:bg-black/[0.08] dark:hover:bg-white/[0.12]
+              className={`h-7 w-7 rounded-lg transition-all duration-150 ease-out
+                ${isOpen ? 'bg-muted dark:bg-white/10' : 'hover:bg-muted/80 dark:hover:bg-white/10'}
                 text-muted-foreground hover:text-foreground
-                focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/20
+                focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/20
               `}
               onClick={(e) => e.stopPropagation()}
               aria-label="More options"
