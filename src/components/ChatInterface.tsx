@@ -41,7 +41,6 @@ export function ChatInterface() {
   // Reset selected models when mode changes
   useEffect(() => {
     if (!models) return;
-
     const defaultModels: Record<string, string> = {
       text: 'GPT-5',
       image: 'DALL-E 3',
@@ -140,56 +139,35 @@ export function ChatInterface() {
       {/* Messages Area */}
       {messages.length > 0 ? <div className="flex-1 overflow-y-auto overflow-x-hidden py-8 bg-gradient-to-b from-transparent via-primary/[0.02] to-transparent">
           {messages.map((message, index) => {
-            // Skip rendering user messages that precede multi-model responses
-            if (message.role === 'user') {
-              const nextMessage = messages[index + 1];
-              const isNextMultiModel = nextMessage && 
-                nextMessage.role === 'assistant' && 
-                typeof nextMessage.content === 'object' && 
-                !Array.isArray(nextMessage.content) &&
-                nextMessage.metadata?.models?.length > 1;
-              
-              // Skip this user message - it will appear inside the multi-model columns
-              if (isNextMultiModel) {
-                return null;
-              }
-            }
+        // Skip rendering user messages that precede multi-model responses
+        if (message.role === 'user') {
+          const nextMessage = messages[index + 1];
+          const isNextMultiModel = nextMessage && nextMessage.role === 'assistant' && typeof nextMessage.content === 'object' && !Array.isArray(nextMessage.content) && nextMessage.metadata?.models?.length > 1;
 
-            // Check if this is a multi-model compare response
-            const isMultiModelResponse = message.role === 'assistant' && 
-              typeof message.content === 'object' && 
-              !Array.isArray(message.content) &&
-              message.metadata?.models?.length > 1;
+          // Skip this user message - it will appear inside the multi-model columns
+          if (isNextMultiModel) {
+            return null;
+          }
+        }
 
-            // Multi-model responses get full width with all messages passed
-            if (isMultiModelResponse) {
-              return (
-                <div key={message.id} className="w-full">
-                  <Message 
-                    message={message} 
-                    allMessages={messages} 
-                    onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')} 
-                  />
-                </div>
-              );
-            }
+        // Check if this is a multi-model compare response
+        const isMultiModelResponse = message.role === 'assistant' && typeof message.content === 'object' && !Array.isArray(message.content) && message.metadata?.models?.length > 1;
 
-            // Regular messages get constrained container
-            return (
-              <div key={message.id} className="max-w-[800px] mx-auto px-6">
-                <Message 
-                  message={message} 
-                  allMessages={messages} 
-                  onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')} 
-                />
-              </div>
-            );
-          })}
-          {isLoading && (
-            <div className="max-w-[800px] mx-auto px-6">
+        // Multi-model responses get full width with all messages passed
+        if (isMultiModelResponse) {
+          return <div key={message.id} className="w-full">
+                  <Message message={message} allMessages={messages} onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')} />
+                </div>;
+        }
+
+        // Regular messages get constrained container
+        return <div key={message.id} className="max-w-[800px] mx-auto px-6">
+                <Message message={message} allMessages={messages} onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')} />
+              </div>;
+      })}
+          {isLoading && <div className="max-w-[800px] mx-auto px-6">
               <TypingIndicator models={selectedModels} />
-            </div>
-          )}
+            </div>}
           <div ref={messagesEndRef} />
         </div> : (/* Empty State */
     <div className="flex-1 flex items-center justify-center px-4">
@@ -241,7 +219,7 @@ export function ChatInterface() {
             <input ref={fileInputRef} type="file" multiple accept="*/*" onChange={handleFileSelect} className="hidden" />
 
             {/* Glass Input Bar */}
-            <div className="flex items-center w-full h-[60px] bg-card rounded-[50px] px-5 border border-border shadow-sm focus-within:border-primary/50 focus-within:shadow-[0_0_0_3px_hsl(var(--primary)/0.1)] transition-all duration-[220ms] ease-[cubic-bezier(0.25,0.1,0.25,1)]">
+            <div className="flex items-center w-full h-[60px] bg-card rounded-[50px] border border-border shadow-sm focus-within:border-primary/50 focus-within:shadow-[0_0_0_3px_hsl(var(--primary)/0.1)] transition-all duration-[220ms] ease-[cubic-bezier(0.25,0.1,0.25,1)] px-[11px]">
               {/* Left Plus Button */}
               <button type="button" onClick={triggerFileInput} className="flex-shrink-0 w-[42px] h-[42px] rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 hover:scale-[1.05] active:scale-[0.95] transition-all duration-[180ms] border border-border/50">
                 <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
@@ -253,37 +231,10 @@ export function ChatInterface() {
               <input type="text" value={input} onChange={e => setInput(e.target.value)} placeholder="Ask Zebvo ai" disabled={isLoading} className="flex-1 bg-transparent outline-none text-[17px] font-medium placeholder:text-muted-foreground/70 disabled:opacity-50 px-4 text-foreground" maxLength={4000} />
 
               {/* Right Send Button */}
-              <button 
-                type={isLoading ? "button" : "submit"} 
-                onClick={isLoading ? cancelGeneration : undefined} 
-                disabled={!isLoading && (!input.trim() || selectedModels.length === 0)} 
-                className={`flex-shrink-0 w-[42px] h-[42px] rounded-full flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] ${
-                  isLoading 
-                    ? 'bg-primary text-primary-foreground hover:bg-primary/80 shadow-lg shadow-primary/25' 
-                    : !input.trim() || selectedModels.length === 0 
-                      ? 'bg-muted text-muted-foreground cursor-not-allowed border border-border/50' 
-                      : 'bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-110 hover:shadow-lg hover:shadow-primary/25 animate-scale-in'
-                }`}
-              >
-                {isLoading ? (
-                  <Square className="w-4 h-4 fill-current animate-pulse" />
-                ) : (
-                  <svg 
-                    width="18" 
-                    height="18" 
-                    viewBox="0 0 20 20" 
-                    fill="none"
-                    className="transition-all duration-300"
-                  >
-                    <path 
-                      d="M3 10L17 10M17 10L11 4M17 10L11 16" 
-                      stroke="currentColor" 
-                      strokeWidth="2" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                    />
-                  </svg>
-                )}
+              <button type={isLoading ? "button" : "submit"} onClick={isLoading ? cancelGeneration : undefined} disabled={!isLoading && (!input.trim() || selectedModels.length === 0)} className={`flex-shrink-0 w-[42px] h-[42px] rounded-full flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] ${isLoading ? 'bg-primary text-primary-foreground hover:bg-primary/80 shadow-lg shadow-primary/25' : !input.trim() || selectedModels.length === 0 ? 'bg-muted text-muted-foreground cursor-not-allowed border border-border/50' : 'bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-110 hover:shadow-lg hover:shadow-primary/25 animate-scale-in'}`}>
+                {isLoading ? <Square className="w-4 h-4 fill-current animate-pulse" /> : <svg width="18" height="18" viewBox="0 0 20 20" fill="none" className="transition-all duration-300">
+                    <path d="M3 10L17 10M17 10L11 4M17 10L11 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>}
               </button>
             </div>
           </form>
