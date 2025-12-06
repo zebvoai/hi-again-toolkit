@@ -38,7 +38,7 @@ export const ConversationItem = ({
 
   return (
     <div
-      className={`group relative flex items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 ${
+      className={`group relative flex items-center gap-2.5 px-2.5 py-2 rounded-xl cursor-pointer transition-all duration-200 ${
         isActive 
           ? 'bg-white dark:bg-white/10 shadow-[0_1px_3px_rgba(0,0,0,0.08)]' 
           : 'hover:bg-muted/50 dark:hover:bg-white/[0.06] active:scale-[0.98]'
@@ -46,7 +46,7 @@ export const ConversationItem = ({
       onClick={onClick}
     >
       {/* Content area - uses right padding to reserve space for menu */}
-      <div className="flex-1 min-w-0 pr-8">
+      <div className="flex-1 min-w-0 pr-7">
         <p
           className={`text-[13px] truncate leading-snug ${
             isActive ? 'font-medium text-primary' : 'text-foreground/90 dark:text-foreground/80'
