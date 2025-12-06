@@ -591,7 +591,7 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
             "bg-white/98 dark:bg-[#1C1C1E]/98 backdrop-blur-2xl",
             "border border-black/[0.04] dark:border-white/[0.08]",
             "shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25),0_0_0_1px_rgba(0,0,0,0.03)]",
-            "rounded-2xl p-0 z-[100]",
+            "rounded-[24px] p-0 z-[100]",
             "animate-in fade-in-0 zoom-in-[0.98] slide-in-from-bottom-2 duration-300 ease-out"
           )}
           align="start"
