@@ -15,9 +15,7 @@ export const useChat = () => {
     setLoading, 
     setError, 
     isLoading, 
-    selectedModels, 
-    isModelLocked, 
-    lockModels,
+    selectedModels,
     currentConversationId,
     setCurrentConversationId 
   } = useChatStore();
@@ -93,11 +91,6 @@ export const useChat = () => {
         content: userMessage.content,
         metadata: userMessage.metadata
       });
-    }
-
-    // Lock models after first message
-    if (!isModelLocked && messages.length === 0) {
-      lockModels();
     }
     
     // Add placeholder for assistant response

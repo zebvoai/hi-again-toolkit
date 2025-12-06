@@ -30,7 +30,6 @@ export function ChatInterface() {
   } = useModeStore();
   const {
     selectedModels,
-    isModelLocked,
     setSelectedModels
   } = useChatStore();
   const {
@@ -39,9 +38,9 @@ export function ChatInterface() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Reset selected models when mode changes (unless models are locked)
+  // Reset selected models when mode changes
   useEffect(() => {
-    if (isModelLocked || !models) return; // Don't reset if models are locked in a conversation
+    if (!models) return;
 
     const defaultModels: Record<string, string> = {
       text: 'GPT-5',
@@ -64,7 +63,7 @@ export function ChatInterface() {
       // Some models were invalid, update to only valid ones
       setSelectedModels(validModels);
     }
-  }, [selectedMode, isModelLocked, models, selectedModels, setSelectedModels]);
+  }, [selectedMode, models, selectedModels, setSelectedModels]);
 
   // Initialize with default model if none selected
   useEffect(() => {
@@ -220,13 +219,7 @@ export function ChatInterface() {
             {/* Dropdowns Row - Keep above input */}
             <div className="flex items-center gap-2.5 mb-3">
               <ModeDropdown />
-              {selectedMode !== 'video' && <ModelSelector values={selectedModels} onChange={setSelectedModels} disabled={isModelLocked} />}
-              {isModelLocked && (
-                <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 px-4 py-1.5">
-                  <div className="w-2 h-2 rounded-full bg-primary mr-2" />
-                  Model locked for this conversation
-                </Badge>
-              )}
+              {selectedMode !== 'video' && <ModelSelector values={selectedModels} onChange={setSelectedModels} />}
             </div>
 
             {/* File Attachments Preview */}

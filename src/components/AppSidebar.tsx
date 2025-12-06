@@ -32,7 +32,7 @@ import { isToday, isYesterday, format } from "date-fns";
 export function AppSidebar() {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
-  const { clearMessages, unlockModels, setCurrentConversationId, currentConversationId, setMessages, lockModels } =
+  const { clearMessages, setCurrentConversationId, currentConversationId, setMessages } =
     useChatStore();
   const { conversations, isLoading, loadConversation, deleteConversation, refreshConversations } = useConversations();
 
@@ -56,7 +56,6 @@ export function AppSidebar() {
 
   const handleNewChat = () => {
     clearMessages();
-    unlockModels();
     setCurrentConversationId(null);
   };
 
@@ -64,11 +63,6 @@ export function AppSidebar() {
     const messages = await loadConversation(conversationId);
     setMessages(messages);
     setCurrentConversationId(conversationId);
-
-    // Lock models if conversation has messages
-    if (messages.length > 0) {
-      lockModels();
-    }
   };
 
   const handleDeleteConversation = async (conversationId: string) => {

@@ -5,7 +5,6 @@ export interface ChatState {
   isLoading: boolean;
   error: string | null;
   selectedModels: string[];
-  isModelLocked: boolean;
   currentConversationId: string | null;
   addMessage: (message: Message) => void;
   updateMessage: (id: string, updates: Partial<Message>) => void;
@@ -13,8 +12,6 @@ export interface ChatState {
   setError: (error: string | null) => void;
   clearMessages: () => void;
   setSelectedModels: (models: string[]) => void;
-  lockModels: () => void;
-  unlockModels: () => void;
   setMessages: (messages: Message[]) => void;
   setCurrentConversationId: (id: string | null) => void;
 }
