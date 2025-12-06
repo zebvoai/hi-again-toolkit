@@ -173,30 +173,30 @@ export function AppSidebar() {
 
   if (isCollapsed) {
     return (
-      <Sidebar className="w-[60px] border-r border-border/50 glass-panel flex flex-col h-screen fixed" collapsible="icon">
+      <Sidebar className="w-[60px] border-r border-border/30 bg-[#F8F8FA] dark:bg-[#1C1C1E] flex flex-col h-screen fixed" collapsible="icon">
         <div className="flex-none">
-          <SidebarHeader className="p-4 flex flex-col items-center gap-4">
-            <SidebarTrigger className="w-8 h-8 hover:bg-muted hover:text-foreground hover:scale-[1.08] active:scale-[0.92] transition-all duration-[220ms] ease-[cubic-bezier(0.25,0.1,0.25,1)] rounded-full" />
+          <SidebarHeader className="p-3 flex flex-col items-center gap-3">
+            <SidebarTrigger className="w-9 h-9 hover:bg-black/5 dark:hover:bg-white/10 text-[#8E8E93] hover:text-foreground transition-all duration-200 rounded-full" />
             <Button
               variant="ghost"
               size="icon"
-              className="w-8 h-8 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground apple-interactive"
+              className="w-9 h-9 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
               onClick={handleNewChat}
             >
-              <Plus className="w-5 h-5" />
+              <Plus className="w-4 h-4" />
             </Button>
           </SidebarHeader>
         </div>
 
         <div className="flex-grow" />
 
-        <SidebarFooter className="flex-none p-0 w-full max-w-[60px] flex items-center justify-center mb-5 overflow-hidden">
+        <SidebarFooter className="flex-none p-3 w-full max-w-[60px] flex items-center justify-center mb-4 overflow-hidden">
           <Button
             variant="ghost"
             size="icon"
-            className="w-8 h-8 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-[220ms] ease-[cubic-bezier(0.25,0.1,0.25,1)]"
+            className="w-9 h-9 rounded-full bg-[#007AFF] hover:bg-[#0066DD] text-white shadow-sm transition-all duration-200"
           >
-            <User className="w-5 h-5" />
+            <User className="w-4 h-4" />
           </Button>
         </SidebarFooter>
       </Sidebar>
@@ -204,88 +204,88 @@ export function AppSidebar() {
   }
 
   return (
-    <Sidebar className="w-[280px] border-r border-border/50 glass-panel flex flex-col h-screen fixed" collapsible="icon">
+    <Sidebar className="w-[280px] border-r border-border/30 bg-[#F8F8FA] dark:bg-[#1C1C1E] flex flex-col h-screen fixed" collapsible="icon">
       <div className="flex-none">
-        <SidebarHeader className="p-4 space-y-2">
-          <div className="flex items-center mb-2">
-            <SidebarTrigger className="w-6 h-6 hover:bg-muted hover:text-foreground hover:scale-[1.08] active:scale-[0.92] transition-all duration-[220ms] ease-[cubic-bezier(0.25,0.1,0.25,1)] rounded-full" />
+        <SidebarHeader className="p-4 space-y-3">
+          <div className="flex items-center">
+            <SidebarTrigger className="w-8 h-8 hover:bg-black/5 dark:hover:bg-white/10 text-[#8E8E93] hover:text-foreground transition-all duration-200 rounded-full" />
           </div>
 
           {/* New Chat */}
           <Button
             variant="ghost"
-            className="w-full h-[44px] justify-start gap-3 px-3 bg-transparent hover:bg-primary/5 hover:border hover:border-border active:bg-primary/10 active:scale-[0.99] rounded-xl transition-all duration-[220ms] ease-[cubic-bezier(0.25,0.1,0.25,1)] border border-transparent"
+            className="w-full h-11 justify-start gap-3 px-3 bg-white/60 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 active:scale-[0.98] rounded-2xl transition-all duration-200 border border-border/20 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
             onClick={handleNewChat}
           >
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-              <Plus className="w-4 h-4 text-primary-foreground" />
+            <div className="w-7 h-7 rounded-full bg-[#007AFF] flex items-center justify-center flex-shrink-0 shadow-sm">
+              <Plus className="w-3.5 h-3.5 text-white" />
             </div>
-            <span className="text-sm font-medium text-foreground">New Chat</span>
+            <span className="text-[13px] font-medium text-foreground">New Chat</span>
           </Button>
 
           {/* Search Chats */}
           <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E8E93] pointer-events-none" />
             <Input
               type="text"
-              placeholder="Search chats"
+              placeholder="Search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-3 py-2.5 text-sm rounded-xl bg-card/80 backdrop-blur-sm border-border/50 focus:border-primary/50 transition-all duration-[220ms]"
+              className="w-full pl-9 pr-3 py-2 h-9 text-[13px] rounded-xl bg-black/[0.04] dark:bg-white/[0.08] border-0 placeholder:text-[#8E8E93] focus:bg-white dark:focus:bg-white/10 focus:ring-2 focus:ring-[#007AFF]/30 transition-all duration-200"
             />
           </div>
 
           {/* Library */}
           <Button
             variant="ghost"
-            className="w-full justify-start gap-3 px-3 py-2.5 hover:bg-muted rounded-xl transition-all duration-[220ms] ease-[cubic-bezier(0.25,0.1,0.25,1)]"
+            className="w-full justify-start gap-3 px-3 h-10 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl transition-all duration-200"
           >
-            <Library className="w-5 h-5 text-muted-foreground" />
-            <span className="text-sm">Library</span>
+            <Library className="w-[18px] h-[18px] text-[#8E8E93]" />
+            <span className="text-[13px] text-foreground/80">Library</span>
           </Button>
         </SidebarHeader>
       </div>
 
       <ScrollArea className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
-        <SidebarContent className="px-3 pb-4 space-y-6 pr-[6px]">
+        <SidebarContent className="px-3 pb-4 space-y-4 pr-[6px]">
           {/* Projects Section */}
-          <div className="space-y-2">
+          <div className="space-y-1">
             {/* Projects Header */}
             <button
               onClick={() => setIsProjectsOpen(!isProjectsOpen)}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm font-semibold hover:bg-accent rounded-lg transition-colors"
+              className="w-full flex items-center gap-2 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-[#8E8E93] hover:text-foreground rounded-lg transition-colors"
             >
               {isProjectsOpen ? (
-                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                <ChevronDown className="w-3.5 h-3.5" />
               ) : (
-                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                <ChevronRight className="w-3.5 h-3.5" />
               )}
               <span>Projects</span>
             </button>
 
             {/* Projects Content */}
             {isProjectsOpen && (
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {/* New Project */}
                 <Button
                   variant="ghost"
-                  className="w-full justify-start gap-3 px-3 py-2 hover:bg-accent rounded-lg transition-colors"
+                  className="w-full justify-start gap-2.5 px-3 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl transition-all duration-200"
                   onClick={() => setIsNewProjectDialogOpen(true)}
                 >
-                  <Plus className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">New project</span>
+                  <Plus className="w-4 h-4 text-[#8E8E93]" />
+                  <span className="text-[13px] text-foreground/70">New project</span>
                 </Button>
 
                 {/* Project List */}
                 {projects.map((project) => (
                   <div
                     key={project.id}
-                    className="group relative flex items-center gap-3 px-3 py-2 hover:bg-accent rounded-lg transition-colors cursor-pointer overflow-hidden"
+                    className="group relative flex items-center gap-2.5 px-3 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl transition-all duration-200 cursor-pointer overflow-hidden"
                     onMouseEnter={() => setHoveredProject(project.id)}
                     onMouseLeave={() => setHoveredProject(null)}
                   >
-                    <Folder className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                    <span className="text-sm flex-1 truncate whitespace-nowrap overflow-hidden text-ellipsis">
+                    <Folder className="w-4 h-4 text-[#8E8E93] flex-shrink-0" />
+                    <span className="text-[13px] flex-1 truncate whitespace-nowrap overflow-hidden text-ellipsis text-foreground/80">
                       {project.name}
                     </span>
 
@@ -296,10 +296,10 @@ export function AppSidebar() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="w-6 h-6 flex-shrink-0 opacity-100 group-hover:opacity-100 transition-opacity"
+                            className="w-6 h-6 flex-shrink-0 hover:bg-black/[0.06] dark:hover:bg-white/10 rounded-md transition-colors"
                             onClick={(e) => e.stopPropagation()}
                           >
-                            <MoreVertical className="w-4 h-4" />
+                            <MoreVertical className="w-3.5 h-3.5 text-[#8E8E93]" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48 bg-popover border shadow-lg z-50 rounded-[20px]">
@@ -369,16 +369,16 @@ export function AppSidebar() {
 
           {/* Chat History */}
           {isLoading ? (
-            <div className="text-sm text-muted-foreground text-center py-8">Loading...</div>
+            <div className="text-[13px] text-[#8E8E93] text-center py-8">Loading...</div>
           ) : conversations.length === 0 ? (
-            <div className="text-sm text-muted-foreground text-center py-8">No conversations yet</div>
+            <div className="text-[13px] text-[#8E8E93] text-center py-8">No conversations yet</div>
           ) : filteredConversations.length === 0 ? (
-            <div className="text-sm text-muted-foreground text-center py-8">No chats found</div>
+            <div className="text-[13px] text-[#8E8E93] text-center py-8">No chats found</div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-4">
               {Object.entries(groupedConversations).map(([label, convs]) => (
-                <div key={label} className="space-y-2">
-                  <div className="flex items-center gap-2 px-3 py-1 text-xs font-medium text-muted-foreground uppercase">
+                <div key={label} className="space-y-1">
+                  <div className="flex items-center gap-2 px-3 py-1.5 text-[11px] font-semibold text-[#8E8E93] uppercase tracking-wider">
                     <span>{label}</span>
                   </div>
                   <div className="space-y-0.5">
@@ -404,32 +404,33 @@ export function AppSidebar() {
         </SidebarContent>
       </ScrollArea>
 
-      <SidebarFooter className="flex-none p-4 border-t border-border/50 mt-auto mb-5">
+      <SidebarFooter className="flex-none p-3 border-t border-border/20 mt-auto mb-4">
         <DropdownMenu open={isProfileDropdownOpen} onOpenChange={setIsProfileDropdownOpen}>
           <DropdownMenuTrigger asChild>
-            <div className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-muted/50 cursor-pointer transition-all duration-[220ms] ease-[cubic-bezier(0.25,0.1,0.25,1)] glass-panel-hover">
-              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                <User className="w-5 h-5 text-primary-foreground" />
+            <div className="flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-black/[0.04] dark:hover:bg-white/[0.08] cursor-pointer transition-all duration-200">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#007AFF] to-[#5856D6] flex items-center justify-center flex-shrink-0 shadow-sm">
+                <User className="w-4 h-4 text-white" />
               </div>
-              <span className="text-sm font-medium flex-1 text-foreground">user@example.com</span>
-              <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-[220ms] ${isProfileDropdownOpen ? 'rotate-180' : ''}`} />
+              <span className="text-[13px] font-medium flex-1 text-foreground truncate">user@example.com</span>
+              <ChevronDown className={`w-4 h-4 text-[#8E8E93] transition-transform duration-200 ${isProfileDropdownOpen ? 'rotate-180' : ''}`} />
             </div>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48 rounded-[18px] glass-panel border-border/50">
-            <DropdownMenuItem>
-              <UserCircle className="w-4 h-4 mr-2" />
+          <DropdownMenuContent align="end" side="top" className="w-52 rounded-2xl bg-white/95 dark:bg-[#2C2C2E]/95 backdrop-blur-xl border-border/20 shadow-lg p-1.5">
+            <DropdownMenuItem className="rounded-xl px-3 py-2.5 text-[13px] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] transition-colors">
+              <UserCircle className="w-4 h-4 mr-2.5 text-[#8E8E93]" />
               Profile
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              <User className="w-4 h-4 mr-2" />
+            <DropdownMenuItem className="rounded-xl px-3 py-2.5 text-[13px] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] transition-colors">
+              <User className="w-4 h-4 mr-2.5 text-[#8E8E93]" />
               Account
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Settings className="w-4 h-4 mr-2" />
+            <DropdownMenuItem className="rounded-xl px-3 py-2.5 text-[13px] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] transition-colors">
+              <Settings className="w-4 h-4 mr-2.5 text-[#8E8E93]" />
               Settings
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              <LogOut className="w-4 h-4 mr-2" />
+            <div className="h-px bg-border/20 my-1" />
+            <DropdownMenuItem className="rounded-xl px-3 py-2.5 text-[13px] text-[#FF3B30] hover:bg-[#FF3B30]/10 transition-colors">
+              <LogOut className="w-4 h-4 mr-2.5" />
               Logout
             </DropdownMenuItem>
           </DropdownMenuContent>
