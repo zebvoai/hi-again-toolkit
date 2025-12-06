@@ -195,13 +195,13 @@ export function AppSidebar() {
   return (
     <Sidebar className="w-[280px] border-r border-border/30 bg-[#F8F8FA] dark:bg-[#1C1C1E] flex flex-col h-screen fixed" collapsible="icon">
       <div className="flex-none">
-        <SidebarHeader className="px-3 pt-3 pb-2 space-y-2">
+        <SidebarHeader className="px-3 pt-3 pb-2 space-y-2.5">
           <SidebarTrigger className="w-8 h-8 hover:bg-black/5 dark:hover:bg-white/10 text-[#8E8E93] hover:text-foreground transition-all duration-200 rounded-full" />
 
           {/* New Chat */}
           <Button
             variant="ghost"
-            className="w-full h-11 justify-start gap-3 px-3 bg-white/60 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 active:scale-[0.98] rounded-2xl transition-all duration-200 border border-border/20 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+            className="w-full h-10 justify-start gap-2.5 px-2.5 bg-white/60 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 active:scale-[0.98] rounded-xl transition-all duration-200 border border-border/20 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
             onClick={handleNewChat}
           >
             <div className="w-7 h-7 rounded-full bg-[#007AFF] flex items-center justify-center flex-shrink-0 shadow-sm">
@@ -212,51 +212,51 @@ export function AppSidebar() {
 
           {/* Search Chats */}
           <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E8E93] pointer-events-none" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E8E93] pointer-events-none" />
             <Input
               type="text"
               placeholder="Search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 h-9 text-[13px] rounded-xl bg-black/[0.04] dark:bg-white/[0.08] border-0 placeholder:text-[#8E8E93] focus:bg-white dark:focus:bg-white/10 focus:ring-2 focus:ring-[#007AFF]/30 transition-all duration-200"
+              className="w-full pl-8 pr-3 py-2 h-9 text-[13px] rounded-xl bg-black/[0.04] dark:bg-white/[0.08] border-0 placeholder:text-[#8E8E93] focus:bg-white dark:focus:bg-white/10 focus:ring-2 focus:ring-[#007AFF]/30 transition-all duration-200"
             />
           </div>
 
           {/* Library */}
           <Button
             variant="ghost"
-            className="w-full justify-start gap-3 px-3 h-10 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl transition-all duration-200"
+            className="w-full justify-start gap-2.5 px-2.5 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl transition-all duration-200"
           >
-            <Library className="w-[18px] h-[18px] text-[#8E8E93]" />
+            <Library className="w-4 h-4 text-[#8E8E93]" />
             <span className="text-[13px] text-foreground/80">Library</span>
           </Button>
         </SidebarHeader>
       </div>
 
-      <ScrollArea className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-2">
-        <SidebarContent className="px-1 pb-4 space-y-4">
+      <ScrollArea className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3">
+        <SidebarContent className="pb-4 space-y-3">
           {/* Projects Section */}
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             {/* Projects Header */}
             <button
               onClick={() => setIsProjectsOpen(!isProjectsOpen)}
-              className="w-full flex items-center gap-2 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-[#8E8E93] hover:text-foreground rounded-lg transition-colors"
+              className="w-full flex items-center gap-2 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#8E8E93] hover:text-foreground rounded-lg transition-colors"
             >
               {isProjectsOpen ? (
-                <ChevronDown className="w-3.5 h-3.5" />
+                <ChevronDown className="w-3 h-3" />
               ) : (
-                <ChevronRight className="w-3.5 h-3.5" />
+                <ChevronRight className="w-3 h-3" />
               )}
               <span>Projects</span>
             </button>
 
             {/* Projects Content */}
             {isProjectsOpen && (
-              <div className="space-y-0.5">
+              <div className="space-y-0.5 pl-0.5">
                 {/* New Project */}
                 <Button
                   variant="ghost"
-                  className="w-full justify-start gap-2.5 px-3 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl transition-all duration-200"
+                  className="w-full justify-start gap-2.5 px-2.5 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl transition-all duration-200"
                   onClick={() => setIsNewProjectDialogOpen(true)}
                 >
                   <Plus className="w-4 h-4 text-[#8E8E93]" />
@@ -267,7 +267,7 @@ export function AppSidebar() {
                 {projects.map((project) => (
                   <div
                     key={project.id}
-                    className="group relative flex items-center gap-2.5 px-3 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl transition-all duration-200 cursor-pointer overflow-hidden"
+                    className="group relative flex items-center gap-2.5 px-2.5 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl transition-all duration-200 cursor-pointer overflow-hidden"
                     onMouseEnter={() => setHoveredProject(project.id)}
                     onMouseLeave={() => setHoveredProject(null)}
                   >
@@ -356,19 +356,19 @@ export function AppSidebar() {
 
           {/* Chat History */}
           {isLoading ? (
-            <div className="text-[13px] text-[#8E8E93] text-center py-8">Loading...</div>
+            <div className="text-[13px] text-[#8E8E93] text-center py-6">Loading...</div>
           ) : conversations.length === 0 ? (
-            <div className="text-[13px] text-[#8E8E93] text-center py-8">No conversations yet</div>
+            <div className="text-[13px] text-[#8E8E93] text-center py-6">No conversations yet</div>
           ) : filteredConversations.length === 0 ? (
-            <div className="text-[13px] text-[#8E8E93] text-center py-8">No chats found</div>
+            <div className="text-[13px] text-[#8E8E93] text-center py-6">No chats found</div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {Object.entries(groupedConversations).map(([label, convs]) => (
-                <div key={label} className="space-y-1">
-                  <div className="flex items-center gap-2 px-3 py-1.5 text-[11px] font-semibold text-[#8E8E93] uppercase tracking-wider">
+                <div key={label} className="space-y-0.5">
+                  <div className="flex items-center gap-2 px-2.5 py-1 text-[11px] font-semibold text-[#8E8E93] uppercase tracking-wider">
                     <span>{label}</span>
                   </div>
-                  <div className="space-y-0.5">
+                  <div className="space-y-0.5 pl-0.5">
                     {convs.map((conv) => (
                       <ConversationItem
                         key={conv.id}
