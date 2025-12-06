@@ -246,8 +246,8 @@ export function AppSidebar() {
         </SidebarHeader>
       </div>
 
-      <ScrollArea className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
-        <SidebarContent className="px-3 pb-4 space-y-4 pr-[6px]">
+      <ScrollArea className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-2">
+        <SidebarContent className="px-1 pb-4 space-y-4">
           {/* Projects Section */}
           <div className="space-y-1">
             {/* Projects Header */}
