@@ -248,16 +248,16 @@ export function ChatInterface() {
             <input ref={fileInputRef} type="file" multiple accept="*/*" onChange={handleFileSelect} className="hidden" />
 
             {/* Glass Input Bar */}
-            <div className="flex items-center w-full h-[60px] glass-panel-hover rounded-[50px] px-5 border border-border/50 focus-within:border-primary/50 focus-within:shadow-[0_0_0_3px_hsl(var(--primary)/0.1)] transition-all duration-[220ms] ease-[cubic-bezier(0.25,0.1,0.25,1)]">
+            <div className="flex items-center w-full h-[60px] bg-card rounded-[50px] px-5 border border-border shadow-sm focus-within:border-primary/50 focus-within:shadow-[0_0_0_3px_hsl(var(--primary)/0.1)] transition-all duration-[220ms] ease-[cubic-bezier(0.25,0.1,0.25,1)]">
               {/* Left Plus Button */}
-              <button type="button" onClick={triggerFileInput} className="flex-shrink-0 w-[42px] h-[42px] rounded-full bg-card/80 backdrop-blur-sm flex items-center justify-center hover:bg-muted hover:scale-[1.05] active:scale-[0.95] transition-all duration-[180ms] shadow-sm border border-border/30">
+              <button type="button" onClick={triggerFileInput} className="flex-shrink-0 w-[42px] h-[42px] rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 hover:scale-[1.05] active:scale-[0.95] transition-all duration-[180ms] border border-border/50">
                 <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
                   <path d="M10 4V16M4 10H16" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="round" />
                 </svg>
               </button>
 
               {/* Input Field */}
-              <input type="text" value={input} onChange={e => setInput(e.target.value)} placeholder="Ask to Zebvo ai" disabled={isLoading} className="flex-1 bg-transparent outline-none text-[17px] font-medium placeholder:text-muted-foreground placeholder:font-medium disabled:opacity-50 px-4 text-foreground" maxLength={4000} />
+              <input type="text" value={input} onChange={e => setInput(e.target.value)} placeholder="Ask Zebvo ai" disabled={isLoading} className="flex-1 bg-transparent outline-none text-[17px] font-medium placeholder:text-muted-foreground/70 disabled:opacity-50 px-4 text-foreground" maxLength={4000} />
 
               {/* Right Send Button */}
               <button type={isLoading ? "button" : "submit"} onClick={isLoading ? cancelGeneration : undefined} disabled={!isLoading && (!input.trim() || selectedModels.length === 0)} className={`flex-shrink-0 w-[42px] h-[42px] rounded-full flex items-center justify-center transition-all duration-[180ms] ease-[cubic-bezier(0.25,0.1,0.25,1)] ${isLoading ? 'bg-foreground hover:bg-foreground/90 animate-pulse' : !input.trim() || selectedModels.length === 0 ? 'bg-card/80 cursor-not-allowed border border-border/30' : 'bg-card/80 hover:bg-muted hover:scale-[1.05] active:scale-[0.95] border border-border/30'}`}>
