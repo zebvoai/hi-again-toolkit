@@ -138,7 +138,7 @@ export function ChatInterface() {
         </div>}
 
       {/* Messages Area */}
-      {messages.length > 0 ? <div className="flex-1 overflow-y-auto overflow-x-hidden py-8 bg-transparent">
+      {messages.length > 0 ? <div className="flex-1 overflow-y-auto overflow-x-hidden py-8 bg-gradient-to-b from-transparent via-primary/[0.02] to-transparent">
           {messages.map((message, index) => {
             // Skip rendering user messages that precede multi-model responses
             if (message.role === 'user') {
