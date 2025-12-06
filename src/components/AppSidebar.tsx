@@ -27,6 +27,7 @@ import {
 import { useChatStore } from "@/features/chat/store/chatStore";
 import { useConversations } from "@/features/chat/hooks/useConversations";
 import { ConversationItem } from "./ConversationItem";
+import { RenameDialog } from "./RenameDialog";
 import { isToday, isYesterday, format } from "date-fns";
 
 export function AppSidebar() {
@@ -34,7 +35,7 @@ export function AppSidebar() {
   const isCollapsed = state === "collapsed";
   const { clearMessages, setCurrentConversationId, currentConversationId, setMessages } =
     useChatStore();
-  const { conversations, isLoading, loadConversation, deleteConversation, refreshConversations } = useConversations();
+  const { conversations, isLoading, loadConversation, deleteConversation, renameConversation, shareConversation, refreshConversations } = useConversations();
 
   // Projects state
   const [isProjectsOpen, setIsProjectsOpen] = useState(true);
@@ -50,6 +51,10 @@ export function AppSidebar() {
   // New project dialog
   const [isNewProjectDialogOpen, setIsNewProjectDialogOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
+  
+  // Rename dialog state
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false);
+  const [conversationToRename, setConversationToRename] = useState<{ id: string; title: string } | null>(null);
   
   // Profile dropdown
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
@@ -81,36 +86,20 @@ export function AppSidebar() {
   };
 
   const handleShare = async (conversationId: string) => {
-    const conversation = conversations.find((c) => c.id === conversationId);
-    if (!conversation) return;
-
-    // Use Web Share API if available
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: conversation.title,
-          text: `Check out this conversation: ${conversation.title}`,
-          url: window.location.href,
-        });
-      } catch (err) {
-        console.log("Share cancelled");
-      }
-    } else {
-      // Fallback: copy to clipboard
-      await navigator.clipboard.writeText(window.location.href);
-      alert("Link copied to clipboard!");
-    }
+    await shareConversation(conversationId);
   };
 
   const handleRename = (conversationId: string) => {
     const conversation = conversations.find((c) => c.id === conversationId);
     if (!conversation) return;
+    setConversationToRename({ id: conversationId, title: conversation.title });
+    setRenameDialogOpen(true);
+  };
 
-    const newTitle = prompt("Enter new conversation title:", conversation.title);
-    if (newTitle && newTitle.trim() && newTitle !== conversation.title) {
-      // TODO: Call API to rename conversation
-      console.log(`Renaming conversation ${conversationId} to: ${newTitle}`);
-      refreshConversations();
+  const handleRenameSubmit = async (newTitle: string) => {
+    if (conversationToRename) {
+      await renameConversation(conversationToRename.id, newTitle);
+      setConversationToRename(null);
     }
   };
 
@@ -465,6 +454,14 @@ export function AppSidebar() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Rename Dialog */}
+      <RenameDialog
+        open={renameDialogOpen}
+        onOpenChange={setRenameDialogOpen}
+        currentTitle={conversationToRename?.title || ''}
+        onRename={handleRenameSubmit}
+      />
     </Sidebar>
   );
 }
