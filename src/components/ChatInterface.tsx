@@ -266,21 +266,21 @@ export function ChatInterface() {
                 disabled={!isLoading && (!input.trim() || selectedModels.length === 0)} 
                 className={`flex-shrink-0 w-[42px] h-[42px] rounded-full flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] ${
                   isLoading 
-                    ? 'bg-destructive hover:bg-destructive/90 animate-pulse' 
+                    ? 'bg-primary text-primary-foreground hover:bg-primary/80 shadow-lg shadow-primary/25' 
                     : !input.trim() || selectedModels.length === 0 
                       ? 'bg-muted text-muted-foreground cursor-not-allowed border border-border/50' 
                       : 'bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-110 hover:shadow-lg hover:shadow-primary/25 animate-scale-in'
                 }`}
               >
                 {isLoading ? (
-                  <Square className="w-4 h-4 fill-current" />
+                  <Square className="w-4 h-4 fill-current animate-pulse" />
                 ) : (
                   <svg 
                     width="18" 
                     height="18" 
                     viewBox="0 0 20 20" 
                     fill="none"
-                    className={`transition-all duration-300 ${input.trim() ? 'translate-x-0' : ''}`}
+                    className="transition-all duration-300"
                   >
                     <path 
                       d="M3 10L17 10M17 10L11 4M17 10L11 16" 
