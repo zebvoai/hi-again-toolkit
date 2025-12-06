@@ -245,7 +245,7 @@ export const MultiModelResponse = ({ content, models, userQuestion, allMessages 
   return (
     <div className="w-full overflow-hidden">
       {/* Toggle Button */}
-      <div className="flex justify-end mb-3 px-4">
+      <div className="flex justify-end mb-4 px-6">
         <div className="glass-panel flex items-center gap-1 p-1">
           <button 
             onClick={() => setViewMode('single')}
@@ -263,111 +263,115 @@ export const MultiModelResponse = ({ content, models, userQuestion, allMessages 
       </div>
 
       {/* Horizontal Scroll Container with Persistent Vertical Columns */}
-      <div className="overflow-x-auto scrollbar-hide">
-        <div className="flex min-w-max h-[calc(100vh-280px)] gap-4 px-2">
-          {models.map((model, index) => (
+      <div className="overflow-x-auto scrollbar-hide px-6">
+        <div className="flex h-[calc(100vh-280px)] gap-5">
+          {models.map((model) => (
             <div
               key={model}
-              className="flex-shrink-0 w-[400px] flex flex-col glass-panel overflow-hidden"
+              className="flex-1 min-w-[320px] max-w-[400px] flex flex-col bg-card/80 dark:bg-card/40 rounded-2xl border border-border/50 shadow-[0_2px_12px_rgba(0,0,0,0.04)] overflow-hidden"
             >
               {/* Sticky Model Header */}
-              <div className="sticky top-0 z-10 px-4 py-3 border-b border-border/50 frosted-glass">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    {getProviderIcon(model)}
-                    <div className="flex items-center gap-2">
+              <div className="flex-shrink-0 px-4 py-3 border-b border-border/40 bg-card/60 dark:bg-card/30 backdrop-blur-sm">
+                <div className="flex items-center justify-between h-8">
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex-shrink-0">
+                      {getProviderIcon(model)}
+                    </div>
+                    <div className="flex items-center gap-1.5">
                       <span className="text-sm font-semibold text-foreground">
                         {formatModelName(model)}
                       </span>
-                      <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                      <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
                     </div>
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <button className="p-1.5 rounded-lg panel-button" aria-label="Add">
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <button className="p-1.5 rounded-lg hover:bg-muted/50 transition-colors" aria-label="Add">
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
                         <path d="M8 3V13M3 8H13" stroke="currentColor" className="text-muted-foreground" strokeWidth="1.5" strokeLinecap="round"/>
                       </svg>
                     </button>
-                    <div className="w-9 h-5 bg-muted rounded-full relative cursor-pointer panel-button">
-                      <div className="absolute left-0.5 top-0.5 w-4 h-4 bg-card rounded-full shadow-sm" />
+                    <div className="w-8 h-[18px] bg-muted/60 rounded-full relative cursor-pointer hover:bg-muted/80 transition-colors">
+                      <div className="absolute left-0.5 top-0.5 w-[14px] h-[14px] bg-card rounded-full shadow-sm" />
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Scrollable Content Area - Shows ALL conversation history for this model */}
-              <div className="flex-1 overflow-y-auto px-4 py-4 bg-card/50">
+              {/* Scrollable Content Area */}
+              <div className="flex-1 overflow-y-auto p-4">
                 {modelHistory[model]?.map((qa, qaIndex) => (
-                  <div key={qaIndex} className="mb-8 last:mb-4">
+                  <div key={qaIndex} className="mb-6 last:mb-0">
                     {/* User Question */}
                     {qa.userQuestion && (
-                      <div className="flex justify-end mb-4">
-                        <div className="max-w-[85%] rounded-[18px_18px_4px_18px] bg-gradient-to-br from-primary to-primary/80 text-primary-foreground px-4 py-3 shadow-[0_4px_16px_rgba(77,112,255,0.2)]">
-                          <p className="text-[15px] leading-[1.5] whitespace-pre-wrap break-words">
+                      <div className="flex justify-end mb-3">
+                        <div className="max-w-[85%] rounded-[16px_16px_4px_16px] bg-gradient-to-br from-primary to-primary/85 text-primary-foreground px-3.5 py-2.5 shadow-[0_2px_8px_rgba(77,112,255,0.2)]">
+                          <p className="text-[14px] leading-[1.5] whitespace-pre-wrap break-words">
                             {qa.userQuestion}
                           </p>
                         </div>
                       </div>
                     )}
 
-                    {/* AI Response */}
-                    <div className="text-[15px] leading-[1.6] text-foreground rounded-[18px_18px_18px_4px] glass-panel px-4 py-3">
-                      <ReactMarkdown
-                        components={{
-                          code({ inline, className, children, ...props }: any) {
-                            const match = /language-(\w+)/.exec(className || '');
-                            return !inline && match ? (
-                              <div className="my-3 rounded-lg overflow-hidden">
-                                <SyntaxHighlighter
-                                  style={vscDarkPlus}
-                                  language={match[1]}
-                                  PreTag="div"
-                                  {...props}
-                                >
-                                  {String(children).replace(/\n$/, '')}
-                                </SyntaxHighlighter>
-                              </div>
-                            ) : (
-                              <code className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono" {...props}>
-                                {children}
-                              </code>
-                            );
-                          },
-                          p: ({ children }) => <p className="mb-3 last:mb-0">{children}</p>,
-                          ul: ({ children }) => <ul className="list-disc list-inside mb-3 space-y-1">{children}</ul>,
-                          ol: ({ children }) => <ol className="list-decimal list-inside mb-3 space-y-1">{children}</ol>,
-                          h1: ({ children }) => <h1 className="text-xl font-bold mb-2">{children}</h1>,
-                          h2: ({ children }) => <h2 className="text-lg font-bold mb-2">{children}</h2>,
-                          h3: ({ children }) => <h3 className="text-base font-semibold mb-2">{children}</h3>,
-                        }}
-                      >
-                        {qa.aiResponse}
-                      </ReactMarkdown>
+                    {/* AI Response Card */}
+                    <div className="bg-muted/30 dark:bg-muted/20 rounded-[16px_16px_16px_4px] border border-border/30 overflow-hidden">
+                      <div className="px-3.5 py-3 text-[14px] leading-[1.6] text-foreground">
+                        <ReactMarkdown
+                          components={{
+                            code({ inline, className, children, ...props }: any) {
+                              const match = /language-(\w+)/.exec(className || '');
+                              return !inline && match ? (
+                                <div className="my-2 rounded-lg overflow-hidden">
+                                  <SyntaxHighlighter
+                                    style={vscDarkPlus}
+                                    language={match[1]}
+                                    PreTag="div"
+                                    {...props}
+                                  >
+                                    {String(children).replace(/\n$/, '')}
+                                  </SyntaxHighlighter>
+                                </div>
+                              ) : (
+                                <code className="bg-muted px-1 py-0.5 rounded text-[13px] font-mono" {...props}>
+                                  {children}
+                                </code>
+                              );
+                            },
+                            p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                            ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
+                            ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
+                            h1: ({ children }) => <h1 className="text-lg font-bold mb-2">{children}</h1>,
+                            h2: ({ children }) => <h2 className="text-base font-bold mb-2">{children}</h2>,
+                            h3: ({ children }) => <h3 className="text-sm font-semibold mb-1.5">{children}</h3>,
+                          }}
+                        >
+                          {qa.aiResponse}
+                        </ReactMarkdown>
+                      </div>
 
-                      {/* Action Buttons for each response */}
-                      <div className="flex items-center gap-1 mt-3 pt-3 border-t border-border/30">
+                      {/* Action Buttons */}
+                      <div className="flex items-center gap-0.5 px-2 py-2 border-t border-border/30 bg-muted/10">
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(qa.aiResponse);
                             toast({ description: 'Response copied', duration: 2000 });
                           }}
-                          className="p-2 rounded-lg panel-button"
+                          className="p-1.5 rounded-md hover:bg-muted/50 transition-colors"
                           title="Copy response"
                         >
-                          <Copy className="w-4 h-4 text-muted-foreground hover-icon" />
+                          <Copy className="w-3.5 h-3.5 text-muted-foreground" />
                         </button>
                         <button
-                          className="p-2 rounded-lg panel-button"
+                          className="p-1.5 rounded-md hover:bg-muted/50 transition-colors"
                           title="Good response"
                         >
-                          <ThumbsUp className="w-4 h-4 text-muted-foreground hover-icon" />
+                          <ThumbsUp className="w-3.5 h-3.5 text-muted-foreground" />
                         </button>
                         <button
-                          className="p-2 rounded-lg panel-button"
+                          className="p-1.5 rounded-md hover:bg-muted/50 transition-colors"
                           title="Bad response"
                         >
-                          <ThumbsDown className="w-4 h-4 text-muted-foreground hover-icon" />
+                          <ThumbsDown className="w-3.5 h-3.5 text-muted-foreground" />
                         </button>
                         <button
                           onClick={() => {
@@ -382,9 +386,9 @@ export const MultiModelResponse = ({ content, models, userQuestion, allMessages 
                             URL.revokeObjectURL(url);
                             toast({ description: 'Response downloaded', duration: 2000 });
                           }}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg panel-button text-xs text-muted-foreground ml-auto"
+                          className="flex items-center gap-1 px-2 py-1 rounded-md hover:bg-muted/50 transition-colors text-[12px] text-muted-foreground ml-auto"
                         >
-                          <Download className="w-4 h-4" />
+                          <Download className="w-3.5 h-3.5" />
                           <span>Download</span>
                         </button>
                       </div>
