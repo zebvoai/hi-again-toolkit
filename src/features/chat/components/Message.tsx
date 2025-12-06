@@ -117,7 +117,7 @@ export const Message = ({ message, onRetry, allMessages = [] }: MessageProps) =>
             className={`
               px-4 py-3 shadow-sm transition-all duration-150 hover:scale-[1.002]
               ${isUser 
-                ? 'rounded-[18px_18px_4px_18px] bg-gradient-to-br from-[#5B9FFF] to-[#4A8FFF] text-white shadow-[0_2px_6px_rgba(91,159,255,0.25)]' 
+                ? 'rounded-[18px_18px_4px_18px] bg-white text-foreground shadow-[0_2px_8px_rgba(0,0,0,0.08)] border border-border/50' 
                 : 'rounded-[18px_18px_18px_4px] bg-[#F0F0F0] text-[#1A1A1A]'
               }
             `}
