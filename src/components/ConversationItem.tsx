@@ -34,10 +34,10 @@ export const ConversationItem = ({
 
   return (
     <div
-      className={`group relative flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-150 ease-out overflow-hidden ${
+      className={`group relative flex items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer overflow-hidden transition-all duration-[220ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
         isActive 
-          ? 'bg-white border-l-[3px] border-[#5B9FFF] pl-2.5 shadow-sm' 
-          : 'hover:bg-[#F0F5FF] hover:border hover:border-[#E5E7EB] border-l-[3px] border-transparent'
+          ? 'bg-white border-l-[3px] border-primary pl-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.06)]' 
+          : 'hover:bg-accent/60 hover:translate-x-[2px] hover:shadow-[0_2px_6px_rgba(0,0,0,0.04)] border-l-[3px] border-transparent active:scale-[0.99] active:transition-[transform] active:duration-100'
       }`}
       onClick={onClick}
     >
@@ -56,7 +56,7 @@ export const ConversationItem = ({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-5 w-5 flex-shrink-0 text-muted-foreground hover:bg-accent transition-all duration-150 rounded"
+                className="h-6 w-6 flex-shrink-0 text-muted-foreground hover:bg-accent/80 hover:text-foreground transition-all duration-[180ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] rounded-md active:scale-[0.92]"
                 onClick={(e) => e.stopPropagation()}
                 aria-label="More options"
               >

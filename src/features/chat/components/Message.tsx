@@ -115,10 +115,10 @@ export const Message = ({ message, onRetry, allMessages = [] }: MessageProps) =>
           {/* Message bubble */}
           <div
             className={`
-              px-4 py-3 shadow-sm transition-all duration-150 hover:scale-[1.002]
+              px-4 py-3 shadow-sm transition-all duration-[220ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-[1.005] hover:shadow-md
               ${isUser 
-                ? 'rounded-[18px_18px_4px_18px] bg-gradient-to-br from-[#5B9FFF] to-[#4A8FFF] text-white shadow-[0_2px_6px_rgba(91,159,255,0.25)]' 
-                : 'rounded-[18px_18px_18px_4px] bg-[#F0F0F0] text-[#1A1A1A]'
+                ? 'rounded-[18px_18px_4px_18px] bg-gradient-to-br from-primary to-primary/90 text-primary-foreground shadow-[0_4px_12px_hsl(var(--primary)/0.2)]' 
+                : 'rounded-[18px_18px_18px_4px] bg-muted text-foreground hover:bg-muted/90'
               }
             `}
           >
@@ -206,7 +206,7 @@ export const Message = ({ message, onRetry, allMessages = [] }: MessageProps) =>
             <div className="flex items-center gap-2 mt-2 ml-0.5">
               <button
                 onClick={copyMessage}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] text-gray-500 hover:bg-gray-100 transition-colors"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] text-muted-foreground hover:bg-accent/80 hover:text-foreground transition-all duration-[180ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.95]"
               >
                 {copied ? (
                   <>
@@ -224,7 +224,7 @@ export const Message = ({ message, onRetry, allMessages = [] }: MessageProps) =>
               {message.metadata?.error && onRetry && (
                 <button
                   onClick={onRetry}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] text-gray-500 hover:bg-gray-100 transition-colors"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] text-muted-foreground hover:bg-accent/80 hover:text-foreground transition-all duration-[180ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.95]"
                 >
                   Retry
                 </button>
