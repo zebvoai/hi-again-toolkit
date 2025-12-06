@@ -125,21 +125,21 @@ export function ChatInterface() {
     })();
     return isTemporaryMode ? `${basePlaceholder} (Temporary Mode)` : basePlaceholder;
   };
-  return <div className="flex flex-col h-full relative bg-gray-50/50 overflow-hidden">
+  return <div className="flex flex-col h-full relative bg-background overflow-hidden">
       {/* Top Actions */}
       
 
       {/* Temporary Mode Banner */}
       {isTemporaryMode && <div className="px-4 pt-4">
-          <Alert className="bg-blue-50 border-blue-200 max-w-4xl mx-auto">
-            <AlertDescription className="text-blue-900 text-sm flex items-center gap-2">
+          <Alert className="glass-panel border-primary/20 max-w-4xl mx-auto">
+            <AlertDescription className="text-primary text-sm flex items-center gap-2">
               🕶️ <span className="font-medium">Temporary Chat Mode</span> — This conversation is private and won't be saved
             </AlertDescription>
           </Alert>
         </div>}
 
       {/* Messages Area */}
-      {messages.length > 0 ? <div className="flex-1 overflow-y-auto overflow-x-hidden py-8 bg-white">
+      {messages.length > 0 ? <div className="flex-1 overflow-y-auto overflow-x-hidden py-8 bg-card/50 backdrop-blur-sm">
           {messages.map((message, index) => {
             // Skip rendering user messages that precede multi-model responses
             if (message.role === 'user') {
@@ -214,7 +214,7 @@ export function ChatInterface() {
         </div>)}
 
       {/* Chat Input Area */}
-      <div className="flex-shrink-0 p-4 pb-6 bg-gray-50/50 border-t border-gray-100">
+      <div className="flex-shrink-0 p-4 pb-6 glass-panel border-t border-border/50">
         <div key={selectedMode} className="max-w-4xl mx-auto animate-scale-in">
           <form onSubmit={handleSubmit}>
             {/* Dropdowns Row - Keep above input */}
@@ -222,22 +222,22 @@ export function ChatInterface() {
               <ModeDropdown />
               {selectedMode !== 'video' && <ModelSelector values={selectedModels} onChange={setSelectedModels} disabled={isModelLocked} />}
               {isModelLocked && (
-                <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200 px-4 py-1.5">
-                  <div className="w-2 h-2 rounded-full bg-blue-500 mr-2" />
+                <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 px-4 py-1.5">
+                  <div className="w-2 h-2 rounded-full bg-primary mr-2" />
                   Model locked for this conversation
                 </Badge>
               )}
             </div>
 
             {/* File Attachments Preview */}
-            {attachedFiles.length > 0 && <div className="mb-3 p-3 bg-white rounded-2xl border border-gray-200">
+            {attachedFiles.length > 0 && <div className="mb-3 p-3 glass-panel rounded-[18px] border border-border/50">
                 <div className="flex flex-wrap gap-2">
-                  {attachedFiles.map((file, index) => <div key={index} className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 text-sm">
-                      <span className="text-gray-700 truncate max-w-[200px]">{file.name}</span>
-                      <span className="text-gray-400 text-xs">
+                  {attachedFiles.map((file, index) => <div key={index} className="flex items-center gap-2 bg-muted/50 rounded-xl px-3 py-2 text-sm">
+                      <span className="text-foreground truncate max-w-[200px]">{file.name}</span>
+                      <span className="text-muted-foreground text-xs">
                         ({(file.size / 1024).toFixed(1)} KB)
                       </span>
-                      <button type="button" onClick={() => handleRemoveFile(index)} className="text-gray-400 hover:text-gray-600 ml-1">
+                      <button type="button" onClick={() => handleRemoveFile(index)} className="text-muted-foreground hover:text-foreground ml-1 transition-colors duration-[180ms]">
                         ×
                       </button>
                     </div>)}
@@ -247,22 +247,22 @@ export function ChatInterface() {
             {/* Hidden File Input */}
             <input ref={fileInputRef} type="file" multiple accept="*/*" onChange={handleFileSelect} className="hidden" />
 
-            {/* New Input Bar Design */}
-            <div className="flex items-center w-full h-[60px] bg-[#F5F6FA] rounded-[50px] px-5 border-[0.5px] border-gray-300 shadow-[0_1px_2px_rgba(0,0,0,0.08)] focus-within:shadow-[0_0_0_1px_rgba(30,100,255,0.4)] focus-within:border-[#1E64FF] transition-all duration-200">
+            {/* Glass Input Bar */}
+            <div className="flex items-center w-full h-[60px] glass-panel-hover rounded-[50px] px-5 border border-border/50 focus-within:border-primary/50 focus-within:shadow-[0_0_0_3px_hsl(var(--primary)/0.1)] transition-all duration-[220ms] ease-[cubic-bezier(0.25,0.1,0.25,1)]">
               {/* Left Plus Button */}
-              <button type="button" onClick={triggerFileInput} className="flex-shrink-0 w-[42px] h-[42px] rounded-full bg-white flex items-center justify-center hover:bg-gray-50 transition-colors shadow-sm">
+              <button type="button" onClick={triggerFileInput} className="flex-shrink-0 w-[42px] h-[42px] rounded-full bg-card/80 backdrop-blur-sm flex items-center justify-center hover:bg-muted hover:scale-[1.05] active:scale-[0.95] transition-all duration-[180ms] shadow-sm border border-border/30">
                 <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-                  <path d="M10 4V16M4 10H16" stroke="#1E64FF" strokeWidth="2" strokeLinecap="round" />
+                  <path d="M10 4V16M4 10H16" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="round" />
                 </svg>
               </button>
 
               {/* Input Field */}
-              <input type="text" value={input} onChange={e => setInput(e.target.value)} placeholder="Ask to Zebvo ai" disabled={isLoading} className="flex-1 bg-transparent outline-none text-[17px] font-medium placeholder:text-[#6F7287] placeholder:font-medium disabled:opacity-50 px-4" maxLength={4000} />
+              <input type="text" value={input} onChange={e => setInput(e.target.value)} placeholder="Ask to Zebvo ai" disabled={isLoading} className="flex-1 bg-transparent outline-none text-[17px] font-medium placeholder:text-muted-foreground placeholder:font-medium disabled:opacity-50 px-4 text-foreground" maxLength={4000} />
 
               {/* Right Send Button */}
-              <button type={isLoading ? "button" : "submit"} onClick={isLoading ? cancelGeneration : undefined} disabled={!isLoading && (!input.trim() || selectedModels.length === 0)} className={`flex-shrink-0 w-[42px] h-[42px] rounded-full flex items-center justify-center transition-all ${isLoading ? 'bg-gray-700 hover:bg-gray-800 animate-pulse' : !input.trim() || selectedModels.length === 0 ? 'bg-white cursor-not-allowed' : 'bg-white hover:bg-gray-50 active:scale-95'}`}>
-                {isLoading ? <Square className="w-4 h-4 fill-white" /> : <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-                    <path d="M3 10L17 10M17 10L11 4M17 10L11 16" stroke="#6F7287" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <button type={isLoading ? "button" : "submit"} onClick={isLoading ? cancelGeneration : undefined} disabled={!isLoading && (!input.trim() || selectedModels.length === 0)} className={`flex-shrink-0 w-[42px] h-[42px] rounded-full flex items-center justify-center transition-all duration-[180ms] ease-[cubic-bezier(0.25,0.1,0.25,1)] ${isLoading ? 'bg-foreground hover:bg-foreground/90 animate-pulse' : !input.trim() || selectedModels.length === 0 ? 'bg-card/80 cursor-not-allowed border border-border/30' : 'bg-card/80 hover:bg-muted hover:scale-[1.05] active:scale-[0.95] border border-border/30'}`}>
+                {isLoading ? <Square className="w-4 h-4 fill-background" /> : <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                    <path d="M3 10L17 10M17 10L11 4M17 10L11 16" stroke="hsl(var(--muted-foreground))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>}
               </button>
             </div>
