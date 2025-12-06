@@ -68,7 +68,7 @@ export const Message = ({ message, onRetry, allMessages = [] }: MessageProps) =>
     // If it's multi-model image generation
     if (isImageMode) {
       return (
-        <div className="flex justify-start mb-4 animate-fade-in">
+        <div className="flex justify-start mb-4 animate-message-in-left">
           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-200 to-blue-300 flex items-center justify-center shadow-[0_2px_4px_rgba(0,0,0,0.08)] mr-2 flex-shrink-0">
             <span className="text-blue-700 font-semibold text-sm">Z</span>
           </div>
@@ -95,7 +95,7 @@ export const Message = ({ message, onRetry, allMessages = [] }: MessageProps) =>
   const contentString = typeof message.content === 'string' ? message.content : '';
   
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 animate-fade-in`}>
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 ${isUser ? 'animate-message-in-right' : 'animate-message-in-left'}`}>
       <div className={`flex ${isUser ? 'flex-row-reverse ml-auto' : 'flex-row'} max-w-[75%] gap-2`}>
         {/* Avatar for AI only */}
         {!isUser && (
