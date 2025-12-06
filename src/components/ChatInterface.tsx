@@ -191,7 +191,7 @@ export function ChatInterface() {
         </div>)}
 
       {/* Chat Input Area */}
-      <div className="flex-shrink-0 p-4 pb-6 bg-transparent backdrop-blur-sm">
+      <div className="sticky bottom-0 flex-shrink-0 p-4 pb-6 bg-background/80 backdrop-blur-xl border-t border-border/30 z-10">
         <div key={selectedMode} className="max-w-4xl mx-auto animate-scale-in">
           <form onSubmit={handleSubmit}>
             {/* Dropdowns Row - Keep above input */}
