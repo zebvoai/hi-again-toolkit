@@ -12,14 +12,12 @@ import { Badge } from '@/components/ui/badge';
 import { TopActions } from '@/components/TopActions';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useModels } from '@/features/chat/hooks/useModels';
-
 export function ChatInterface() {
   const [input, setInput] = useState('');
   const [isTemporaryMode, setIsTemporaryMode] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [isRecording, setIsRecording] = useState(false);
   const [isAttachmentClicked, setIsAttachmentClicked] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
   const {
     messages,
     sendMessage,
@@ -39,20 +37,6 @@ export function ChatInterface() {
   } = useModels();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  // Track scroll position for glassmorphism effect
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    const handleScroll = () => {
-      setIsScrolled(container.scrollTop > 20);
-    };
-
-    container.addEventListener('scroll', handleScroll);
-    return () => container.removeEventListener('scroll', handleScroll);
-  }, []);
 
   // Reset selected models when mode changes
   useEffect(() => {
@@ -140,6 +124,9 @@ export function ChatInterface() {
     return isTemporaryMode ? `${basePlaceholder} (Temporary Mode)` : basePlaceholder;
   };
   return <div className="flex flex-col h-full relative bg-background overflow-hidden">
+      {/* Top Actions */}
+      
+
       {/* Temporary Mode Banner */}
       {isTemporaryMode && <div className="px-4 pt-4">
           <Alert className="glass-panel border-primary/20 max-w-4xl mx-auto">
@@ -149,80 +136,66 @@ export function ChatInterface() {
           </Alert>
         </div>}
 
-      {/* Scrollable Content Area */}
-      <div 
-        ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto overflow-x-hidden pb-[180px]"
-      >
-        {/* Messages Area */}
-        {messages.length > 0 ? (
-          <div className="py-8 bg-gradient-to-b from-transparent via-primary/[0.02] to-transparent">
-            {messages.map((message, index) => {
-              // Skip rendering user messages that precede multi-model responses
-              if (message.role === 'user') {
-                const nextMessage = messages[index + 1];
-                const isNextMultiModel = nextMessage && nextMessage.role === 'assistant' && typeof nextMessage.content === 'object' && !Array.isArray(nextMessage.content) && nextMessage.metadata?.models?.length > 1;
+      {/* Messages Area */}
+      {messages.length > 0 ? <div className="flex-1 overflow-y-auto overflow-x-hidden py-8 bg-gradient-to-b from-transparent via-primary/[0.02] to-transparent">
+          {messages.map((message, index) => {
+        // Skip rendering user messages that precede multi-model responses
+        if (message.role === 'user') {
+          const nextMessage = messages[index + 1];
+          const isNextMultiModel = nextMessage && nextMessage.role === 'assistant' && typeof nextMessage.content === 'object' && !Array.isArray(nextMessage.content) && nextMessage.metadata?.models?.length > 1;
 
-                // Skip this user message - it will appear inside the multi-model columns
-                if (isNextMultiModel) {
-                  return null;
-                }
-              }
+          // Skip this user message - it will appear inside the multi-model columns
+          if (isNextMultiModel) {
+            return null;
+          }
+        }
 
-              // Check if this is a multi-model compare response
-              const isMultiModelResponse = message.role === 'assistant' && typeof message.content === 'object' && !Array.isArray(message.content) && message.metadata?.models?.length > 1;
+        // Check if this is a multi-model compare response
+        const isMultiModelResponse = message.role === 'assistant' && typeof message.content === 'object' && !Array.isArray(message.content) && message.metadata?.models?.length > 1;
 
-              // Multi-model responses get full width with all messages passed
-              if (isMultiModelResponse) {
-                return <div key={message.id} className="w-full">
-                        <Message message={message} allMessages={messages} onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')} />
-                      </div>;
-              }
+        // Multi-model responses get full width with all messages passed
+        if (isMultiModelResponse) {
+          return <div key={message.id} className="w-full">
+                  <Message message={message} allMessages={messages} onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')} />
+                </div>;
+        }
 
-              // Regular messages get constrained container
-              return <div key={message.id} className="max-w-[800px] mx-auto px-6">
-                      <Message message={message} allMessages={messages} onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')} />
-                    </div>;
-            })}
-            {isLoading && <div className="max-w-[800px] mx-auto px-6">
-                <TypingIndicator models={selectedModels} />
-              </div>}
-            <div ref={messagesEndRef} />
-          </div>
-        ) : (
-          /* Empty State */
-          <div className="h-full flex items-center justify-center px-4 min-h-[calc(100vh-280px)]">
-            <div className="text-center">
-              <h1 className="text-6xl font-bold text-blue-500 mb-3 animate-logo-entrance animate-float-gentle hover:scale-[1.02] transition-transform duration-300 cursor-default">
-                Zebvo AI
-              </h1>
-              <p className="text-muted-foreground text-base mb-6 animate-tagline-entrance">
-                The World's Greatest AI Platform
-              </p>
-              <div className="flex items-center justify-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-[#5B9FFF] animate-dot-pulse-wave" />
-                <div className="w-2 h-2 rounded-full bg-[#B8D4FF] animate-dot-pulse-wave" style={{
-              animationDelay: '0.2s'
-            }} />
-                <div className="w-2 h-2 rounded-full bg-[#B8D4FF] animate-dot-pulse-wave" style={{
-              animationDelay: '0.4s'
-            }} />
-              </div>
+        // Regular messages get constrained container
+        return <div key={message.id} className="max-w-[800px] mx-auto px-6">
+                <Message message={message} allMessages={messages} onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')} />
+              </div>;
+      })}
+          {isLoading && <div className="max-w-[800px] mx-auto px-6">
+              <TypingIndicator models={selectedModels} />
+            </div>}
+          <div ref={messagesEndRef} />
+        </div> : (/* Empty State */
+    <div className="flex-1 flex items-center justify-center px-4">
+          <div className="text-center">
+            <h1 className="text-6xl font-bold text-blue-500 mb-3 animate-logo-entrance animate-float-gentle hover:scale-[1.02] transition-transform duration-300 cursor-default">
+              Zebvo AI
+            </h1>
+            <p className="text-muted-foreground text-base mb-6 animate-tagline-entrance">
+              The World's Greatest AI Platform
+            </p>
+            <div className="flex items-center justify-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-[#5B9FFF] animate-dot-pulse-wave" />
+              <div className="w-2 h-2 rounded-full bg-[#B8D4FF] animate-dot-pulse-wave" style={{
+            animationDelay: '0.2s'
+          }} />
+              <div className="w-2 h-2 rounded-full bg-[#B8D4FF] animate-dot-pulse-wave" style={{
+            animationDelay: '0.4s'
+          }} />
             </div>
           </div>
-        )}
-      </div>
+        </div>)}
 
-      {/* Fixed Chat Input Area */}
-      <div className={`fixed bottom-0 left-0 right-0 z-50 p-4 pb-6 transition-all duration-300 ${
-        isScrolled 
-          ? 'bg-background/80 backdrop-blur-xl border-t border-border/50 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]' 
-          : 'bg-transparent'
-      }`}>
+      {/* Chat Input Area */}
+      <div className="flex-shrink-0 p-4 pb-6 bg-transparent backdrop-blur-sm">
         <div key={selectedMode} className="max-w-4xl mx-auto animate-scale-in">
           <form onSubmit={handleSubmit}>
             {/* Dropdowns Row - Keep above input */}
-            <div className="flex items-center justify-center gap-2.5 mb-3">
+            <div className="flex items-center gap-2.5 mb-3">
               <ModeDropdown />
               {selectedMode !== 'video' && <ModelSelector values={selectedModels} onChange={setSelectedModels} />}
             </div>
@@ -265,7 +238,11 @@ export function ChatInterface() {
               </button>
             </div>
           </form>
+
         </div>
       </div>
+
+      {/* Scroll to Top Button */}
+      
     </div>;
 }
