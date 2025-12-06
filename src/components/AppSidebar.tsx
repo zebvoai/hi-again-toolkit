@@ -391,11 +391,11 @@ export function AppSidebar() {
         </SidebarContent>
       </ScrollArea>
 
-      <SidebarFooter className="flex-none p-3 border-t border-border/20 mt-auto mb-4">
+      <SidebarFooter className="flex-none px-2 py-3 border-t border-border/20 mt-auto mb-4">
         <DropdownMenu open={isProfileDropdownOpen} onOpenChange={setIsProfileDropdownOpen}>
           <DropdownMenuTrigger asChild>
-            <div className="flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-black/[0.04] dark:hover:bg-white/[0.08] cursor-pointer transition-all duration-200">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#007AFF] to-[#5856D6] flex items-center justify-center flex-shrink-0 shadow-sm">
+            <div className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-black/[0.04] dark:hover:bg-white/[0.08] cursor-pointer transition-all duration-200 mx-1">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#007AFF] to-[#5856D6] flex items-center justify-center flex-shrink-0 shadow-sm">
                 <User className="w-4 h-4 text-white" />
               </div>
               <span className="text-[13px] font-medium flex-1 text-foreground truncate">user@example.com</span>
