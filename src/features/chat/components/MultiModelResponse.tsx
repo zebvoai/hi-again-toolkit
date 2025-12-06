@@ -47,16 +47,42 @@ export const MultiModelResponse = ({ content, models, userQuestion, allMessages 
           ? userMessage.content 
           : '';
 
-        // Add this Q&A pair to each model's history
-        Object.keys(message.content).forEach(model => {
-          if (modelHistory[model]) {
-            modelHistory[model].push({
-              userQuestion: userQ,
-              aiResponse: message.content[model] as string
-            });
-          }
+        // Add this Q&A pair to each model's history - use all models in the models array
+        models.forEach(model => {
+          const response = (message.content as MultiModelContent)[model];
+          // Include even empty responses with a placeholder message
+          modelHistory[model].push({
+            userQuestion: userQ,
+            aiResponse: response && response.trim() !== '' 
+              ? response 
+              : 'Generating response...'
+          });
         });
       }
+    }
+
+    // Also add the current content if it's not already in allMessages
+    const lastAssistant = allMessages[allMessages.length - 1];
+    const hasCurrentContent = lastAssistant?.role === 'assistant' && 
+      typeof lastAssistant.content === 'object' &&
+      lastAssistant.metadata?.models?.length > 1;
+    
+    if (!hasCurrentContent && Object.keys(content).length > 0) {
+      models.forEach(model => {
+        const response = content[model];
+        if (response !== undefined) {
+          // Check if we already have this response in history
+          const lastEntry = modelHistory[model]?.[modelHistory[model].length - 1];
+          if (!lastEntry || lastEntry.aiResponse !== response) {
+            modelHistory[model].push({
+              userQuestion: userQuestion,
+              aiResponse: response && response.trim() !== '' 
+                ? response 
+                : 'Generating response...'
+            });
+          }
+        }
+      });
     }
 
     return modelHistory;
