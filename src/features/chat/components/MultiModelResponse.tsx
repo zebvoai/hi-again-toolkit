@@ -245,7 +245,7 @@ export const MultiModelResponse = ({ content, models, userQuestion, allMessages 
   return (
     <div className="w-full overflow-hidden">
       {/* Toggle Button - Fixed top right with consistent spacing */}
-      <div className="flex justify-end mb-5 px-4">
+      <div className="flex justify-end mt-4 mb-6 px-4">
         <div className="glass-panel flex items-center gap-1 p-1">
           <button 
             onClick={() => setViewMode('single')}
