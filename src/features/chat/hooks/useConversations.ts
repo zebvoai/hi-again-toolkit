@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { generateConversationTitle } from '@/lib/generateTitle';
 import type { Message } from '@/types';
 
 export interface Conversation {
@@ -38,8 +39,8 @@ export const useConversations = () => {
 
   const createConversation = async (firstMessage: string): Promise<string | null> => {
     try {
-      // Create title from first message (max 50 chars)
-      const title = firstMessage.slice(0, 50) + (firstMessage.length > 50 ? '...' : '');
+      // Generate a short, meaningful title from first message
+      const title = generateConversationTitle(firstMessage);
       
       const { data, error } = await supabase
         .from('conversations')
