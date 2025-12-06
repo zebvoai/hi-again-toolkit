@@ -140,6 +140,48 @@ export const useConversations = () => {
     }
   };
 
+  const renameConversation = async (conversationId: string, newTitle: string) => {
+    try {
+      const { error } = await supabase
+        .from('conversations')
+        .update({ title: newTitle.trim() })
+        .eq('id', conversationId);
+
+      if (error) throw error;
+
+      await fetchConversations();
+      
+      toast({
+        description: 'Conversation renamed',
+      });
+    } catch (error) {
+      console.error('Error renaming conversation:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to rename conversation',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const shareConversation = async (conversationId: string) => {
+    try {
+      const shareUrl = `${window.location.origin}/chat/${conversationId}`;
+      await navigator.clipboard.writeText(shareUrl);
+      
+      toast({
+        description: 'Link copied to clipboard',
+      });
+    } catch (error) {
+      console.error('Error sharing conversation:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to copy share link',
+        variant: 'destructive',
+      });
+    }
+  };
+
   useEffect(() => {
     fetchConversations();
 
@@ -171,6 +213,8 @@ export const useConversations = () => {
     loadConversation,
     saveMessage,
     deleteConversation,
+    renameConversation,
+    shareConversation,
     refreshConversations: fetchConversations
   };
 };
