@@ -348,37 +348,48 @@ export const MultiModelResponse = ({ content, models, userQuestion, allMessages 
                       {/* AI Response Card - Consistent styling */}
                       <div className="bg-muted/30 dark:bg-muted/20 rounded-[16px_16px_16px_4px] border border-border/30 overflow-hidden">
                         <div className="px-4 py-3 text-[14px] leading-[1.6] text-foreground">
-                          <ReactMarkdown
-                            components={{
-                              code({ inline, className, children, ...props }: any) {
-                                const match = /language-(\w+)/.exec(className || '');
-                                return !inline && match ? (
-                                  <div className="my-2 rounded-lg overflow-hidden">
-                                    <SyntaxHighlighter
-                                      style={vscDarkPlus}
-                                      language={match[1]}
-                                      PreTag="div"
-                                      {...props}
-                                    >
-                                      {String(children).replace(/\n$/, '')}
-                                    </SyntaxHighlighter>
-                                  </div>
-                                ) : (
-                                  <code className="bg-muted px-1 py-0.5 rounded text-[13px] font-mono" {...props}>
-                                    {children}
-                                  </code>
-                                );
-                              },
-                              p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                              ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
-                              ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
-                              h1: ({ children }) => <h1 className="text-lg font-bold mb-2">{children}</h1>,
-                              h2: ({ children }) => <h2 className="text-base font-bold mb-2">{children}</h2>,
-                              h3: ({ children }) => <h3 className="text-sm font-semibold mb-1.5">{children}</h3>,
-                            }}
-                          >
-                            {qa.aiResponse}
-                          </ReactMarkdown>
+                          {qa.aiResponse === 'Generating response...' ? (
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <div className="flex gap-1">
+                                <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce [animation-delay:0ms]"></span>
+                                <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce [animation-delay:150ms]"></span>
+                                <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce [animation-delay:300ms]"></span>
+                              </div>
+                              <span className="text-sm">Generating response...</span>
+                            </div>
+                          ) : (
+                            <ReactMarkdown
+                              components={{
+                                code({ inline, className, children, ...props }: any) {
+                                  const match = /language-(\w+)/.exec(className || '');
+                                  return !inline && match ? (
+                                    <div className="my-2 rounded-lg overflow-hidden">
+                                      <SyntaxHighlighter
+                                        style={vscDarkPlus}
+                                        language={match[1]}
+                                        PreTag="div"
+                                        {...props}
+                                      >
+                                        {String(children).replace(/\n$/, '')}
+                                      </SyntaxHighlighter>
+                                    </div>
+                                  ) : (
+                                    <code className="bg-muted px-1 py-0.5 rounded text-[13px] font-mono" {...props}>
+                                      {children}
+                                    </code>
+                                  );
+                                },
+                                p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                                ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
+                                ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
+                                h1: ({ children }) => <h1 className="text-lg font-bold mb-2">{children}</h1>,
+                                h2: ({ children }) => <h2 className="text-base font-bold mb-2">{children}</h2>,
+                                h3: ({ children }) => <h3 className="text-sm font-semibold mb-1.5">{children}</h3>,
+                              }}
+                            >
+                              {qa.aiResponse}
+                            </ReactMarkdown>
+                          )}
                         </div>
 
                         {/* Action Buttons - Consistent spacing and alignment */}
