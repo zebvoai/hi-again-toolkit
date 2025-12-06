@@ -241,11 +241,11 @@ export const MultiModelResponse = ({ content, models, userQuestion, allMessages 
     );
   }
 
-  // Side by Side view (continuous vertical columns like AI Fiesta)
+  // Side by Side view (continuous vertical columns)
   return (
     <div className="w-full overflow-hidden">
-      {/* Toggle Button */}
-      <div className="flex justify-end mb-4 px-6">
+      {/* Toggle Button - Fixed top right with consistent spacing */}
+      <div className="flex justify-end mb-5 px-4">
         <div className="glass-panel flex items-center gap-1 p-1">
           <button 
             onClick={() => setViewMode('single')}
@@ -262,139 +262,146 @@ export const MultiModelResponse = ({ content, models, userQuestion, allMessages 
         </div>
       </div>
 
-      {/* Horizontal Scroll Container with Persistent Vertical Columns */}
-      <div className="overflow-x-auto scrollbar-hide px-6">
-        <div className="flex h-[calc(100vh-280px)] gap-5">
+      {/* Horizontal Scroll Container with Consistent Column Layout */}
+      <div className="overflow-x-auto scrollbar-hide px-4">
+        <div className="flex h-[calc(100vh-280px)] gap-4">
           {models.map((model) => (
             <div
               key={model}
-              className="flex-1 min-w-[320px] max-w-[400px] flex flex-col bg-card/80 dark:bg-card/40 rounded-2xl border border-border/50 shadow-[0_2px_12px_rgba(0,0,0,0.04)] overflow-hidden"
+              className="flex-1 min-w-[300px] max-w-[360px] flex flex-col bg-card/80 dark:bg-card/40 rounded-2xl border border-border/50 shadow-[0_2px_12px_rgba(0,0,0,0.04)] overflow-hidden"
             >
-              {/* Sticky Model Header */}
-              <div className="flex-shrink-0 px-4 py-3 border-b border-border/40 bg-card/60 dark:bg-card/30 backdrop-blur-sm">
-                <div className="flex items-center justify-between h-8">
-                  <div className="flex items-center gap-2.5">
-                    <div className="flex-shrink-0">
+              {/* Model Header - Fixed height for perfect alignment */}
+              <div className="flex-shrink-0 h-14 px-4 border-b border-border/40 bg-card/60 dark:bg-card/30 backdrop-blur-sm">
+                <div className="flex items-center justify-between h-full">
+                  {/* Left: Icon + Model Name */}
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className="w-6 h-6 flex-shrink-0 flex items-center justify-center">
                       {getProviderIcon(model)}
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-sm font-semibold text-foreground">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="text-sm font-semibold text-foreground truncate">
                         {formatModelName(model)}
                       </span>
-                      <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+                      <ChevronDown className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-2">
-                    <button className="p-1.5 rounded-lg hover:bg-muted/50 transition-colors" aria-label="Add">
+                  {/* Right: Add + Toggle - Fixed width for alignment */}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <button 
+                      className="w-7 h-7 rounded-lg hover:bg-muted/50 transition-colors flex items-center justify-center" 
+                      aria-label="Add"
+                    >
                       <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
                         <path d="M8 3V13M3 8H13" stroke="currentColor" className="text-muted-foreground" strokeWidth="1.5" strokeLinecap="round"/>
                       </svg>
                     </button>
-                    <div className="w-8 h-[18px] bg-muted/60 rounded-full relative cursor-pointer hover:bg-muted/80 transition-colors">
-                      <div className="absolute left-0.5 top-0.5 w-[14px] h-[14px] bg-card rounded-full shadow-sm" />
+                    <div className="w-9 h-5 bg-muted/60 rounded-full relative cursor-pointer hover:bg-muted/80 transition-colors">
+                      <div className="absolute left-0.5 top-0.5 w-4 h-4 bg-card rounded-full shadow-sm" />
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Scrollable Content Area */}
+              {/* Scrollable Content Area - Consistent padding */}
               <div className="flex-1 overflow-y-auto p-4">
-                {modelHistory[model]?.map((qa, qaIndex) => (
-                  <div key={qaIndex} className="mb-6 last:mb-0">
-                    {/* User Question */}
-                    {qa.userQuestion && (
-                      <div className="flex justify-end mb-3">
-                        <div className="max-w-[85%] rounded-[16px_16px_4px_16px] bg-gradient-to-br from-primary to-primary/85 text-primary-foreground px-3.5 py-2.5 shadow-[0_2px_8px_rgba(77,112,255,0.2)]">
-                          <p className="text-[14px] leading-[1.5] whitespace-pre-wrap break-words">
-                            {qa.userQuestion}
-                          </p>
+                <div className="space-y-5">
+                  {modelHistory[model]?.map((qa, qaIndex) => (
+                    <div key={qaIndex} className="space-y-3">
+                      {/* User Question - Right aligned */}
+                      {qa.userQuestion && (
+                        <div className="flex justify-end">
+                          <div className="max-w-[85%] rounded-[16px_16px_4px_16px] bg-gradient-to-br from-primary to-primary/85 text-primary-foreground px-4 py-2.5 shadow-[0_2px_8px_rgba(77,112,255,0.2)]">
+                            <p className="text-[14px] leading-[1.5] whitespace-pre-wrap break-words">
+                              {qa.userQuestion}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* AI Response Card - Consistent styling */}
+                      <div className="bg-muted/30 dark:bg-muted/20 rounded-[16px_16px_16px_4px] border border-border/30 overflow-hidden">
+                        <div className="px-4 py-3 text-[14px] leading-[1.6] text-foreground">
+                          <ReactMarkdown
+                            components={{
+                              code({ inline, className, children, ...props }: any) {
+                                const match = /language-(\w+)/.exec(className || '');
+                                return !inline && match ? (
+                                  <div className="my-2 rounded-lg overflow-hidden">
+                                    <SyntaxHighlighter
+                                      style={vscDarkPlus}
+                                      language={match[1]}
+                                      PreTag="div"
+                                      {...props}
+                                    >
+                                      {String(children).replace(/\n$/, '')}
+                                    </SyntaxHighlighter>
+                                  </div>
+                                ) : (
+                                  <code className="bg-muted px-1 py-0.5 rounded text-[13px] font-mono" {...props}>
+                                    {children}
+                                  </code>
+                                );
+                              },
+                              p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                              ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
+                              ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
+                              h1: ({ children }) => <h1 className="text-lg font-bold mb-2">{children}</h1>,
+                              h2: ({ children }) => <h2 className="text-base font-bold mb-2">{children}</h2>,
+                              h3: ({ children }) => <h3 className="text-sm font-semibold mb-1.5">{children}</h3>,
+                            }}
+                          >
+                            {qa.aiResponse}
+                          </ReactMarkdown>
+                        </div>
+
+                        {/* Action Buttons - Consistent spacing and alignment */}
+                        <div className="flex items-center gap-1 h-10 px-3 border-t border-border/30 bg-muted/10">
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(qa.aiResponse);
+                              toast({ description: 'Response copied', duration: 2000 });
+                            }}
+                            className="w-7 h-7 rounded-md hover:bg-muted/50 transition-colors flex items-center justify-center"
+                            title="Copy response"
+                          >
+                            <Copy className="w-3.5 h-3.5 text-muted-foreground" />
+                          </button>
+                          <button
+                            className="w-7 h-7 rounded-md hover:bg-muted/50 transition-colors flex items-center justify-center"
+                            title="Good response"
+                          >
+                            <ThumbsUp className="w-3.5 h-3.5 text-muted-foreground" />
+                          </button>
+                          <button
+                            className="w-7 h-7 rounded-md hover:bg-muted/50 transition-colors flex items-center justify-center"
+                            title="Bad response"
+                          >
+                            <ThumbsDown className="w-3.5 h-3.5 text-muted-foreground" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              const blob = new Blob([qa.aiResponse], { type: 'text/plain' });
+                              const url = URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = `${formatModelName(model)}-response-${qaIndex + 1}.txt`;
+                              document.body.appendChild(a);
+                              a.click();
+                              document.body.removeChild(a);
+                              URL.revokeObjectURL(url);
+                              toast({ description: 'Response downloaded', duration: 2000 });
+                            }}
+                            className="flex items-center gap-1.5 h-7 px-2.5 rounded-md hover:bg-muted/50 transition-colors text-[12px] text-muted-foreground ml-auto"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            <span>Download</span>
+                          </button>
                         </div>
                       </div>
-                    )}
-
-                    {/* AI Response Card */}
-                    <div className="bg-muted/30 dark:bg-muted/20 rounded-[16px_16px_16px_4px] border border-border/30 overflow-hidden">
-                      <div className="px-3.5 py-3 text-[14px] leading-[1.6] text-foreground">
-                        <ReactMarkdown
-                          components={{
-                            code({ inline, className, children, ...props }: any) {
-                              const match = /language-(\w+)/.exec(className || '');
-                              return !inline && match ? (
-                                <div className="my-2 rounded-lg overflow-hidden">
-                                  <SyntaxHighlighter
-                                    style={vscDarkPlus}
-                                    language={match[1]}
-                                    PreTag="div"
-                                    {...props}
-                                  >
-                                    {String(children).replace(/\n$/, '')}
-                                  </SyntaxHighlighter>
-                                </div>
-                              ) : (
-                                <code className="bg-muted px-1 py-0.5 rounded text-[13px] font-mono" {...props}>
-                                  {children}
-                                </code>
-                              );
-                            },
-                            p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                            ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
-                            ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
-                            h1: ({ children }) => <h1 className="text-lg font-bold mb-2">{children}</h1>,
-                            h2: ({ children }) => <h2 className="text-base font-bold mb-2">{children}</h2>,
-                            h3: ({ children }) => <h3 className="text-sm font-semibold mb-1.5">{children}</h3>,
-                          }}
-                        >
-                          {qa.aiResponse}
-                        </ReactMarkdown>
-                      </div>
-
-                      {/* Action Buttons */}
-                      <div className="flex items-center gap-0.5 px-2 py-2 border-t border-border/30 bg-muted/10">
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(qa.aiResponse);
-                            toast({ description: 'Response copied', duration: 2000 });
-                          }}
-                          className="p-1.5 rounded-md hover:bg-muted/50 transition-colors"
-                          title="Copy response"
-                        >
-                          <Copy className="w-3.5 h-3.5 text-muted-foreground" />
-                        </button>
-                        <button
-                          className="p-1.5 rounded-md hover:bg-muted/50 transition-colors"
-                          title="Good response"
-                        >
-                          <ThumbsUp className="w-3.5 h-3.5 text-muted-foreground" />
-                        </button>
-                        <button
-                          className="p-1.5 rounded-md hover:bg-muted/50 transition-colors"
-                          title="Bad response"
-                        >
-                          <ThumbsDown className="w-3.5 h-3.5 text-muted-foreground" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            const blob = new Blob([qa.aiResponse], { type: 'text/plain' });
-                            const url = URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = `${formatModelName(model)}-response-${qaIndex + 1}.txt`;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                            URL.revokeObjectURL(url);
-                            toast({ description: 'Response downloaded', duration: 2000 });
-                          }}
-                          className="flex items-center gap-1 px-2 py-1 rounded-md hover:bg-muted/50 transition-colors text-[12px] text-muted-foreground ml-auto"
-                        >
-                          <Download className="w-3.5 h-3.5" />
-                          <span>Download</span>
-                        </button>
-                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           ))}
