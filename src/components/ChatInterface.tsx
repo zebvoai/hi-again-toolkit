@@ -12,6 +12,8 @@ import { Badge } from '@/components/ui/badge';
 import { TopActions } from '@/components/TopActions';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useModels } from '@/features/chat/hooks/useModels';
+import { useSidebar } from '@/components/ui/sidebar';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export function ChatInterface() {
   const [input, setInput] = useState('');
@@ -19,6 +21,8 @@ export function ChatInterface() {
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [isRecording, setIsRecording] = useState(false);
   const [isAttachmentClicked, setIsAttachmentClicked] = useState(false);
+  const { state: sidebarState } = useSidebar();
+  const isMobile = useIsMobile();
   const {
     messages,
     sendMessage,
@@ -38,6 +42,9 @@ export function ChatInterface() {
   } = useModels();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Calculate sidebar offset for fixed input
+  const sidebarOffset = isMobile ? '0px' : (sidebarState === 'expanded' ? '16rem' : '3rem');
 
   // Reset selected models when mode changes
   useEffect(() => {
@@ -193,8 +200,11 @@ export function ChatInterface() {
         </div>
       )}
 
-      {/* Chat Input Area - Fixed at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 pb-6 bg-background/90 backdrop-blur-xl border-t border-border/30 z-50">
+      {/* Chat Input Area - Fixed at bottom, respects sidebar */}
+      <div 
+        className="fixed bottom-0 right-0 p-4 pb-6 bg-background/90 backdrop-blur-xl border-t border-border/30 z-40 transition-[left] duration-200 ease-linear"
+        style={{ left: sidebarOffset }}
+      >
         <div key={selectedMode} className="max-w-4xl mx-auto animate-scale-in">
           <form onSubmit={handleSubmit}>
             {/* Dropdowns Row - Keep above input */}
