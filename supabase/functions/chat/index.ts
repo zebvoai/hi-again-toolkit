@@ -10,9 +10,10 @@ interface Message {
   content: string;
 }
 
-// Model mapping helper
+// Model mapping helper - FIXED: Claude models use anthropic directly, Gemini uses lovable gateway
 const getModelMapping = (displayName: string): { apiModel: string, provider: string } => {
   const modelMapping: Record<string, { apiModel: string, provider: string }> = {
+    // OpenAI Models
     'GPT-5': { apiModel: 'gpt-5-2025-08-07', provider: 'openai' },
     'GPT-5 Mini': { apiModel: 'gpt-5-mini-2025-08-07', provider: 'openai' },
     'GPT-5 Nano': { apiModel: 'gpt-5-nano-2025-08-07', provider: 'openai' },
@@ -20,21 +21,25 @@ const getModelMapping = (displayName: string): { apiModel: string, provider: str
     'GPT-4.1 Mini': { apiModel: 'gpt-4.1-mini-2025-04-14', provider: 'openai' },
     'O3': { apiModel: 'o3-2025-04-16', provider: 'openai' },
     'O4 Mini': { apiModel: 'o4-mini-2025-04-16', provider: 'openai' },
+    
+    // Anthropic Models - ALL Claude models use anthropic provider directly
     'Claude Sonnet 4.5': { apiModel: 'claude-sonnet-4-5', provider: 'anthropic' },
     'Claude Opus 4.1': { apiModel: 'claude-opus-4-1-20250805', provider: 'anthropic' },
     'Claude Sonnet 4': { apiModel: 'claude-sonnet-4-20250514', provider: 'anthropic' },
-    'Claude Opus 4': { apiModel: 'anthropic/claude-opus-4', provider: 'openrouter' },
+    'Claude Opus 4': { apiModel: 'claude-opus-4', provider: 'anthropic' },
     'Claude 3.7 Sonnet': { apiModel: 'claude-3-7-sonnet-20250219', provider: 'anthropic' },
-    'Claude Haiku 3.5': { apiModel: 'anthropic/claude-3.5-haiku', provider: 'openrouter' },
-    'Claude Sonnet 3.5': { apiModel: 'anthropic/claude-3.5-sonnet', provider: 'openrouter' },
+    'Claude Haiku 3.5': { apiModel: 'claude-3-5-haiku-20241022', provider: 'anthropic' },
+    'Claude Sonnet 3.5': { apiModel: 'claude-3-5-sonnet-20241022', provider: 'anthropic' },
     'Claude 3.5 Haiku': { apiModel: 'claude-3-5-haiku-20241022', provider: 'anthropic' },
-    'Gemini 2.5 Pro': { apiModel: 'gemini-2.5-pro', provider: 'google' },
-    'Gemini 3 Pro': { apiModel: 'gemini-3-pro-preview', provider: 'google' },
-    'Gemini 2.5 Flash': { apiModel: 'gemini-2.5-flash', provider: 'google' },
-    'Gemini 2.5 Flash Lite': { apiModel: 'gemini-2.5-flash-lite', provider: 'google' },
-    'Gemini 1.5 Pro': { apiModel: 'gemini-1.5-pro', provider: 'google' },
-    'Gemini 1.5 Flash': { apiModel: 'gemini-1.5-flash', provider: 'google' },
-    'Gemini 2.0 Flash': { apiModel: 'gemini-2.0-flash-exp', provider: 'google' },
+    
+    // Google Models - ALL Gemini models use lovable gateway (avoids quota issues)
+    'Gemini 2.5 Pro': { apiModel: 'google/gemini-2.5-pro', provider: 'lovable' },
+    'Gemini 3 Pro': { apiModel: 'google/gemini-3-pro-preview', provider: 'lovable' },
+    'Gemini 2.5 Flash': { apiModel: 'google/gemini-2.5-flash', provider: 'lovable' },
+    'Gemini 2.5 Flash Lite': { apiModel: 'google/gemini-2.5-flash-lite', provider: 'lovable' },
+    'Gemini 2.0 Flash': { apiModel: 'google/gemini-2.5-flash', provider: 'lovable' }, // Map to 2.5 flash as fallback
+    
+    // OpenRouter Models
     'Qwen: Qwen Plus 0728': { apiModel: 'qwen/qwen-plus-2025-07-28', provider: 'openrouter' },
     'Qwen: Qwen Plus 0728 (thinking)': { apiModel: 'qwen/qwen-plus-2025-07-28:thinking', provider: 'openrouter' },
     'OpenAI: o3 Mini High': { apiModel: 'openai/o3-mini-high', provider: 'openrouter' },
@@ -60,62 +65,6 @@ const getModelMapping = (displayName: string): { apiModel: string, provider: str
   return modelMapping[displayName] || { apiModel: displayName, provider: 'openrouter' };
 };
 
-const SPECIAL_OPENROUTER_MODELS = new Set<string>([
-  'Claude Sonnet 4.5',
-  'Claude Opus 4.1',
-  'Claude Sonnet 4',
-  'Claude Opus 4',
-  'Claude Haiku 3.5',
-  'Claude Sonnet 3.5',
-  'Gemini 3 Pro',
-  'Gemini 1.5 Pro',
-  'Gemini 1.5 Flash',
-  'Gemini 2.0 Flash',
-  'Qwen: Qwen Plus 0728',
-  'Qwen: Qwen Plus 0728 (thinking)',
-  'OpenAI: o3 Mini High',
-  'OpenAI: o3 Mini',
-  'Cohere: Command R7B (12-2024)',
-  'Cohere: Command R+ (08-2024)',
-  'Cohere: Command R (08-2024)',
-  'OpenAI: GPT-4o Audio',
-  'OpenAI: GPT-4o-mini Search Preview',
-  'OpenAI: GPT-4o Search Preview',
-  'OpenAI: GPT-4 Turbo Preview',
-  'OpenAI: GPT-4 Turbo (older v1106)',
-  'Prime Intellect: INTELLECT-3',
-  'TNG: R1T Chimera',
-  'MoonshotAI: Kimi Linear 48B A3B Instruct',
-  'MoonshotAI: Kimi K2 Thinking',
-  'OpenAI: gpt-oss-safeguard-20b',
-  'MiniMax: MiniMax M2',
-]);
-
-// Helper to get actual OpenRouter model ID from display name
-const getOpenRouterModelId = async (displayName: string): Promise<string> => {
-  const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY');
-  if (!OPENROUTER_API_KEY) return displayName;
-  
-  try {
-    const response = await fetch('https://openrouter.ai/api/v1/models', {
-      headers: {
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-    });
-    
-    if (!response.ok) return displayName;
-    
-    const data = await response.json();
-    const model = data.data.find((m: any) => m.name === displayName);
-    
-    return model ? model.id : displayName;
-  } catch (error) {
-    console.error('Error fetching OpenRouter model ID:', error);
-    return displayName;
-  }
-};
-
 // Multi-model request handler
 async function handleMultiModelRequest(
   message: string,
@@ -133,167 +82,199 @@ async function handleMultiModelRequest(
           await Promise.all(models.map(async (modelName) => {
             const mapping = getModelMapping(modelName);
             const { apiModel, provider } = mapping;
-            const isSpecialOpenRouterModel = provider === 'openrouter' && SPECIAL_OPENROUTER_MODELS.has(modelName);
             
             let apiUrl = '';
             let apiKey = '';
             let headers: Record<string, string> = {};
             let body: any = {};
+            
             // Build mode gets a code-generation system prompt
             const systemPrompt = mode === 'build' 
               ? 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags.'
               : 'You are a helpful AI assistant.';
             
-            if (provider === 'openai') {
-              apiKey = Deno.env.get('OPENAI_API_KEY') || '';
-              if (!apiKey) throw new Error('OPENAI_API_KEY not configured');
-              
-              apiUrl = 'https://api.openai.com/v1/chat/completions';
-              headers = {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json'
-              };
-              
-              const messages = [
-                { role: 'system', content: systemPrompt },
-                ...conversationHistory.map(m => ({ role: m.role, content: m.content })),
-                { role: 'user', content: message }
-              ];
-              
-              body = { model: apiModel, messages, stream: true, max_completion_tokens: mode === 'build' ? 8192 : 4096 };
-            } else if (provider === 'anthropic') {
-              apiKey = Deno.env.get('ANTHROPIC_API_KEY') || '';
-              if (!apiKey) throw new Error('ANTHROPIC_API_KEY not configured');
-              
-              apiUrl = 'https://api.anthropic.com/v1/messages';
-              headers = {
-                'x-api-key': apiKey,
-                'anthropic-version': '2023-06-01',
-                'content-type': 'application/json'
-              };
-              
-              const messages = [
-                ...conversationHistory.filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content })),
-                { role: 'user', content: message }
-              ];
-              
-              body = { model: apiModel, messages, max_tokens: mode === 'build' ? 8192 : 4096 };
-              // Note: Anthropic streaming not implemented in multi-model yet
-            } else if (provider === 'google') {
-              apiKey = Deno.env.get('GOOGLE_API_KEY') || '';
-              if (!apiKey) throw new Error('GOOGLE_API_KEY not configured');
-              
-              apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${apiModel}:streamGenerateContent?alt=sse`;
-              headers = { 
-                'Content-Type': 'application/json',
-                'x-goog-api-key': apiKey
-              };
-              
-              const contents = conversationHistory.map(m => ({
-                role: m.role === 'assistant' ? 'model' : 'user',
-                parts: [{ text: m.content }]
-              }));
-              contents.push({ role: 'user', parts: [{ text: message }] });
-              
-              body = { contents };
-            } else if (provider === 'openrouter') {
-              apiKey = Deno.env.get('OPENROUTER_API_KEY') || '';
-              if (!apiKey) throw new Error('OPENROUTER_API_KEY not configured');
-              
-              // Use the mapped API model ID directly instead of looking it up
-              console.log(`[${modelName}] Using OpenRouter API model ID: ${apiModel}`);
-              
-              apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
-              headers = {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json',
-                'HTTP-Referer': 'https://lovable.dev',
-                'X-Title': 'Lovable AI'
-              };
-              
-              const messages = [
-                { role: 'system', content: systemPrompt },
-                ...conversationHistory.map(m => ({ role: m.role, content: m.content })),
-                { role: 'user', content: message }
-              ];
-              
-              body = { model: apiModel, messages, stream: true, max_tokens: mode === 'build' ? 4096 : 2048 };
-            }
-            
-            const response = await fetch(apiUrl, {
-              method: 'POST',
-              headers,
-              body: JSON.stringify(body)
-            });
-            
-            if (!response.ok) {
-              const errorText = await response.text();
-              let errorDetails;
-              try {
-                errorDetails = JSON.parse(errorText);
-              } catch {
-                errorDetails = { raw: errorText };
+            try {
+              if (provider === 'openai') {
+                apiKey = Deno.env.get('OPENAI_API_KEY') || '';
+                if (!apiKey) throw new Error('OPENAI_API_KEY not configured');
+                
+                apiUrl = 'https://api.openai.com/v1/chat/completions';
+                headers = {
+                  'Authorization': `Bearer ${apiKey}`,
+                  'Content-Type': 'application/json'
+                };
+                
+                const messages = [
+                  { role: 'system', content: systemPrompt },
+                  ...conversationHistory.map(m => ({ role: m.role, content: m.content })),
+                  { role: 'user', content: message }
+                ];
+                
+                body = { model: apiModel, messages, stream: true, max_completion_tokens: mode === 'build' ? 8192 : 4096 };
+              } else if (provider === 'anthropic') {
+                apiKey = Deno.env.get('ANTHROPIC_API_KEY') || '';
+                if (!apiKey) throw new Error('ANTHROPIC_API_KEY not configured');
+                
+                apiUrl = 'https://api.anthropic.com/v1/messages';
+                headers = {
+                  'x-api-key': apiKey,
+                  'anthropic-version': '2023-06-01',
+                  'content-type': 'application/json'
+                };
+                
+                const messages = [
+                  ...conversationHistory.filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content })),
+                  { role: 'user', content: message }
+                ];
+                
+                body = { 
+                  model: apiModel, 
+                  messages, 
+                  max_tokens: mode === 'build' ? 8192 : 4096,
+                  system: systemPrompt
+                };
+              } else if (provider === 'lovable') {
+                // Lovable AI Gateway for Gemini models
+                apiKey = Deno.env.get('LOVABLE_API_KEY') || '';
+                if (!apiKey) throw new Error('LOVABLE_API_KEY not configured');
+                
+                apiUrl = 'https://ai.gateway.lovable.dev/v1/chat/completions';
+                headers = {
+                  'Authorization': `Bearer ${apiKey}`,
+                  'Content-Type': 'application/json'
+                };
+                
+                const messages = [
+                  { role: 'system', content: systemPrompt },
+                  ...conversationHistory.map(m => ({ role: m.role, content: m.content })),
+                  { role: 'user', content: message }
+                ];
+                
+                body = { model: apiModel, messages, stream: true };
+              } else if (provider === 'google') {
+                apiKey = Deno.env.get('GOOGLE_API_KEY') || '';
+                if (!apiKey) throw new Error('GOOGLE_API_KEY not configured');
+                
+                apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${apiModel}:streamGenerateContent?alt=sse`;
+                headers = { 
+                  'Content-Type': 'application/json',
+                  'x-goog-api-key': apiKey
+                };
+                
+                const contents = conversationHistory.map(m => ({
+                  role: m.role === 'assistant' ? 'model' : 'user',
+                  parts: [{ text: m.content }]
+                }));
+                contents.push({ role: 'user', parts: [{ text: message }] });
+                
+                body = { contents };
+              } else if (provider === 'openrouter') {
+                apiKey = Deno.env.get('OPENROUTER_API_KEY') || '';
+                if (!apiKey) throw new Error('OPENROUTER_API_KEY not configured');
+                
+                console.log(`[${modelName}] Using OpenRouter API model ID: ${apiModel}`);
+                
+                apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
+                headers = {
+                  'Authorization': `Bearer ${apiKey}`,
+                  'Content-Type': 'application/json',
+                  'HTTP-Referer': 'https://lovable.dev',
+                  'X-Title': 'Lovable AI'
+                };
+                
+                const messages = [
+                  { role: 'system', content: systemPrompt },
+                  ...conversationHistory.map(m => ({ role: m.role, content: m.content })),
+                  { role: 'user', content: message }
+                ];
+                
+                body = { model: apiModel, messages, stream: true, max_tokens: mode === 'build' ? 4096 : 2048 };
+              } else {
+                throw new Error(`Unsupported provider: ${provider}`);
               }
+              
+              console.log(`[${modelName}] Calling ${provider} with model ${apiModel}`);
+              
+              const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(body)
+              });
+              
+              if (!response.ok) {
+                const errorText = await response.text();
+                let errorDetails;
+                try {
+                  errorDetails = JSON.parse(errorText);
+                } catch {
+                  errorDetails = { raw: errorText };
+                }
 
-              console.error(`[FAIL] ${modelName} (${provider}/${apiModel}):`, JSON.stringify({
-                status: response.status,
-                error: errorDetails,
-                isSpecialModel: isSpecialOpenRouterModel
-              }));
+                console.error(`[FAIL] ${modelName} (${provider}/${apiModel}):`, JSON.stringify({
+                  status: response.status,
+                  error: errorDetails
+                }));
 
-              if (isSpecialOpenRouterModel) {
                 const fallbackContent = 'The model could not generate a response at the moment. Please try again.';
                 const sseData = `data: ${JSON.stringify({ model: modelName, content: fallbackContent, error: true })}\n\n`;
                 controller.enqueue(encoder.encode(sseData));
+                return;
               }
-
-              return;
-            }
-            
-            const reader = response.body?.getReader();
-            if (!reader) return;
-            
-            const decoder = new TextDecoder();
-            let buffer = '';
-            
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
               
-              buffer += decoder.decode(value, { stream: true });
-              const lines = buffer.split('\n');
-              buffer = lines.pop() || '';
+              // Handle non-streaming Anthropic responses
+              if (provider === 'anthropic') {
+                const data = await response.json();
+                const content = data.content?.[0]?.text || 'No response generated.';
+                const sseData = `data: ${JSON.stringify({ model: modelName, content })}\n\n`;
+                controller.enqueue(encoder.encode(sseData));
+                return;
+              }
               
-              for (const line of lines) {
-                if (line.startsWith('data: ')) {
-                  const data = line.slice(6).trim();
-                  if (data === '[DONE]') continue;
-                  
-                  try {
-                    let content = '';
+              const reader = response.body?.getReader();
+              if (!reader) return;
+              
+              const decoder = new TextDecoder();
+              let buffer = '';
+              
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
+                
+                for (const line of lines) {
+                  if (line.startsWith('data: ')) {
+                    const data = line.slice(6).trim();
+                    if (data === '[DONE]') continue;
                     
-                    if (provider === 'openai' || provider === 'openrouter') {
-                      const parsed = JSON.parse(data);
-                      content = parsed.choices?.[0]?.delta?.content || '';
-                    } else if (provider === 'anthropic') {
-                      const parsed = JSON.parse(data);
-                      if (parsed.type === 'content_block_delta') {
-                        content = parsed.delta?.text || '';
+                    try {
+                      let content = '';
+                      
+                      if (provider === 'openai' || provider === 'openrouter' || provider === 'lovable') {
+                        const parsed = JSON.parse(data);
+                        content = parsed.choices?.[0]?.delta?.content || '';
+                      } else if (provider === 'google') {
+                        const parsed = JSON.parse(data);
+                        content = parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
                       }
-                    } else if (provider === 'google') {
-                      const parsed = JSON.parse(data);
-                      content = parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                      
+                      if (content) {
+                        const sseData = `data: ${JSON.stringify({ model: modelName, content })}\n\n`;
+                        controller.enqueue(encoder.encode(sseData));
+                      }
+                    } catch (e) {
+                      // Skip invalid JSON
                     }
-                    
-                    if (content) {
-                      const sseData = `data: ${JSON.stringify({ model: modelName, content })}\n\n`;
-                      controller.enqueue(encoder.encode(sseData));
-                    }
-                  } catch (e) {
-                    // Skip invalid JSON
                   }
                 }
               }
+            } catch (error) {
+              console.error(`[ERROR] ${modelName}:`, error);
+              const fallbackContent = 'The model could not generate a response at the moment. Please try again.';
+              const sseData = `data: ${JSON.stringify({ model: modelName, content: fallbackContent, error: true })}\n\n`;
+              controller.enqueue(encoder.encode(sseData));
             }
           }));
           
@@ -373,7 +354,7 @@ serve(async (req) => {
       return await handleMultiModelRequest(message, models, conversationHistory, stream, mode);
     }
     
-    // Map display names to actual API model names
+    // Map display names to actual API model names - SYNCED with getModelMapping
     const modelMapping: Record<string, { api: string, provider: string }> = {
       // OpenAI Models
       'GPT-5': { api: 'gpt-5-2025-08-07', provider: 'openai' },
@@ -384,18 +365,22 @@ serve(async (req) => {
       'O3': { api: 'o3-2025-04-16', provider: 'openai' },
       'O4 Mini': { api: 'o4-mini-2025-04-16', provider: 'openai' },
       
-      // Anthropic Models
+      // Anthropic Models - ALL Claude models use anthropic provider directly
       'Claude Sonnet 4.5': { api: 'claude-sonnet-4-5', provider: 'anthropic' },
       'Claude Opus 4.1': { api: 'claude-opus-4-1-20250805', provider: 'anthropic' },
       'Claude Sonnet 4': { api: 'claude-sonnet-4-20250514', provider: 'anthropic' },
+      'Claude Opus 4': { api: 'claude-opus-4', provider: 'anthropic' },
       'Claude 3.7 Sonnet': { api: 'claude-3-7-sonnet-20250219', provider: 'anthropic' },
+      'Claude Haiku 3.5': { api: 'claude-3-5-haiku-20241022', provider: 'anthropic' },
+      'Claude Sonnet 3.5': { api: 'claude-3-5-sonnet-20241022', provider: 'anthropic' },
       'Claude 3.5 Haiku': { api: 'claude-3-5-haiku-20241022', provider: 'anthropic' },
       
-      // Google Models
-      'Gemini 2.5 Pro': { api: 'gemini-2.5-pro', provider: 'google' },
-      'Gemini 3 Pro': { api: 'gemini-3-pro-preview', provider: 'google' },
-      'Gemini 2.5 Flash': { api: 'gemini-2.5-flash', provider: 'google' },
-      'Gemini 2.5 Flash Lite': { api: 'gemini-2.5-flash-lite', provider: 'google' }
+      // Google Models - ALL Gemini models use lovable gateway
+      'Gemini 2.5 Pro': { api: 'google/gemini-2.5-pro', provider: 'lovable' },
+      'Gemini 3 Pro': { api: 'google/gemini-3-pro-preview', provider: 'lovable' },
+      'Gemini 2.5 Flash': { api: 'google/gemini-2.5-flash', provider: 'lovable' },
+      'Gemini 2.5 Flash Lite': { api: 'google/gemini-2.5-flash-lite', provider: 'lovable' },
+      'Gemini 2.0 Flash': { api: 'google/gemini-2.5-flash', provider: 'lovable' }
     };
     
     // Determine actual model and provider
@@ -415,7 +400,7 @@ serve(async (req) => {
       } else if (requestedModel.startsWith('claude')) {
         selectedProvider = 'anthropic';
       } else if (requestedModel.includes('gemini')) {
-        selectedProvider = 'google';
+        selectedProvider = 'lovable'; // Use lovable for all Gemini
       } else {
         // Default to OpenRouter for unknown models
         selectedProvider = 'openrouter';
@@ -432,6 +417,11 @@ serve(async (req) => {
     let headers: Record<string, string> = {};
     let body: any = {};
     
+    // Build mode gets a code-generation system prompt
+    const systemPrompt = mode === 'build' 
+      ? 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags.'
+      : 'You are a helpful AI assistant.';
+    
     if (selectedProvider === 'openai') {
       apiKey = Deno.env.get('OPENAI_API_KEY');
       if (!apiKey) {
@@ -444,11 +434,6 @@ serve(async (req) => {
         'Content-Type': 'application/json'
       };
       
-      // Build mode gets a code-generation system prompt
-      const systemPrompt = mode === 'build' 
-        ? 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags.'
-        : 'You are a helpful AI assistant.';
-      
       const messages = [
         { role: 'system', content: systemPrompt },
         ...conversationHistory.map(m => ({ role: m.role, content: m.content })),
@@ -458,7 +443,7 @@ serve(async (req) => {
       body = {
         model,
         messages,
-        max_completion_tokens: mode === 'build' ? 8192 : 4096, // More tokens for code generation
+        max_completion_tokens: mode === 'build' ? 8192 : 4096,
         stream
       };
     } else if (selectedProvider === 'anthropic') {
@@ -482,8 +467,32 @@ serve(async (req) => {
       body = {
         model,
         messages,
-        max_tokens: mode === 'build' ? 8192 : 4096 // More tokens for code generation
-        // Note: Anthropic streaming not implemented yet, keep non-streaming
+        max_tokens: mode === 'build' ? 8192 : 4096,
+        system: systemPrompt
+      };
+    } else if (selectedProvider === 'lovable') {
+      // Lovable AI Gateway for Gemini models
+      apiKey = Deno.env.get('LOVABLE_API_KEY');
+      if (!apiKey) {
+        throw new Error('LOVABLE_API_KEY not configured');
+      }
+      
+      apiUrl = 'https://ai.gateway.lovable.dev/v1/chat/completions';
+      headers = {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      };
+      
+      const messages = [
+        { role: 'system', content: systemPrompt },
+        ...conversationHistory.map(m => ({ role: m.role, content: m.content })),
+        { role: 'user', content: message }
+      ];
+      
+      body = {
+        model,
+        messages,
+        stream
       };
     } else if (selectedProvider === 'google') {
       apiKey = Deno.env.get('GOOGLE_API_KEY');
@@ -521,10 +530,6 @@ serve(async (req) => {
         'X-Title': 'Lovable AI'
       };
       
-      const systemPrompt = mode === 'build' 
-        ? 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags.'
-        : 'You are a helpful AI assistant.';
-      
       const messages = [
         { role: 'system', content: systemPrompt },
         ...conversationHistory.map(m => ({ role: m.role, content: m.content })),
@@ -559,7 +564,7 @@ serve(async (req) => {
     }
     
     // Handle streaming response
-    if (stream && (selectedProvider === 'openai' || selectedProvider === 'openrouter')) {
+    if (stream && (selectedProvider === 'openai' || selectedProvider === 'openrouter' || selectedProvider === 'lovable')) {
       const encoder = new TextEncoder();
       const readable = new ReadableStream({
         async start(controller) {
@@ -630,7 +635,7 @@ serve(async (req) => {
         throw new Error(`Invalid response from ${selectedProvider}`);
       }
       content = data.choices[0].message.content;
-    } else if (selectedProvider === 'openrouter') {
+    } else if (selectedProvider === 'openrouter' || selectedProvider === 'lovable') {
       const choice = data.choices?.[0];
       content =
         choice?.message?.content ??
@@ -638,7 +643,7 @@ serve(async (req) => {
         choice?.text ??
         '';
       if (!content) {
-        console.error('Invalid OpenRouter response:', data);
+        console.error('Invalid response:', data);
         content = 'The model could not generate a response at the moment. Please try again.';
       }
     } else if (selectedProvider === 'anthropic') {
