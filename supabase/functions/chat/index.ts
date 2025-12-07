@@ -22,13 +22,13 @@ const getModelMapping = (displayName: string): { apiModel: string, provider: str
     'O3': { apiModel: 'o3-2025-04-16', provider: 'openai' },
     'O4 Mini': { apiModel: 'o4-mini-2025-04-16', provider: 'openai' },
     
-    // Anthropic Models (direct API) - Using correct model IDs
-    'Claude Sonnet 4.5': { apiModel: 'claude-sonnet-4-5-20241022', provider: 'anthropic' },
+    // Anthropic Models (direct API) - Using correct model IDs per Anthropic docs
+    'Claude Sonnet 4.5': { apiModel: 'claude-sonnet-4-5', provider: 'anthropic' },
     'Claude Opus 4.1': { apiModel: 'claude-opus-4-1-20250805', provider: 'anthropic' },
     'Claude Sonnet 4': { apiModel: 'claude-sonnet-4-20250514', provider: 'anthropic' },
     'Claude Opus 4': { apiModel: 'claude-opus-4-20250514', provider: 'anthropic' },
-    'Claude Haiku 3.5': { apiModel: 'claude-3-5-haiku-latest', provider: 'anthropic' },
-    'Claude Sonnet 3.5': { apiModel: 'claude-3-5-sonnet-latest', provider: 'anthropic' },
+    'Claude Haiku 3.5': { apiModel: 'claude-3-5-haiku-20241022', provider: 'anthropic' },
+    'Claude Sonnet 3.5': { apiModel: 'claude-3-5-sonnet-20241022', provider: 'anthropic' },
     
     // Google Models (via Lovable AI Gateway)
     'Gemini 2.5 Pro': { apiModel: 'google/gemini-2.5-pro', provider: 'lovable' },
@@ -52,14 +52,12 @@ const getModelMapping = (displayName: string): { apiModel: string, provider: str
     // Qwen
     'Qwen 3 235B': { apiModel: 'qwen/qwen3-235b-a22b', provider: 'openrouter' },
     'Qwen 3 32B': { apiModel: 'qwen/qwen3-32b', provider: 'openrouter' },
-    'Qwen 3 Coder': { apiModel: 'qwen/qwen3-coder', provider: 'openrouter' },
+    'Qwen 3 Coder': { apiModel: 'qwen/qwen3-coder-480b-a35b', provider: 'openrouter' },
     'Qwen 2.5 72B': { apiModel: 'qwen/qwen-2.5-72b-instruct', provider: 'openrouter' },
-    'Qwen QwQ 32B': { apiModel: 'qwen/qwq-32b', provider: 'openrouter' },
     
     // Mistral
     'Mistral Large': { apiModel: 'mistralai/mistral-large-2411', provider: 'openrouter' },
     'Mistral Medium': { apiModel: 'mistralai/mistral-medium-3', provider: 'openrouter' },
-    'Codestral': { apiModel: 'mistralai/codestral-2501', provider: 'openrouter' },
     'Mistral Nemo': { apiModel: 'mistralai/mistral-nemo', provider: 'openrouter' },
     
     // Meta Llama
@@ -80,10 +78,6 @@ const getModelMapping = (displayName: string): { apiModel: string, provider: str
     'Perplexity Sonar Pro': { apiModel: 'perplexity/sonar-pro', provider: 'openrouter' },
     'Perplexity Sonar': { apiModel: 'perplexity/sonar', provider: 'openrouter' },
     
-    // AI21
-    'Jamba 1.6 Large': { apiModel: 'ai21/jamba-1.6-large', provider: 'openrouter' },
-    'Jamba 1.6 Mini': { apiModel: 'ai21/jamba-1.6-mini', provider: 'openrouter' },
-    
     // Microsoft
     'Phi 4': { apiModel: 'microsoft/phi-4', provider: 'openrouter' },
     'Phi 4 Reasoning': { apiModel: 'microsoft/phi-4-reasoning-plus', provider: 'openrouter' },
@@ -93,9 +87,6 @@ const getModelMapping = (displayName: string): { apiModel: string, provider: str
     
     // Google via OpenRouter
     'Gemma 3 27B': { apiModel: 'google/gemma-3-27b-it', provider: 'openrouter' },
-    
-    // Alibaba
-    'Marco o1': { apiModel: 'alibaba/marco-o1', provider: 'openrouter' },
   };
   
   // If in mapping, use it
