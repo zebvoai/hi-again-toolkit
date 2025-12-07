@@ -92,22 +92,25 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
 
     return (
       <div className="w-full space-y-3">
-        {/* Toggle Button */}
-        <div className="flex justify-end">
-          <div className="glass-panel flex items-center gap-1 p-1">
+        {/* Toggle Button - LEFT ALIGNED for consistency */}
+        <div className="flex items-center justify-start gap-3 px-6">
+          <div className="flex items-center gap-0.5 p-0.5 bg-muted/30 rounded-lg border border-border/20">
             <button 
               onClick={() => setViewMode('single')}
-              className="px-4 py-2 rounded-[14px] text-xs font-medium bg-card text-foreground shadow-sm apple-interactive"
+              className="px-3 py-1.5 rounded-md text-[11px] font-medium bg-card text-foreground shadow-sm"
             >
               Single
             </button>
             <button 
               onClick={() => setViewMode('sideBySide')}
-              className="px-4 py-2 rounded-[14px] text-xs font-medium text-muted-foreground hover:text-foreground panel-button"
+              className="px-3 py-1.5 rounded-md text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
               Compare
             </button>
           </div>
+          <span className="text-[11px] text-muted-foreground/60">
+            {currentIndex + 1} of {models.length} model{models.length > 1 ? 's' : ''}
+          </span>
         </div>
 
         {/* Single Model Response */}
