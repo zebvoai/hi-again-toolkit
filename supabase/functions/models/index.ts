@@ -22,7 +22,8 @@ interface OpenRouterModel {
   };
 }
 
-async function fetchOpenRouterModels(): Promise<string[]> {
+// Returns array of { displayName, apiId } for OpenRouter models
+async function fetchOpenRouterModels(): Promise<{ displayName: string; apiId: string }[]> {
   const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY');
   
   if (!OPENROUTER_API_KEY) {
@@ -117,7 +118,7 @@ async function fetchOpenRouterModels(): Promise<string[]> {
       })
       .sort((a, b) => b.score - a.score)
       .slice(0, 20)
-      .map(model => model.name);
+      .map(model => ({ displayName: model.name, apiId: model.id }));
 
     return filteredModels;
   } catch (error) {
@@ -125,6 +126,9 @@ async function fetchOpenRouterModels(): Promise<string[]> {
     return [];
   }
 }
+
+// Store OpenRouter model mappings globally so chat function can access them
+let openRouterModelMap: Record<string, string> = {};
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -157,13 +161,22 @@ serve(async (req) => {
       'Gemini 2.0 Flash',
     ];
     
-    // Fetch and append OpenRouter models
+    // Fetch and append OpenRouter models (returns { displayName, apiId })
     const openRouterModels = await fetchOpenRouterModels();
     
-    // Combine: base models + OpenRouter models (remove duplicates)
-    const allTextModels = [...new Set([...baseModels, ...openRouterModels])];
+    // Build mapping of display name -> API ID for OpenRouter models
+    openRouterModelMap = {};
+    for (const model of openRouterModels) {
+      openRouterModelMap[model.displayName] = model.apiId;
+    }
+    
+    // Combine: base models + OpenRouter display names (remove duplicates)
+    const openRouterDisplayNames = openRouterModels.map(m => m.displayName);
+    const allTextModels = [...new Set([...baseModels, ...openRouterDisplayNames])];
     
     const availableModels = {
+      // Include the mapping so chat function can use it
+      _openRouterModelMap: openRouterModelMap,
       text: allTextModels,
       image: [
         // OpenAI Models
