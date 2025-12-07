@@ -22,14 +22,12 @@ const OPENROUTER_MODELS: { displayName: string; apiId: string }[] = [
   // Qwen - High quality Chinese AI models
   { displayName: 'Qwen 3 235B', apiId: 'qwen/qwen3-235b-a22b' },
   { displayName: 'Qwen 3 32B', apiId: 'qwen/qwen3-32b' },
-  { displayName: 'Qwen 3 Coder', apiId: 'qwen/qwen3-coder' },
+  { displayName: 'Qwen 3 Coder', apiId: 'qwen/qwen3-coder-480b-a35b' },
   { displayName: 'Qwen 2.5 72B', apiId: 'qwen/qwen-2.5-72b-instruct' },
-  { displayName: 'Qwen QwQ 32B', apiId: 'qwen/qwq-32b' },
   
   // Mistral - Strong European AI
   { displayName: 'Mistral Large', apiId: 'mistralai/mistral-large-2411' },
   { displayName: 'Mistral Medium', apiId: 'mistralai/mistral-medium-3' },
-  { displayName: 'Codestral', apiId: 'mistralai/codestral-2501' },
   { displayName: 'Mistral Nemo', apiId: 'mistralai/mistral-nemo' },
   
   // Meta Llama - Open source excellence
@@ -50,10 +48,6 @@ const OPENROUTER_MODELS: { displayName: string; apiId: string }[] = [
   { displayName: 'Perplexity Sonar Pro', apiId: 'perplexity/sonar-pro' },
   { displayName: 'Perplexity Sonar', apiId: 'perplexity/sonar' },
   
-  // AI21 - Jamba models
-  { displayName: 'Jamba 1.6 Large', apiId: 'ai21/jamba-1.6-large' },
-  { displayName: 'Jamba 1.6 Mini', apiId: 'ai21/jamba-1.6-mini' },
-  
   // Microsoft - Phi models
   { displayName: 'Phi 4', apiId: 'microsoft/phi-4' },
   { displayName: 'Phi 4 Reasoning', apiId: 'microsoft/phi-4-reasoning-plus' },
@@ -63,9 +57,6 @@ const OPENROUTER_MODELS: { displayName: string; apiId: string }[] = [
   
   // Google via OpenRouter
   { displayName: 'Gemma 3 27B', apiId: 'google/gemma-3-27b-it' },
-  
-  // Alibaba
-  { displayName: 'Marco o1', apiId: 'alibaba/marco-o1' },
 ];
 
 serve(async (req) => {
