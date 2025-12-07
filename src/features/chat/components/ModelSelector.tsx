@@ -462,11 +462,15 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
   // Clear all selections
   const handleClearAll = () => {
     onChange([]);
+    setActivePresets(new Set());
     toast.success('Cleared all selections');
   };
   
   // All presets (built-in + custom)
   const allPresets = [...builtInPresets, ...customPresets];
+  
+  // Track active presets (multi-selection)
+  const [activePresets, setActivePresets] = useState<Set<string>>(new Set());
   
   const handlePresetSelect = (presetId: string) => {
     const preset = allPresets.find(p => p.id === presetId);
@@ -474,13 +478,32 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
     
     const presetModels = preset.models[selectedMode] || [];
     const availablePresetModels = presetModels.filter(model => availableModels.includes(model));
-    const modelsToSelect = availablePresetModels.slice(0, 4);
     
-    onChange(modelsToSelect);
-    modelsToSelect.forEach(model => {
-      addToRecentModels(model);
-    });
-    setRecentModels(getRecentModels());
+    const newActivePresets = new Set(activePresets);
+    
+    if (activePresets.has(presetId)) {
+      // Deactivate preset - remove its models from selection
+      newActivePresets.delete(presetId);
+      const modelsToRemove = new Set(availablePresetModels);
+      const newSelection = values.filter(m => !modelsToRemove.has(m));
+      onChange(newSelection);
+    } else {
+      // Activate preset - add its models to selection (merge with existing)
+      newActivePresets.add(presetId);
+      const currentSelection = new Set(values);
+      availablePresetModels.forEach(model => currentSelection.add(model));
+      const newSelection = Array.from(currentSelection);
+      onChange(newSelection);
+      newSelection.forEach(model => addToRecentModels(model));
+      setRecentModels(getRecentModels());
+    }
+    
+    setActivePresets(newActivePresets);
+  };
+  
+  // Check if a preset is currently active
+  const isPresetActive = (presetId: string): boolean => {
+    return activePresets.has(presetId);
   };
   
   // Check if current selection matches a preset
@@ -680,7 +703,7 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
                 {allPresets.slice(0, 6).map((preset) => {
                   const presetModels = preset.models[selectedMode] || [];
                   const availableCount = presetModels.filter(m => availableModels.includes(m)).length;
-                  const isActive = matchingPreset?.id === preset.id;
+                  const isActive = isPresetActive(preset.id);
                   
                   return (
                     <button
@@ -690,7 +713,7 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
                       className={cn(
                         "relative flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200",
                         isActive 
-                          ? "bg-[#0071E3] text-white" 
+                          ? "bg-[#0071E3] text-white shadow-sm shadow-[#0071E3]/30" 
                           : "bg-[#F5F5F7] dark:bg-[#2C2C2E] text-[#1D1D1F] dark:text-white",
                         !isActive && "hover:bg-[#E8E8ED] dark:hover:bg-[#3A3A3C]",
                         availableCount === 0 && "opacity-40 cursor-not-allowed"
