@@ -1,4 +1,5 @@
 import { Plus, User, Search, Library, Folder, ChevronDown, ChevronRight, MoreVertical, Edit, MessageSquarePlus, Share, FileDown, Archive, Trash2, LogOut, Settings, UserCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useState } from "react";
 import {
   Dialog,
@@ -160,58 +161,54 @@ export function AppSidebar() {
     {} as Record<string, typeof filteredConversations>,
   );
 
-  if (isCollapsed) {
-    return (
-      <Sidebar className="w-[60px] border-r border-border/20 canvas-glass flex flex-col h-screen fixed z-50" collapsible="icon">
-        <div className="flex-none">
-          <SidebarHeader className="px-3 pt-3 pb-2 flex flex-col items-center gap-2">
-            <SidebarTrigger className="w-8 h-8 hover:bg-black/5 dark:hover:bg-white/10 text-[#8E8E93] hover:text-foreground transition-all duration-200 rounded-full" />
-            <Button
-              variant="ghost"
-              size="icon"
-              className="w-8 h-8 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
-              onClick={handleNewChat}
-            >
-              <Plus className="w-4 h-4" />
-            </Button>
-          </SidebarHeader>
-        </div>
-
-        <div className="flex-grow" />
-
-        <SidebarFooter className="flex-none p-3 w-full max-w-[60px] flex items-center justify-center mb-4 overflow-hidden">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="w-9 h-9 rounded-full bg-[#007AFF] hover:bg-[#0066DD] text-white shadow-sm transition-all duration-200"
-          >
-            <User className="w-4 h-4" />
-          </Button>
-        </SidebarFooter>
-      </Sidebar>
-    );
-  }
-
   return (
-    <Sidebar className="w-[280px] border-r border-border/20 canvas-glass flex flex-col h-screen fixed z-50" collapsible="icon">
+    <Sidebar 
+      className={cn(
+        "border-r border-border/20 canvas-glass flex flex-col h-screen fixed z-50 transition-all duration-300 ease-out",
+        isCollapsed ? "w-[60px]" : "w-[280px]"
+      )} 
+      collapsible="icon"
+    >
       <div className="flex-none">
-        <SidebarHeader className="px-3 pt-3 pb-2 space-y-2.5">
-          <SidebarTrigger className="w-8 h-8 hover:bg-black/5 dark:hover:bg-white/10 text-[#8E8E93] hover:text-foreground transition-all duration-200 rounded-full" />
+        <SidebarHeader className={cn(
+          "pt-3 pb-2 transition-all duration-300 ease-out",
+          isCollapsed ? "px-3 flex flex-col items-center gap-2" : "px-3 space-y-2.5"
+        )}>
+          <SidebarTrigger className="w-8 h-8 hover:bg-black/5 dark:hover:bg-white/10 text-[#8E8E93] hover:text-foreground transition-all duration-200 rounded-full flex-shrink-0" />
 
-          {/* New Chat */}
+          {/* New Chat - Unified component with CSS transitions */}
           <Button
             variant="ghost"
-            className="w-full h-10 justify-start gap-2.5 px-2.5 bg-white/60 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 active:scale-[0.98] rounded-xl transition-all duration-200 border border-border/20 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+            className={cn(
+              "transition-all duration-300 ease-out overflow-hidden flex-shrink-0",
+              isCollapsed 
+                ? "w-8 h-8 p-0 rounded-full bg-primary hover:bg-primary/90" 
+                : "w-full h-10 justify-start gap-2.5 px-2.5 bg-white/60 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 active:scale-[0.98] rounded-xl border border-border/20 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+            )}
             onClick={handleNewChat}
           >
-            <div className="w-7 h-7 rounded-full bg-[#007AFF] flex items-center justify-center flex-shrink-0 shadow-sm">
-              <Plus className="w-3.5 h-3.5 text-white" />
+            <div className={cn(
+              "rounded-full bg-[#007AFF] flex items-center justify-center flex-shrink-0 shadow-sm transition-all duration-300 ease-out",
+              isCollapsed ? "w-8 h-8" : "w-7 h-7"
+            )}>
+              <Plus className={cn(
+                "text-white transition-all duration-300 ease-out",
+                isCollapsed ? "w-4 h-4" : "w-3.5 h-3.5"
+              )} />
             </div>
-            <span className="text-[13px] font-medium text-foreground">New Chat</span>
+            <span className={cn(
+              "text-[13px] font-medium text-foreground whitespace-nowrap transition-all duration-300 ease-out",
+              isCollapsed ? "opacity-0 w-0" : "opacity-100"
+            )}>
+              New Chat
+            </span>
           </Button>
 
-          {/* Search Chats */}
-          <div className="relative w-full">
+          {/* Search Chats - Hidden when collapsed */}
+          <div className={cn(
+            "relative w-full transition-all duration-300 ease-out overflow-hidden",
+            isCollapsed ? "h-0 opacity-0" : "h-9 opacity-100"
+          )}>
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E8E93] pointer-events-none" />
             <Input
               type="text"
@@ -219,13 +216,18 @@ export function AppSidebar() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-8 pr-3 py-2 h-9 text-[13px] rounded-xl bg-black/[0.04] dark:bg-white/[0.08] border-0 placeholder:text-[#8E8E93] focus:bg-white dark:focus:bg-white/10 focus:ring-2 focus:ring-[#007AFF]/30 transition-all duration-200"
+              tabIndex={isCollapsed ? -1 : 0}
             />
           </div>
 
-          {/* Library */}
+          {/* Library - Hidden when collapsed */}
           <Button
             variant="ghost"
-            className="w-full justify-start gap-2.5 px-2.5 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl transition-all duration-200"
+            className={cn(
+              "w-full justify-start gap-2.5 px-2.5 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl transition-all duration-300 ease-out overflow-hidden",
+              isCollapsed ? "h-0 opacity-0 py-0" : "opacity-100"
+            )}
+            tabIndex={isCollapsed ? -1 : 0}
           >
             <Library className="w-4 h-4 text-[#8E8E93]" />
             <span className="text-[13px] text-foreground/80">Library</span>
@@ -233,7 +235,11 @@ export function AppSidebar() {
         </SidebarHeader>
       </div>
 
-      <ScrollArea className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3">
+      {/* Content area - hidden when collapsed */}
+      <ScrollArea className={cn(
+        "flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 transition-all duration-300 ease-out",
+        isCollapsed ? "opacity-0 pointer-events-none" : "opacity-100"
+      )}>
         <SidebarContent className="pb-4 space-y-3">
           {/* Projects Section */}
           <div className="space-y-0.5">
@@ -391,37 +397,50 @@ export function AppSidebar() {
         </SidebarContent>
       </ScrollArea>
 
-      <SidebarFooter className="flex-none px-2 py-3 border-t border-border/20 mt-auto mb-4">
-        <DropdownMenu open={isProfileDropdownOpen} onOpenChange={setIsProfileDropdownOpen}>
-          <DropdownMenuTrigger asChild>
-            <div className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-black/[0.04] dark:hover:bg-white/[0.08] cursor-pointer transition-all duration-200 mx-1">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#007AFF] to-[#5856D6] flex items-center justify-center flex-shrink-0 shadow-sm">
-                <User className="w-4 h-4 text-white" />
+      <SidebarFooter className={cn(
+        "flex-none border-t border-border/20 mt-auto transition-all duration-300 ease-out",
+        isCollapsed ? "p-3 flex items-center justify-center mb-4" : "px-2 py-3 mb-4"
+      )}>
+        {isCollapsed ? (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="w-9 h-9 rounded-full bg-[#007AFF] hover:bg-[#0066DD] text-white shadow-sm transition-all duration-200"
+          >
+            <User className="w-4 h-4" />
+          </Button>
+        ) : (
+          <DropdownMenu open={isProfileDropdownOpen} onOpenChange={setIsProfileDropdownOpen}>
+            <DropdownMenuTrigger asChild>
+              <div className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-black/[0.04] dark:hover:bg-white/[0.08] cursor-pointer transition-all duration-200 mx-1">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#007AFF] to-[#5856D6] flex items-center justify-center flex-shrink-0 shadow-sm">
+                  <User className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-[13px] font-medium flex-1 text-foreground truncate">user@example.com</span>
+                <ChevronDown className={`w-4 h-4 text-[#8E8E93] transition-transform duration-200 ${isProfileDropdownOpen ? 'rotate-180' : ''}`} />
               </div>
-              <span className="text-[13px] font-medium flex-1 text-foreground truncate">user@example.com</span>
-              <ChevronDown className={`w-4 h-4 text-[#8E8E93] transition-transform duration-200 ${isProfileDropdownOpen ? 'rotate-180' : ''}`} />
-            </div>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" side="top" className="w-52 rounded-2xl bg-white/95 dark:bg-[#2C2C2E]/95 backdrop-blur-xl border-border/20 shadow-lg p-1.5">
-            <DropdownMenuItem className="rounded-xl px-3 py-2.5 text-[13px] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] transition-colors">
-              <UserCircle className="w-4 h-4 mr-2.5 text-[#8E8E93]" />
-              Profile
-            </DropdownMenuItem>
-            <DropdownMenuItem className="rounded-xl px-3 py-2.5 text-[13px] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] transition-colors">
-              <User className="w-4 h-4 mr-2.5 text-[#8E8E93]" />
-              Account
-            </DropdownMenuItem>
-            <DropdownMenuItem className="rounded-xl px-3 py-2.5 text-[13px] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] transition-colors">
-              <Settings className="w-4 h-4 mr-2.5 text-[#8E8E93]" />
-              Settings
-            </DropdownMenuItem>
-            <div className="h-px bg-border/20 my-1" />
-            <DropdownMenuItem className="rounded-xl px-3 py-2.5 text-[13px] text-[#FF3B30] hover:bg-[#FF3B30]/10 transition-colors">
-              <LogOut className="w-4 h-4 mr-2.5" />
-              Logout
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" side="top" className="w-52 rounded-2xl bg-white/95 dark:bg-[#2C2C2E]/95 backdrop-blur-xl border-border/20 shadow-lg p-1.5">
+              <DropdownMenuItem className="rounded-xl px-3 py-2.5 text-[13px] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] transition-colors">
+                <UserCircle className="w-4 h-4 mr-2.5 text-[#8E8E93]" />
+                Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem className="rounded-xl px-3 py-2.5 text-[13px] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] transition-colors">
+                <User className="w-4 h-4 mr-2.5 text-[#8E8E93]" />
+                Account
+              </DropdownMenuItem>
+              <DropdownMenuItem className="rounded-xl px-3 py-2.5 text-[13px] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] transition-colors">
+                <Settings className="w-4 h-4 mr-2.5 text-[#8E8E93]" />
+                Settings
+              </DropdownMenuItem>
+              <div className="h-px bg-border/20 my-1" />
+              <DropdownMenuItem className="rounded-xl px-3 py-2.5 text-[13px] text-[#FF3B30] hover:bg-[#FF3B30]/10 transition-colors">
+                <LogOut className="w-4 h-4 mr-2.5" />
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </SidebarFooter>
       
       {/* New Project Dialog */}
