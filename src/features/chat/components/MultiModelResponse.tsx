@@ -11,11 +11,9 @@ import { formatModelName } from '@/lib/utils';
 interface MultiModelResponseProps {
   content: MultiModelContent;
   models: string[];
-  userQuestion: string;
-  allMessages?: Message[];
 }
 
-export const MultiModelResponse = ({ content, models, userQuestion, allMessages = [] }: MultiModelResponseProps) => {
+export const MultiModelResponse = ({ content, models }: MultiModelResponseProps) => {
   const [viewMode, setViewMode] = useState<'single' | 'sideBySide'>('sideBySide');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [copiedModel, setCopiedModel] = useState<string | null>(null);
@@ -228,17 +226,6 @@ export const MultiModelResponse = ({ content, models, userQuestion, allMessages 
           </button>
         </div>
       </div>
-
-      {/* User Question - Centered above the model responses */}
-      {userQuestion && (
-        <div className="flex justify-end px-6 mb-4">
-          <div className="max-w-[50%] rounded-[18px_18px_4px_18px] bg-gradient-to-br from-primary to-primary/85 text-primary-foreground px-4 py-3 shadow-[0_2px_8px_rgba(77,112,255,0.2)]">
-            <p className="text-[15px] leading-[1.5] whitespace-pre-wrap break-words">
-              {userQuestion}
-            </p>
-          </div>
-        </div>
-      )}
 
       {/* Horizontal Scroll Container for Model Responses - Edge to Edge */}
       <div className="overflow-x-auto scrollbar-hide pb-2">

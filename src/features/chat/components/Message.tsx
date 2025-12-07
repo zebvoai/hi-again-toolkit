@@ -16,7 +16,6 @@ interface MessageProps {
   onRetry?: () => void;
   onRegenerate?: () => void;
   onEdit?: (newContent: string) => void;
-  allMessages?: MessageType[];
 }
 
 export const Message = ({
@@ -24,7 +23,6 @@ export const Message = ({
   onRetry,
   onRegenerate,
   onEdit,
-  allMessages = []
 }: MessageProps) => {
   const isUser = message.role === 'user';
   const isMultiModel = !isUser && typeof message.content === 'object' && !Array.isArray(message.content);
@@ -37,20 +35,6 @@ export const Message = ({
   const timeAgo = message.timestamp 
     ? formatDistanceToNow(new Date(message.timestamp), { addSuffix: true })
     : null;
-
-  // Find the preceding user message for multi-model responses
-  const getUserQuestion = (): string => {
-    if (!isMultiModel) return '';
-    const currentIndex = allMessages.findIndex(msg => msg.id === message.id);
-    for (let i = currentIndex - 1; i >= 0; i--) {
-      if (allMessages[i].role === 'user' && typeof allMessages[i].content === 'string') {
-        return allMessages[i].content as string;
-      }
-    }
-    return '';
-  };
-  
-  const userQuestion = getUserQuestion();
   
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -106,7 +90,7 @@ export const Message = ({
     }
     return (
       <div className="w-full">
-        <MultiModelResponse content={multiContent} models={models} userQuestion={userQuestion} allMessages={allMessages} />
+        <MultiModelResponse content={multiContent} models={models} />
       </div>
     );
   }

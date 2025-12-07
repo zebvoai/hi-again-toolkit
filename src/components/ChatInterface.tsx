@@ -210,7 +210,6 @@ export function ChatInterface() {
                 <div key={message.id} className="w-full mb-6">
                   <Message 
                     message={message} 
-                    allMessages={messages} 
                     onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')}
                     onRegenerate={() => regenerateResponse(message.id)}
                     onEdit={(newContent) => editAndRegenerate(message.id, newContent)}
@@ -223,7 +222,6 @@ export function ChatInterface() {
               <div key={message.id} className="max-w-[800px] mx-auto px-6">
                 <Message 
                   message={message} 
-                  allMessages={messages} 
                   onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')}
                   onRegenerate={() => regenerateResponse(message.id)}
                   onEdit={(newContent) => editAndRegenerate(message.id, newContent)}
