@@ -91,27 +91,26 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
     const currentContent = content[currentModel];
 
     return (
-      <div className="w-full space-y-3 px-6">
-        {/* Header with model count and toggle */}
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-muted-foreground">
-            {models.length} model{models.length > 1 ? 's' : ''} • {currentIndex + 1}/{models.length}
-          </span>
-          <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-0.5">
+      <div className="w-full space-y-3">
+        {/* Toggle Button */}
+        <div className="flex justify-end">
+          <div className="glass-panel flex items-center gap-1 p-1">
             <button 
               onClick={() => setViewMode('single')}
-              className="px-3 py-1.5 rounded-md text-xs font-medium bg-card text-foreground shadow-sm transition-colors"
+              className="px-4 py-2 rounded-[14px] text-xs font-medium bg-card text-foreground shadow-sm apple-interactive"
             >
               Single
             </button>
             <button 
               onClick={() => setViewMode('sideBySide')}
-              className="px-3 py-1.5 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+              className="px-4 py-2 rounded-[14px] text-xs font-medium text-muted-foreground hover:text-foreground panel-button"
             >
               Compare
             </button>
           </div>
         </div>
+
+        {/* Single Model Response */}
         <div className="max-w-[75%]">
           <div className="flex gap-3">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center shadow-[0_4px_12px_rgba(77,112,255,0.15)] flex-shrink-0">
@@ -210,27 +209,25 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
   // Side by Side view - each response is an independent horizontal scroll
   return (
     <div className="w-full overflow-visible animate-message-in-left">
-      {/* Header with model count and toggle */}
-      <div className="flex items-center justify-between mb-3 px-6">
-        <span className="text-xs text-muted-foreground">
-          {models.length} model{models.length > 1 ? 's' : ''} responding
-        </span>
-        <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-0.5">
+      {/* Toggle Button */}
+      <div className="flex justify-end mb-4 px-6">
+        <div className="glass-panel flex items-center gap-1 p-1">
           <button 
             onClick={() => setViewMode('single')}
-            className="px-3 py-1.5 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+            className="px-4 py-2 rounded-[14px] text-xs font-medium text-muted-foreground hover:text-foreground panel-button"
           >
             Single
           </button>
           <button 
             onClick={() => setViewMode('sideBySide')}
-            className="px-3 py-1.5 rounded-md text-xs font-medium bg-card text-foreground shadow-sm transition-colors"
+            className="px-4 py-2 rounded-[14px] text-xs font-medium bg-card text-foreground shadow-sm apple-interactive"
           >
+            Compare
           </button>
         </div>
       </div>
 
-      {/* Horizontal Scroll Container for Model Responses */}
+      {/* Horizontal Scroll Container for Model Responses - Edge to Edge */}
       <div className="overflow-x-auto scrollbar-hide pb-2">
         <div className="flex gap-3 px-6" style={{ minWidth: 'min-content' }}>
           {models.map((model) => {
