@@ -201,13 +201,21 @@ export function ChatInterface() {
           </div>
         </div>
       ) : messages.length > 0 ? (
-        <div className="flex-1 overflow-y-auto overflow-x-hidden py-8 bg-gradient-to-b from-transparent via-primary/[0.02] to-transparent">
-          {messages.map((message) => {
+        <div className="flex-1 overflow-y-auto overflow-x-hidden py-6 bg-gradient-to-b from-transparent via-primary/[0.01] to-transparent">
+          {messages.map((message, index) => {
             const isMultiModelResponse = message.role === 'assistant' && typeof message.content === 'object' && !Array.isArray(message.content) && message.metadata?.models?.length > 1;
+            const prevMessage = messages[index - 1];
+            const isAfterUserMessage = prevMessage?.role === 'user';
 
             if (isMultiModelResponse) {
               return (
-                <div key={message.id} className="w-full mb-6">
+                <div key={message.id} className="w-full mb-4">
+                  {/* Visual connector from user message to multi-model response */}
+                  {isAfterUserMessage && (
+                    <div className="flex justify-end px-6 mb-2 max-w-[800px] mx-auto">
+                      <div className="w-0.5 h-3 bg-gradient-to-b from-primary/30 to-transparent rounded-full mr-4" />
+                    </div>
+                  )}
                   <Message 
                     message={message} 
                     onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')}
