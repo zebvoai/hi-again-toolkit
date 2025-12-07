@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ChevronDown, Mic, Volume2, Paperclip, Send, Square } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Square } from 'lucide-react';
 import { useChat } from '@/features/chat/hooks/useChat';
 import { useModeStore } from '@/features/modes/store/modeStore';
 import { useChatStore } from '@/features/chat/store/chatStore';
@@ -8,8 +7,6 @@ import { Message } from '@/features/chat/components/Message';
 import { TypingIndicator } from '@/features/chat/components/TypingIndicator';
 import { ModelSelector } from '@/features/chat/components/ModelSelector';
 import { ModeDropdown } from '@/features/modes/components/ModeDropdown';
-import { Badge } from '@/components/ui/badge';
-import { TopActions } from '@/components/TopActions';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useModels } from '@/features/chat/hooks/useModels';
 
@@ -17,8 +14,6 @@ export function ChatInterface() {
   const [input, setInput] = useState('');
   const [isTemporaryMode, setIsTemporaryMode] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
-  const [isRecording, setIsRecording] = useState(false);
-  const [isAttachmentClicked, setIsAttachmentClicked] = useState(false);
   const {
     messages,
     sendMessage,
@@ -103,18 +98,7 @@ export function ChatInterface() {
   };
 
   const triggerFileInput = () => {
-    setIsAttachmentClicked(true);
-    setTimeout(() => setIsAttachmentClicked(false), 200);
     fileInputRef.current?.click();
-  };
-
-  const handleMicClick = () => {
-    setIsRecording(!isRecording);
-    // TODO: Implement actual recording functionality
-  };
-
-  const handleTemporaryModeToggle = () => {
-    setIsTemporaryMode(!isTemporaryMode);
   };
 
   const getPlaceholder = () => {
@@ -149,7 +133,7 @@ export function ChatInterface() {
       {/* Messages Area */}
       {messages.length > 0 ? (
         <div className="flex-1 overflow-y-auto overflow-x-hidden py-8 bg-gradient-to-b from-transparent via-primary/[0.02] to-transparent">
-          {messages.map((message, index) => {
+          {messages.map((message) => {
             // Check if this is a multi-model compare response
             const isMultiModelResponse = message.role === 'assistant' && typeof message.content === 'object' && !Array.isArray(message.content) && message.metadata?.models?.length > 1;
 

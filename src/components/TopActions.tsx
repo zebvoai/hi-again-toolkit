@@ -5,10 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+
 interface TopActionsProps {
   isTemporaryMode: boolean;
   onTemporaryModeToggle: () => void;
 }
+
 export function TopActions({
   isTemporaryMode,
   onTemporaryModeToggle
@@ -16,8 +18,7 @@ export function TopActions({
   const [showGroupDialog, setShowGroupDialog] = useState(false);
   const [showTempConfirm, setShowTempConfirm] = useState(false);
   const [showTestRunner, setShowTestRunner] = useState(false);
-  const [groupClicked, setGroupClicked] = useState(false);
-  const [settingsClicked, setSettingsClicked] = useState(false);
+
   const handleTemporaryClick = () => {
     if (!isTemporaryMode) {
       setShowTempConfirm(true);
@@ -25,21 +26,22 @@ export function TopActions({
       onTemporaryModeToggle();
     }
   };
+
   const handleConfirmTemporary = () => {
     setShowTempConfirm(false);
     onTemporaryModeToggle();
   };
+
   const handleGroupClick = () => {
-    setGroupClicked(true);
-    setTimeout(() => setGroupClicked(false), 400);
     setShowGroupDialog(true);
   };
+
   const handleSettingsClick = () => {
-    setSettingsClicked(true);
-    setTimeout(() => setSettingsClicked(false), 300);
     setShowTestRunner(true);
   };
-  return <>
+
+  return (
+    <>
       <div className="fixed top-5 right-6 z-50 flex items-center gap-3">
         {/* Settings Icon */}
         <TooltipProvider delayDuration={400}>
@@ -59,7 +61,9 @@ export function TopActions({
         <TooltipProvider delayDuration={400}>
           <Tooltip>
             <TooltipTrigger asChild>
-              
+              <Button variant="ghost" size="icon" onClick={handleGroupClick} className="w-10 h-10 rounded-full bg-transparent hover:bg-accent/80 hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(0,0,0,0.08)] active:scale-[0.92] active:transition-[transform] active:duration-100 transition-all duration-[220ms] ease-[cubic-bezier(0.34,1.56,0.64,1)]" aria-label="Group Chat">
+                <Users className="w-5 h-5 text-muted-foreground" />
+              </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom">
               <p>Group Chat</p>
@@ -128,5 +132,6 @@ export function TopActions({
 
       {/* Test Runner Dialog */}
       <TestRunner open={showTestRunner} onOpenChange={setShowTestRunner} />
-    </>;
+    </>
+  );
 }
