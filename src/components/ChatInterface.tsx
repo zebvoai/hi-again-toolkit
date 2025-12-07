@@ -148,7 +148,7 @@ export function ChatInterface() {
 
       {/* Messages Area */}
       {messages.length > 0 ? (
-        <div className="flex-1 overflow-y-auto overflow-x-hidden py-8 bg-gradient-to-b from-transparent via-primary/[0.02] to-transparent">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden py-8 pb-48 bg-gradient-to-b from-transparent via-primary/[0.02] to-transparent">
           <div className="max-w-[986px] mx-auto px-4">
             {messages.map((message, index) => {
               // Check if this is a multi-model compare response
@@ -176,7 +176,7 @@ export function ChatInterface() {
         </div>
       ) : (
         /* Empty State */
-        <div className="flex-1 flex items-center justify-center px-4">
+        <div className="flex-1 flex items-center justify-center px-4 pb-48">
           <div className="text-center">
             <h1 className="text-6xl font-bold text-blue-500 mb-3 animate-logo-entrance animate-float-gentle hover:scale-[1.02] transition-transform duration-300 cursor-default">
               Zebvo AI
@@ -193,8 +193,8 @@ export function ChatInterface() {
         </div>
       )}
 
-      {/* Chat Input Area */}
-      <div className="sticky bottom-0 flex-shrink-0 p-4 pb-6 bg-background/80 backdrop-blur-xl border-t border-border/30 z-10">
+      {/* Chat Input Area - Fixed at bottom */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 pb-6 bg-background/90 backdrop-blur-xl border-t border-border/30 z-50">
         <div key={selectedMode} className="max-w-4xl mx-auto animate-scale-in">
           <form onSubmit={handleSubmit}>
             {/* Dropdowns Row - Keep above input */}
