@@ -232,7 +232,7 @@ export const MultiModelResponse = ({ content, models, userQuestion, allMessages 
 
       {/* Horizontal Scroll Container for Model Responses */}
       <div className="overflow-x-auto scrollbar-hide pb-2">
-        <div className="flex gap-4 px-4 pr-8" style={{ width: 'max-content' }}>
+        <div className="flex gap-4 pl-4 pr-16" style={{ width: 'max-content' }}>
           {models.map((model) => {
             const aiResponse = content[model] || '';
             const isGenerating = !aiResponse || aiResponse.trim() === '';
