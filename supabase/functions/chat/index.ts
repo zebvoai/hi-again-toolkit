@@ -11,7 +11,7 @@ interface Message {
 }
 
 // Model mapping helper - Only working models included
-// OpenRouter models removed due to insufficient credits (402 errors)
+// Model mapping helper - supports OpenAI, Anthropic, Lovable (Gemini), and OpenRouter
 const getModelMapping = (displayName: string): { apiModel: string, provider: string } => {
   const modelMapping: Record<string, { apiModel: string, provider: string }> = {
     // OpenAI Models (direct API)
@@ -33,7 +33,7 @@ const getModelMapping = (displayName: string): { apiModel: string, provider: str
     'Claude Sonnet 3.5': { apiModel: 'claude-3-5-sonnet-20241022', provider: 'anthropic' },
     'Claude 3.5 Haiku': { apiModel: 'claude-3-5-haiku-20241022', provider: 'anthropic' },
     
-    // Google Models (via Lovable AI Gateway - no quota issues)
+    // Google Models (via Lovable AI Gateway)
     'Gemini 2.5 Pro': { apiModel: 'google/gemini-2.5-pro', provider: 'lovable' },
     'Gemini 3 Pro': { apiModel: 'google/gemini-3-pro-preview', provider: 'lovable' },
     'Gemini 2.5 Flash': { apiModel: 'google/gemini-2.5-flash', provider: 'lovable' },
@@ -41,8 +41,8 @@ const getModelMapping = (displayName: string): { apiModel: string, provider: str
     'Gemini 2.0 Flash': { apiModel: 'google/gemini-2.5-flash', provider: 'lovable' }
   };
   
-  // Return mapping or default to lovable with gemini-2.5-flash for unknown models
-  return modelMapping[displayName] || { apiModel: 'google/gemini-2.5-flash', provider: 'lovable' };
+  // If in mapping, use it; otherwise route to OpenRouter
+  return modelMapping[displayName] || { apiModel: displayName, provider: 'openrouter' };
 };
 
 // Multi-model request handler
@@ -379,10 +379,12 @@ serve(async (req) => {
         selectedProvider = 'openai';
       } else if (requestedModel.startsWith('claude')) {
         selectedProvider = 'anthropic';
-      } else {
-        // Default to Lovable AI Gateway for unknown models
+      } else if (requestedModel.includes('gemini') || requestedModel.includes('Gemini')) {
         selectedProvider = 'lovable';
         model = 'google/gemini-2.5-flash';
+      } else {
+        // Default to OpenRouter for unknown models
+        selectedProvider = 'openrouter';
       }
     } else {
       // Default fallback
@@ -495,6 +497,34 @@ serve(async (req) => {
       });
       
       body = { contents };
+    } else if (selectedProvider === 'openrouter') {
+      apiKey = Deno.env.get('OPENROUTER_API_KEY');
+      if (!apiKey) {
+        throw new Error('OPENROUTER_API_KEY not configured');
+      }
+      
+      apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
+      headers = {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://lovable.dev',
+        'X-Title': 'Lovable AI'
+      };
+      
+      const messages = [
+        { role: 'system', content: systemPrompt },
+        ...conversationHistory.map(m => ({ role: m.role, content: m.content })),
+        { role: 'user', content: message }
+      ];
+      
+      console.log(`Single model OpenRouter request: ${requestedModel} -> ${model}`);
+      
+      body = {
+        model,
+        messages,
+        stream,
+        max_tokens: mode === 'build' ? 4096 : 2048
+      };
     } else {
       throw new Error(`Unsupported provider: ${selectedProvider}`);
     }
@@ -514,7 +544,7 @@ serve(async (req) => {
     }
     
     // Handle streaming response
-    if (stream && (selectedProvider === 'openai' || selectedProvider === 'lovable')) {
+    if (stream && (selectedProvider === 'openai' || selectedProvider === 'lovable' || selectedProvider === 'openrouter')) {
       const encoder = new TextEncoder();
       const readable = new ReadableStream({
         async start(controller) {
@@ -585,7 +615,7 @@ serve(async (req) => {
         throw new Error(`Invalid response from ${selectedProvider}`);
       }
       content = data.choices[0].message.content;
-    } else if (selectedProvider === 'lovable') {
+    } else if (selectedProvider === 'lovable' || selectedProvider === 'openrouter') {
       const choice = data.choices?.[0];
       content =
         choice?.message?.content ??
