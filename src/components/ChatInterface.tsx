@@ -209,16 +209,18 @@ export function ChatInterface() {
             const nextMessage = messages[index + 1];
             const nextIsMultiModel = nextMessage?.role === 'assistant' && typeof nextMessage.content === 'object' && !Array.isArray(nextMessage.content) && nextMessage.metadata?.models?.length > 1;
 
-            // User message followed by multi-model response - render tighter
+            // User message followed by multi-model response - align right edge with cards
             if (isUserMessage && nextIsMultiModel) {
               return (
-                <div key={message.id} className="max-w-[800px] mx-auto px-6 mb-2">
-                  <Message 
-                    message={message} 
-                    onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')}
-                    onRegenerate={() => regenerateResponse(message.id)}
-                    onEdit={(newContent) => editAndRegenerate(message.id, newContent)}
-                  />
+                <div key={message.id} className="w-full px-6 mb-1">
+                  <div className="flex justify-end">
+                    <Message 
+                      message={message} 
+                      onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')}
+                      onRegenerate={() => regenerateResponse(message.id)}
+                      onEdit={(newContent) => editAndRegenerate(message.id, newContent)}
+                    />
+                  </div>
                 </div>
               );
             }
