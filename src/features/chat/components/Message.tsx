@@ -98,38 +98,41 @@ export const Message = ({
   // Get content as string for user and single AI messages
   const contentString = typeof message.content === 'string' ? message.content : '';
   
+  // Calculate dynamic sizing for user messages
+  const isShortMessage = contentString.length < 40;
+  
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 ${isUser ? 'animate-message-in-right' : 'animate-message-in-left'}`}>
-      <div className={`flex ${isUser ? 'flex-row-reverse ml-auto' : 'flex-row'} max-w-[75%] gap-2`}>
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-3 ${isUser ? 'animate-message-in-right' : 'animate-message-in-left'}`}>
+      <div className={`flex ${isUser ? 'flex-row-reverse ml-auto' : 'flex-row'} ${isUser ? 'max-w-[70%]' : 'max-w-[75%]'} gap-2.5`}>
         {/* Avatar for AI only */}
         {!isUser && (
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-200 to-blue-300 flex items-center justify-center shadow-[0_2px_4px_rgba(0,0,0,0.08)] flex-shrink-0">
-            <span className="text-blue-700 font-semibold text-sm">Z</span>
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center shadow-sm flex-shrink-0">
+            <span className="text-primary font-semibold text-xs">Z</span>
           </div>
         )}
         
-        <div className="flex flex-col">
+        <div className="flex flex-col group">
           {/* Model name and timestamp for AI messages */}
           {!isUser && (
             <div className="flex items-center gap-2 mb-1 ml-0.5">
               {message.metadata?.model && (
-                <span className="text-[11px] font-medium text-gray-400">
+                <span className="text-[11px] font-medium text-muted-foreground/70">
                   {formatModelName(message.metadata.model)}
                 </span>
               )}
               {timeAgo && (
-                <span className="text-[10px] text-muted-foreground/50">
+                <span className="text-[10px] text-muted-foreground/40">
                   {timeAgo}
                 </span>
               )}
             </div>
           )}
           
-          {/* Message bubble */}
-          <div className={`rounded-[18px] px-4 py-3 shadow-sm ${
+          {/* Message bubble - dynamic sizing */}
+          <div className={`rounded-[16px] shadow-sm transition-all duration-200 ${
             isUser 
-              ? 'rounded-br-[4px] bg-gradient-to-br from-primary to-primary/85 text-primary-foreground' 
-              : 'rounded-bl-[4px] bg-[#F0F0F0] dark:bg-muted text-foreground'
+              ? `rounded-br-[4px] bg-gradient-to-br from-primary to-primary/90 text-primary-foreground ${isShortMessage ? 'px-3.5 py-2' : 'px-4 py-2.5'}`
+              : 'rounded-bl-[4px] bg-card border border-border/40 text-foreground px-4 py-3'
           }`}>
             {isUser ? (
               isEditing ? (
@@ -217,63 +220,54 @@ export const Message = ({
             )}
           </div>
           
-          {/* Timestamp for user messages */}
-          {isUser && timeAgo && (
-            <span className="text-[10px] text-muted-foreground/50 mt-1 mr-0.5 text-right">
-              {timeAgo}
-            </span>
-          )}
-          
-          {/* Actions row */}
-          <div className="flex items-center gap-2 mt-2 ml-0.5">
-            {/* User message actions */}
+          {/* Actions row - consolidated with timestamp for user messages */}
+          <div className={`flex items-center gap-1.5 mt-1.5 ${isUser ? 'justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-200' : 'ml-0.5'}`}>
+            {/* User message: timestamp + edit inline */}
             {isUser && !isEditing && (
-              <button
-                onClick={handleStartEdit}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] text-muted-foreground hover:bg-accent/80 hover:text-foreground transition-all duration-[180ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.95]"
-              >
-                <Pencil className="w-3.5 h-3.5" />
-                <span>Edit</span>
-              </button>
+              <>
+                {timeAgo && (
+                  <span className="text-[10px] text-muted-foreground/40 mr-1">
+                    {timeAgo}
+                  </span>
+                )}
+                <button
+                  onClick={handleStartEdit}
+                  className="w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground/60 hover:bg-accent/60 hover:text-foreground transition-all duration-150"
+                  title="Edit message"
+                >
+                  <Pencil className="w-3 h-3" />
+                </button>
+              </>
             )}
             
-            {/* AI message actions */}
+            {/* AI message actions - icon only with tooltips */}
             {!isUser && (
               <>
                 <button
                   onClick={copyMessage}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] text-muted-foreground hover:bg-accent/80 hover:text-foreground transition-all duration-[180ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.95]"
+                  className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-all duration-150"
+                  title={copied ? 'Copied!' : 'Copy'}
                 >
-                  {copied ? (
-                    <>
-                      <Check className="w-3.5 h-3.5" />
-                      <span>Copied!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5" />
-                      <span>Copy</span>
-                    </>
-                  )}
+                  {copied ? <Check className="w-3.5 h-3.5 text-primary" /> : <Copy className="w-3.5 h-3.5" />}
                 </button>
                 
-                {/* Regenerate button */}
                 {onRegenerate && (
                   <button
                     onClick={onRegenerate}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] text-muted-foreground hover:bg-accent/80 hover:text-foreground transition-all duration-[180ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.95]"
+                    className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-all duration-150"
+                    title="Regenerate"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
-                    <span>Regenerate</span>
                   </button>
                 )}
                 
                 {message.metadata?.error && onRetry && (
                   <button
                     onClick={onRetry}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] text-muted-foreground hover:bg-accent/80 hover:text-foreground transition-all duration-[180ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.95]"
+                    className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-all duration-150"
+                    title="Retry"
                   >
-                    Retry
+                    <RefreshCw className="w-3.5 h-3.5" />
                   </button>
                 )}
               </>

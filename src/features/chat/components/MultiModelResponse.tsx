@@ -209,153 +209,144 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
   // Side by Side view - each response is an independent horizontal scroll
   return (
     <div className="w-full overflow-visible animate-message-in-left">
-      {/* Toggle Button */}
-      <div className="flex justify-end mb-4 px-6">
-        <div className="glass-panel flex items-center gap-1 p-1">
+      {/* Toggle Button - more compact */}
+      <div className="flex justify-end mb-3 px-6">
+        <div className="flex items-center gap-0.5 p-0.5 bg-muted/40 rounded-lg border border-border/30">
           <button 
             onClick={() => setViewMode('single')}
-            className="px-4 py-2 rounded-[14px] text-xs font-medium text-muted-foreground hover:text-foreground panel-button"
+            className="px-3 py-1.5 rounded-md text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             Single
           </button>
           <button 
             onClick={() => setViewMode('sideBySide')}
-            className="px-4 py-2 rounded-[14px] text-xs font-medium bg-card text-foreground shadow-sm apple-interactive"
+            className="px-3 py-1.5 rounded-md text-[11px] font-medium bg-card text-foreground shadow-sm"
           >
             Compare
           </button>
         </div>
       </div>
 
-      {/* Horizontal Scroll Container for Model Responses - Edge to Edge */}
-      <div className="overflow-x-auto scrollbar-hide pb-2">
-        <div className="flex gap-3 px-6" style={{ minWidth: 'min-content' }}>
-          {models.map((model) => {
-            const aiResponse = content[model] || '';
-            const isGenerating = !aiResponse || aiResponse.trim() === '';
-            
-            return (
-              <div
-                key={model}
-                className="min-w-[280px] max-w-[400px] flex-1 flex-shrink-0 flex flex-col bg-card/80 dark:bg-card/40 rounded-2xl border border-border/50 shadow-[0_2px_12px_rgba(0,0,0,0.04)] overflow-hidden"
-              >
-                {/* Model Header */}
-                <div className="flex-shrink-0 h-12 px-4 border-b border-border/40 bg-card/60 dark:bg-card/30 backdrop-blur-sm">
-                  <div className="flex items-center justify-between h-full">
-                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                      <div className="w-6 h-6 flex-shrink-0 flex items-center justify-center">
+      {/* Horizontal Scroll Container - with scroll indicators */}
+      <div className="relative">
+        {/* Left gradient fade */}
+        <div className="absolute left-0 top-0 bottom-2 w-8 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+        {/* Right gradient fade */}
+        <div className="absolute right-0 top-0 bottom-2 w-8 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+        
+        <div className="overflow-x-auto scrollbar-hide pb-2 scroll-smooth snap-x snap-mandatory">
+          <div className="flex gap-2.5 px-6" style={{ minWidth: 'min-content' }}>
+            {models.map((model) => {
+              const aiResponse = content[model] || '';
+              const isGenerating = !aiResponse || aiResponse.trim() === '';
+              const contentLength = aiResponse.length;
+              
+              return (
+                <div
+                  key={model}
+                  className="min-w-[260px] max-w-[360px] flex-1 flex-shrink-0 flex flex-col bg-card rounded-xl border border-border/40 shadow-sm overflow-hidden snap-start"
+                >
+                  {/* Simplified Model Header */}
+                  <div className="flex-shrink-0 h-10 px-3 border-b border-border/30 bg-muted/20">
+                    <div className="flex items-center h-full gap-2">
+                      <div className="w-5 h-5 flex-shrink-0 flex items-center justify-center">
                         {getProviderIcon(model)}
                       </div>
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="text-sm font-semibold text-foreground truncate">
-                          {formatModelName(model)}
-                        </span>
-                        <ChevronDown className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <button 
-                        className="w-7 h-7 rounded-lg hover:bg-muted/50 transition-colors flex items-center justify-center" 
-                        aria-label="Add"
-                      >
-                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                          <path d="M8 3V13M3 8H13" stroke="currentColor" className="text-muted-foreground" strokeWidth="1.5" strokeLinecap="round"/>
-                        </svg>
-                      </button>
-                      <div className="w-9 h-5 bg-muted/60 rounded-full relative cursor-pointer hover:bg-muted/80 transition-colors">
-                        <div className="absolute left-0.5 top-0.5 w-4 h-4 bg-card rounded-full shadow-sm" />
-                      </div>
+                      <span className="text-[13px] font-medium text-foreground truncate">
+                        {formatModelName(model)}
+                      </span>
                     </div>
                   </div>
-                </div>
 
-                {/* AI Response Content - min height for short, max for long */}
-                <div className="flex-1 overflow-y-auto p-4 min-h-[100px] max-h-[400px]">
-                  <div className="text-[14px] leading-[1.6] text-foreground">
-                    {isGenerating ? (
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <div className="flex gap-1">
-                          <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce [animation-delay:0ms]"></span>
-                          <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce [animation-delay:150ms]"></span>
-                          <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce [animation-delay:300ms]"></span>
+                  {/* AI Response Content - adaptive height */}
+                  <div className={`flex-1 overflow-y-auto p-3 ${
+                    contentLength < 100 ? 'min-h-[60px]' : 'min-h-[80px]'
+                  } max-h-[320px]`}>
+                    <div className="text-[13px] leading-[1.55] text-foreground">
+                      {isGenerating ? (
+                        <div className="flex items-center gap-2 text-muted-foreground py-2">
+                          <div className="flex gap-1">
+                            <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce [animation-delay:0ms]"></span>
+                            <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce [animation-delay:150ms]"></span>
+                            <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce [animation-delay:300ms]"></span>
+                          </div>
+                          <span className="text-xs">Generating...</span>
                         </div>
-                        <span className="text-sm">Generating response...</span>
-                      </div>
-                    ) : (
-                      <ReactMarkdown
-                        components={{
-                          code({ inline, className, children, ...props }: any) {
-                            const match = /language-(\w+)/.exec(className || '');
-                            return !inline && match ? (
-                              <div className="my-3 rounded-lg overflow-hidden">
-                                <SyntaxHighlighter
-                                  style={vscDarkPlus}
-                                  language={match[1]}
-                                  PreTag="div"
-                                  {...props}
-                                >
-                                  {String(children).replace(/\n$/, '')}
-                                </SyntaxHighlighter>
-                              </div>
-                            ) : (
-                              <code className="bg-muted/50 dark:bg-muted px-1.5 py-0.5 rounded text-[13px] font-mono" {...props}>
-                                {children}
-                              </code>
-                            );
-                          },
-                          p: ({ children }) => <p className="mb-3 last:mb-0 leading-relaxed">{children}</p>,
-                          ul: ({ children }) => <ul className="list-disc list-outside ml-5 mb-3 space-y-1.5">{children}</ul>,
-                          ol: ({ children }) => <ol className="list-decimal list-outside ml-5 mb-3 space-y-1.5">{children}</ol>,
-                          li: ({ children }) => <li className="leading-relaxed">{children}</li>,
-                          strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                          h1: ({ children }) => <h1 className="text-lg font-bold mb-3 mt-4 first:mt-0">{children}</h1>,
-                          h2: ({ children }) => <h2 className="text-base font-bold mb-2 mt-3 first:mt-0">{children}</h2>,
-                          h3: ({ children }) => <h3 className="text-sm font-semibold mb-2 mt-2 first:mt-0">{children}</h3>,
-                        }}
-                      >
-                        {aiResponse}
-                      </ReactMarkdown>
-                    )}
+                      ) : (
+                        <ReactMarkdown
+                          components={{
+                            code({ inline, className, children, ...props }: any) {
+                              const match = /language-(\w+)/.exec(className || '');
+                              return !inline && match ? (
+                                <div className="my-2 rounded-lg overflow-hidden">
+                                  <SyntaxHighlighter
+                                    style={vscDarkPlus}
+                                    language={match[1]}
+                                    PreTag="div"
+                                    {...props}
+                                  >
+                                    {String(children).replace(/\n$/, '')}
+                                  </SyntaxHighlighter>
+                                </div>
+                              ) : (
+                                <code className="bg-muted/50 dark:bg-muted px-1 py-0.5 rounded text-[12px] font-mono" {...props}>
+                                  {children}
+                                </code>
+                              );
+                            },
+                            p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>,
+                            ul: ({ children }) => <ul className="list-disc list-outside ml-4 mb-2 space-y-1">{children}</ul>,
+                            ol: ({ children }) => <ol className="list-decimal list-outside ml-4 mb-2 space-y-1">{children}</ol>,
+                            li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                            strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                            h1: ({ children }) => <h1 className="text-base font-bold mb-2 mt-3 first:mt-0">{children}</h1>,
+                            h2: ({ children }) => <h2 className="text-sm font-bold mb-1.5 mt-2 first:mt-0">{children}</h2>,
+                            h3: ({ children }) => <h3 className="text-sm font-semibold mb-1.5 mt-2 first:mt-0">{children}</h3>,
+                          }}
+                        >
+                          {aiResponse}
+                        </ReactMarkdown>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Standardized Action Buttons - icon only */}
+                  <div className="flex items-center gap-1 h-9 px-2.5 border-t border-border/20 bg-muted/5 flex-shrink-0">
+                    <button
+                      onClick={() => handleCopy(model)}
+                      className="w-7 h-7 rounded-md hover:bg-muted/60 transition-colors flex items-center justify-center"
+                      title="Copy"
+                    >
+                      {copiedModel === model ? (
+                        <Check className="w-3.5 h-3.5 text-primary" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5 text-muted-foreground" />
+                      )}
+                    </button>
+                    <button
+                      className="w-7 h-7 rounded-md hover:bg-muted/60 transition-colors flex items-center justify-center"
+                      title="Like"
+                    >
+                      <ThumbsUp className="w-3.5 h-3.5 text-muted-foreground" />
+                    </button>
+                    <button
+                      className="w-7 h-7 rounded-md hover:bg-muted/60 transition-colors flex items-center justify-center"
+                      title="Dislike"
+                    >
+                      <ThumbsDown className="w-3.5 h-3.5 text-muted-foreground" />
+                    </button>
+                    <button
+                      onClick={() => handleDownload(model)}
+                      className="w-7 h-7 rounded-md hover:bg-muted/60 transition-colors flex items-center justify-center ml-auto"
+                      title="Download"
+                    >
+                      <Download className="w-3.5 h-3.5 text-muted-foreground" />
+                    </button>
                   </div>
                 </div>
-
-                {/* Action Buttons */}
-                <div className="flex items-center gap-1 h-10 px-3 border-t border-border/30 bg-muted/10 flex-shrink-0">
-                  <button
-                    onClick={() => handleCopy(model)}
-                    className="w-7 h-7 rounded-md hover:bg-muted/50 transition-colors flex items-center justify-center"
-                    title="Copy response"
-                  >
-                    {copiedModel === model ? (
-                      <Check className="w-3.5 h-3.5 text-primary" />
-                    ) : (
-                      <Copy className="w-3.5 h-3.5 text-muted-foreground" />
-                    )}
-                  </button>
-                  <button
-                    className="w-7 h-7 rounded-md hover:bg-muted/50 transition-colors flex items-center justify-center"
-                    title="Good response"
-                  >
-                    <ThumbsUp className="w-3.5 h-3.5 text-muted-foreground" />
-                  </button>
-                  <button
-                    className="w-7 h-7 rounded-md hover:bg-muted/50 transition-colors flex items-center justify-center"
-                    title="Bad response"
-                  >
-                    <ThumbsDown className="w-3.5 h-3.5 text-muted-foreground" />
-                  </button>
-                  <button
-                    onClick={() => handleDownload(model)}
-                    className="flex items-center gap-1.5 h-7 px-2.5 rounded-md hover:bg-muted/50 transition-colors text-[12px] text-muted-foreground ml-auto"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    <span>Download</span>
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
