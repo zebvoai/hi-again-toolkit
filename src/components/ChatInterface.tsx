@@ -149,29 +149,31 @@ export function ChatInterface() {
       {/* Messages Area */}
       {messages.length > 0 ? (
         <div className="flex-1 overflow-y-auto overflow-x-hidden py-8 bg-gradient-to-b from-transparent via-primary/[0.02] to-transparent">
-          <div className="max-w-[986px] mx-auto px-4">
-            {messages.map((message, index) => {
-              // Check if this is a multi-model compare response
-              const isMultiModelResponse = message.role === 'assistant' && typeof message.content === 'object' && !Array.isArray(message.content) && message.metadata?.models?.length > 1;
+          {messages.map((message, index) => {
+            // Check if this is a multi-model compare response
+            const isMultiModelResponse = message.role === 'assistant' && typeof message.content === 'object' && !Array.isArray(message.content) && message.metadata?.models?.length > 1;
 
-              // Multi-model responses get full width - each renders its own horizontal scroll
-              if (isMultiModelResponse) {
-                return (
-                  <div key={message.id} className="w-full -mx-4 mb-6">
-                    <Message message={message} allMessages={messages} onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')} />
-                  </div>
-                );
-              }
-
-              // Regular messages aligned with input field
+            // Multi-model responses get full width edge-to-edge
+            if (isMultiModelResponse) {
               return (
-                <div key={message.id}>
+                <div key={message.id} className="w-full mb-6">
                   <Message message={message} allMessages={messages} onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')} />
                 </div>
               );
-            })}
-            {isLoading && <TypingIndicator models={selectedModels} />}
-          </div>
+            }
+
+            // Regular messages constrained to readable width
+            return (
+              <div key={message.id} className="max-w-[800px] mx-auto px-6">
+                <Message message={message} allMessages={messages} onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')} />
+              </div>
+            );
+          })}
+          {isLoading && (
+            <div className="max-w-[800px] mx-auto px-6">
+              <TypingIndicator models={selectedModels} />
+            </div>
+          )}
           <div ref={messagesEndRef} />
         </div>
       ) : (

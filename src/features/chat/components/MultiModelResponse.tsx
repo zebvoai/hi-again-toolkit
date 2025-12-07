@@ -202,7 +202,7 @@ export const MultiModelResponse = ({ content, models, userQuestion, allMessages 
   return (
     <div className="w-full overflow-visible animate-message-in-left">
       {/* Toggle Button */}
-      <div className="flex justify-end mb-4 px-4">
+      <div className="flex justify-end mb-4 px-6">
         <div className="glass-panel flex items-center gap-1 p-1">
           <button 
             onClick={() => setViewMode('single')}
@@ -221,7 +221,7 @@ export const MultiModelResponse = ({ content, models, userQuestion, allMessages 
 
       {/* User Question - Centered above the model responses */}
       {userQuestion && (
-        <div className="flex justify-end px-4 mb-4">
+        <div className="flex justify-end px-6 mb-4">
           <div className="max-w-[50%] rounded-[18px_18px_4px_18px] bg-gradient-to-br from-primary to-primary/85 text-primary-foreground px-4 py-3 shadow-[0_2px_8px_rgba(77,112,255,0.2)]">
             <p className="text-[15px] leading-[1.5] whitespace-pre-wrap break-words">
               {userQuestion}
@@ -230,9 +230,9 @@ export const MultiModelResponse = ({ content, models, userQuestion, allMessages 
         </div>
       )}
 
-      {/* Horizontal Scroll Container for Model Responses */}
-      <div className="overflow-x-auto scrollbar-hide pb-2 -mr-4">
-        <div className="flex gap-4 pl-4 pr-8" style={{ minWidth: 'min-content' }}>
+      {/* Horizontal Scroll Container for Model Responses - Edge to Edge */}
+      <div className="overflow-x-auto scrollbar-hide pb-2">
+        <div className="flex gap-3 px-6" style={{ minWidth: 'min-content' }}>
           {models.map((model) => {
             const aiResponse = content[model] || '';
             const isGenerating = !aiResponse || aiResponse.trim() === '';
@@ -240,7 +240,7 @@ export const MultiModelResponse = ({ content, models, userQuestion, allMessages 
             return (
               <div
                 key={model}
-                className="w-[340px] flex-shrink-0 flex flex-col bg-card/80 dark:bg-card/40 rounded-2xl border border-border/50 shadow-[0_2px_12px_rgba(0,0,0,0.04)] overflow-hidden"
+                className="min-w-[280px] max-w-[400px] flex-1 flex-shrink-0 flex flex-col bg-card/80 dark:bg-card/40 rounded-2xl border border-border/50 shadow-[0_2px_12px_rgba(0,0,0,0.04)] overflow-hidden"
               >
                 {/* Model Header */}
                 <div className="flex-shrink-0 h-12 px-4 border-b border-border/40 bg-card/60 dark:bg-card/30 backdrop-blur-sm">
@@ -273,8 +273,8 @@ export const MultiModelResponse = ({ content, models, userQuestion, allMessages 
                   </div>
                 </div>
 
-                {/* AI Response Content */}
-                <div className="flex-1 overflow-y-auto p-4 max-h-[400px]">
+                {/* AI Response Content - min height for short, max for long */}
+                <div className="flex-1 overflow-y-auto p-4 min-h-[100px] max-h-[400px]">
                   <div className="text-[14px] leading-[1.6] text-foreground">
                     {isGenerating ? (
                       <div className="flex items-center gap-2 text-muted-foreground">
