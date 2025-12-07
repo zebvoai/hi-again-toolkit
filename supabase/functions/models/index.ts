@@ -20,7 +20,6 @@ const OPENROUTER_MODELS: { displayName: string; apiId: string }[] = [
   { displayName: 'DeepSeek R1 Distill Qwen 32B', apiId: 'deepseek/deepseek-r1-distill-qwen-32b' },
   
   // Qwen - High quality Chinese AI models
-  { displayName: 'Qwen 3 235B', apiId: 'qwen/qwen3-235b-a22b' },
   { displayName: 'Qwen 3 32B', apiId: 'qwen/qwen3-32b' },
   { displayName: 'Qwen 2.5 72B', apiId: 'qwen/qwen-2.5-72b-instruct' },
   
