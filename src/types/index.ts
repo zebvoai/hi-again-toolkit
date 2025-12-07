@@ -1,5 +1,5 @@
 export type Mode = 'text' | 'image' | 'video' | 'build';
-export type Provider = 'openai' | 'anthropic' | 'google' | 'stability' | 'runway' | 'pika';
+export type Provider = 'openai' | 'anthropic' | 'google';
 
 export interface MultiModelContent {
   [modelName: string]: string;
@@ -41,11 +41,6 @@ export interface ChatResponse {
 export interface MultiModelChatResponse {
   content: MultiModelContent;
   models: string[];
-}
-
-export interface ImageRequest {
-  prompt: string;
-  provider?: Provider;
 }
 
 export interface ImageResponse {

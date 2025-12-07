@@ -385,55 +385,14 @@ serve(async (req) => {
       return await handleMultiModelRequest(message, models, conversationHistory, stream, mode);
     }
     
-    // Map display names to actual API model names - SYNCED with getModelMapping
-    const modelMapping: Record<string, { api: string, provider: string }> = {
-      // OpenAI Models
-      'GPT-5': { api: 'gpt-5-2025-08-07', provider: 'openai' },
-      'GPT-5 Mini': { api: 'gpt-5-mini-2025-08-07', provider: 'openai' },
-      'GPT-5 Nano': { api: 'gpt-5-nano-2025-08-07', provider: 'openai' },
-      'GPT-4.1': { api: 'gpt-4.1-2025-04-14', provider: 'openai' },
-      'GPT-4.1 Mini': { api: 'gpt-4.1-mini-2025-04-14', provider: 'openai' },
-      'O3': { api: 'o3-2025-04-16', provider: 'openai' },
-      'O4 Mini': { api: 'o4-mini-2025-04-16', provider: 'openai' },
-      
-      // Anthropic Models - Current Claude 4.x models
-      'Claude Sonnet 4.5': { api: 'claude-sonnet-4-5', provider: 'anthropic' },
-      'Claude Haiku 4.5': { api: 'claude-haiku-4-5', provider: 'anthropic' },
-      'Claude Opus 4.5': { api: 'claude-opus-4-5', provider: 'anthropic' },
-      'Claude Sonnet 4': { api: 'claude-sonnet-4-20250514', provider: 'anthropic' },
-      'Claude Opus 4': { api: 'claude-opus-4-20250514', provider: 'anthropic' },
-      
-      // Google Models - ALL Gemini models use lovable gateway
-      'Gemini 2.5 Pro': { api: 'google/gemini-2.5-pro', provider: 'lovable' },
-      'Gemini 3 Pro': { api: 'google/gemini-3-pro-preview', provider: 'lovable' },
-      'Gemini 2.5 Flash': { api: 'google/gemini-2.5-flash', provider: 'lovable' },
-      'Gemini 2.5 Flash Lite': { api: 'google/gemini-2.5-flash-lite', provider: 'lovable' },
-      'Gemini 2.0 Flash': { api: 'google/gemini-2.5-flash', provider: 'lovable' }
-    };
-    
-    // Determine actual model and provider
+    // Determine actual model and provider using the unified getModelMapping function
     let model: string;
     let selectedProvider: string;
     
-    if (requestedModel && modelMapping[requestedModel]) {
-      // Use the mapping for display names
-      model = modelMapping[requestedModel].api;
-      selectedProvider = modelMapping[requestedModel].provider;
-    } else if (requestedModel) {
-      // Fallback: use the model name directly (for backward compatibility)
-      model = requestedModel;
-      // Determine provider from model name
-      if (requestedModel.startsWith('gpt') || requestedModel.startsWith('o')) {
-        selectedProvider = 'openai';
-      } else if (requestedModel.startsWith('claude')) {
-        selectedProvider = 'anthropic';
-      } else if (requestedModel.includes('gemini') || requestedModel.includes('Gemini')) {
-        selectedProvider = 'lovable';
-        model = 'google/gemini-2.5-flash';
-      } else {
-        // Default to OpenRouter for unknown models
-        selectedProvider = 'openrouter';
-      }
+    if (requestedModel) {
+      const mapping = getModelMapping(requestedModel);
+      model = mapping.apiModel;
+      selectedProvider = mapping.provider;
     } else {
       // Default fallback
       selectedProvider = provider || 'openai';
