@@ -545,14 +545,21 @@ All colors MUST be HSL.
 
   body {
     @apply text-foreground overflow-x-hidden;
-    /* Soft pastel gradient: lavender → white glow → pastel pink */
-    background: linear-gradient(135deg, #F4F0FF 0%, #FFFFFF 40%, #FFEFF7 100%);
-    filter: brightness(103%);
+    /* Soft gradient base: light blue-lavender to soft pink-purple */
+    background: linear-gradient(
+      135deg,
+      #E8F4FC 0%,
+      #F0F4FF 20%,
+      #FAFBFF 40%,
+      #FDF8FC 60%,
+      #F8F0F8 80%,
+      #F5E8F5 100%
+    );
     background-attachment: fixed;
     min-height: 100vh;
   }
 
-  /* Subtle ambient center glow overlay */
+  /* Blurred gradient orbs overlay - blue left, pink right */
   body::before {
     content: '';
     position: fixed;
@@ -560,13 +567,13 @@ All colors MUST be HSL.
     left: 0;
     right: 0;
     bottom: 0;
-    background: radial-gradient(
-      ellipse 70% 50% at 50% 40%,
-      rgba(255, 255, 255, 0.5) 0%,
-      transparent 60%
-    );
+    background: 
+      radial-gradient(ellipse 60% 80% at 10% 30%, rgba(200, 220, 255, 0.5) 0%, transparent 50%),
+      radial-gradient(ellipse 50% 70% at 90% 40%, rgba(240, 200, 240, 0.45) 0%, transparent 50%),
+      radial-gradient(ellipse 40% 50% at 50% 80%, rgba(230, 240, 255, 0.3) 0%, transparent 45%);
     pointer-events: none;
     z-index: -1;
+    filter: blur(40px);
   }
 
   /* Hide scrollbar but keep functionality */
