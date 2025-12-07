@@ -152,20 +152,30 @@ export const MultiModelResponse = ({ content, models, userQuestion, allMessages 
                       code({ inline, className, children, ...props }: any) {
                         const match = /language-(\w+)/.exec(className || '');
                         return !inline && match ? (
-                          <SyntaxHighlighter
-                            style={vscDarkPlus}
-                            language={match[1]}
-                            PreTag="div"
-                            {...props}
-                          >
-                            {String(children).replace(/\n$/, '')}
-                          </SyntaxHighlighter>
+                          <div className="my-3 rounded-lg overflow-hidden">
+                            <SyntaxHighlighter
+                              style={vscDarkPlus}
+                              language={match[1]}
+                              PreTag="div"
+                              {...props}
+                            >
+                              {String(children).replace(/\n$/, '')}
+                            </SyntaxHighlighter>
+                          </div>
                         ) : (
-                          <code className="bg-muted px-1.5 py-0.5 rounded text-sm" {...props}>
+                          <code className="bg-muted/50 dark:bg-muted px-1.5 py-0.5 rounded text-sm font-mono" {...props}>
                             {children}
                           </code>
                         );
                       },
+                      p: ({ children }) => <p className="mb-3 last:mb-0 leading-relaxed">{children}</p>,
+                      ul: ({ children }) => <ul className="list-disc list-outside ml-5 mb-3 space-y-1.5">{children}</ul>,
+                      ol: ({ children }) => <ol className="list-decimal list-outside ml-5 mb-3 space-y-1.5">{children}</ol>,
+                      li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                      strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                      h1: ({ children }) => <h1 className="text-xl font-bold mb-3 mt-4 first:mt-0">{children}</h1>,
+                      h2: ({ children }) => <h2 className="text-lg font-bold mb-2 mt-3 first:mt-0">{children}</h2>,
+                      h3: ({ children }) => <h3 className="text-base font-semibold mb-2 mt-2 first:mt-0">{children}</h3>,
                     }}
                   >
                     {currentContent}
@@ -291,7 +301,7 @@ export const MultiModelResponse = ({ content, models, userQuestion, allMessages 
                           code({ inline, className, children, ...props }: any) {
                             const match = /language-(\w+)/.exec(className || '');
                             return !inline && match ? (
-                              <div className="my-2 rounded-lg overflow-hidden">
+                              <div className="my-3 rounded-lg overflow-hidden">
                                 <SyntaxHighlighter
                                   style={vscDarkPlus}
                                   language={match[1]}
@@ -302,17 +312,19 @@ export const MultiModelResponse = ({ content, models, userQuestion, allMessages 
                                 </SyntaxHighlighter>
                               </div>
                             ) : (
-                              <code className="bg-muted px-1 py-0.5 rounded text-[13px] font-mono" {...props}>
+                              <code className="bg-muted/50 dark:bg-muted px-1.5 py-0.5 rounded text-[13px] font-mono" {...props}>
                                 {children}
                               </code>
                             );
                           },
-                          p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                          ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
-                          ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
-                          h1: ({ children }) => <h1 className="text-lg font-bold mb-2">{children}</h1>,
-                          h2: ({ children }) => <h2 className="text-base font-bold mb-2">{children}</h2>,
-                          h3: ({ children }) => <h3 className="text-sm font-semibold mb-1.5">{children}</h3>,
+                          p: ({ children }) => <p className="mb-3 last:mb-0 leading-relaxed">{children}</p>,
+                          ul: ({ children }) => <ul className="list-disc list-outside ml-5 mb-3 space-y-1.5">{children}</ul>,
+                          ol: ({ children }) => <ol className="list-decimal list-outside ml-5 mb-3 space-y-1.5">{children}</ol>,
+                          li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                          strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                          h1: ({ children }) => <h1 className="text-lg font-bold mb-3 mt-4 first:mt-0">{children}</h1>,
+                          h2: ({ children }) => <h2 className="text-base font-bold mb-2 mt-3 first:mt-0">{children}</h2>,
+                          h3: ({ children }) => <h3 className="text-sm font-semibold mb-2 mt-2 first:mt-0">{children}</h3>,
                         }}
                       >
                         {aiResponse}

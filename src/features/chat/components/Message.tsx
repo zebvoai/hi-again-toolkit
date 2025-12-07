@@ -98,7 +98,69 @@ export const Message = ({
             </span>}
           
           {/* Message bubble */}
-          
+          <div className={`rounded-[18px] px-4 py-3 shadow-sm ${
+            isUser 
+              ? 'rounded-br-[4px] bg-gradient-to-br from-primary to-primary/85 text-primary-foreground' 
+              : 'rounded-bl-[4px] bg-[#F0F0F0] dark:bg-muted text-foreground'
+          }`}>
+            {isUser ? (
+              <p className="text-[15px] leading-[1.5] whitespace-pre-wrap break-words">
+                {contentString}
+              </p>
+            ) : (
+              <div className="prose prose-sm max-w-none dark:prose-invert">
+                <ReactMarkdown
+                  components={{
+                    code({ inline, className, children, ...props }: any) {
+                      const match = /language-(\w+)/.exec(className || '');
+                      const codeId = `code-${Math.random().toString(36).substr(2, 9)}`;
+                      if (!inline && match) {
+                        return (
+                          <div className="relative group my-3">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="absolute right-2 top-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 hover:bg-background"
+                              onClick={() => copyToClipboard(String(children), codeId)}
+                            >
+                              {copiedCode === codeId ? (
+                                <Check className="h-3.5 w-3.5 text-green-500" />
+                              ) : (
+                                <Copy className="h-3.5 w-3.5" />
+                              )}
+                            </Button>
+                            <SyntaxHighlighter
+                              style={oneDark}
+                              language={match[1]}
+                              PreTag="div"
+                              className="rounded-lg !my-0"
+                            >
+                              {String(children).replace(/\n$/, '')}
+                            </SyntaxHighlighter>
+                          </div>
+                        );
+                      }
+                      return (
+                        <code className="bg-muted/50 dark:bg-muted px-1.5 py-0.5 rounded text-sm font-mono" {...props}>
+                          {children}
+                        </code>
+                      );
+                    },
+                    p: ({ children }) => <p className="mb-3 last:mb-0 leading-relaxed">{children}</p>,
+                    ul: ({ children }) => <ul className="list-disc list-outside ml-5 mb-3 space-y-1.5">{children}</ul>,
+                    ol: ({ children }) => <ol className="list-decimal list-outside ml-5 mb-3 space-y-1.5">{children}</ol>,
+                    li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                    strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                    h1: ({ children }) => <h1 className="text-xl font-bold mb-3 mt-4 first:mt-0">{children}</h1>,
+                    h2: ({ children }) => <h2 className="text-lg font-bold mb-2 mt-3 first:mt-0">{children}</h2>,
+                    h3: ({ children }) => <h3 className="text-base font-semibold mb-2 mt-2 first:mt-0">{children}</h3>,
+                  }}
+                >
+                  {contentString}
+                </ReactMarkdown>
+              </div>
+            )}
+          </div>
           
           {/* Actions row for AI messages */}
           {!isUser && <div className="flex items-center gap-2 mt-2 ml-0.5">
