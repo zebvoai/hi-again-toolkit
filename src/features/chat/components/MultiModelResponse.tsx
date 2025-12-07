@@ -200,7 +200,7 @@ export const MultiModelResponse = ({ content, models, userQuestion, allMessages 
 
   // Side by Side view - each response is an independent horizontal scroll
   return (
-    <div className="w-full overflow-hidden animate-message-in-left">
+    <div className="w-full overflow-visible animate-message-in-left">
       {/* Toggle Button */}
       <div className="flex justify-end mb-4 px-4">
         <div className="glass-panel flex items-center gap-1 p-1">
@@ -231,8 +231,8 @@ export const MultiModelResponse = ({ content, models, userQuestion, allMessages 
       )}
 
       {/* Horizontal Scroll Container for Model Responses */}
-      <div className="overflow-x-auto scrollbar-hide pb-2">
-        <div className="flex gap-4 pl-4 pr-16" style={{ width: 'max-content' }}>
+      <div className="overflow-x-auto scrollbar-hide pb-2 -mr-4">
+        <div className="flex gap-4 pl-4 pr-8" style={{ minWidth: 'min-content' }}>
           {models.map((model) => {
             const aiResponse = content[model] || '';
             const isGenerating = !aiResponse || aiResponse.trim() === '';
