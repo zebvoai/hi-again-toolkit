@@ -206,36 +206,42 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
     );
   }
 
-  // Side by Side view - each response is an independent horizontal scroll
+  // Side by Side view - unified response container
   return (
     <div className="w-full overflow-visible animate-message-in-left">
-      {/* Toggle Button - more compact */}
-      <div className="flex justify-end mb-3 px-6">
-        <div className="flex items-center gap-0.5 p-0.5 bg-muted/40 rounded-lg border border-border/30">
-          <button 
-            onClick={() => setViewMode('single')}
-            className="px-3 py-1.5 rounded-md text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Single
-          </button>
-          <button 
-            onClick={() => setViewMode('sideBySide')}
-            className="px-3 py-1.5 rounded-md text-[11px] font-medium bg-card text-foreground shadow-sm"
-          >
-            Compare
-          </button>
+      {/* Unified Response Header - Toggle LEFT + Model Count */}
+      <div className="flex items-center justify-between mb-3 px-6">
+        {/* Left side: Toggle + Count */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-0.5 p-0.5 bg-muted/30 rounded-lg border border-border/20">
+            <button 
+              onClick={() => setViewMode('single')}
+              className="px-3 py-1.5 rounded-md text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Single
+            </button>
+            <button 
+              onClick={() => setViewMode('sideBySide')}
+              className="px-3 py-1.5 rounded-md text-[11px] font-medium bg-card text-foreground shadow-sm"
+            >
+              Compare
+            </button>
+          </div>
+          <span className="text-[11px] text-muted-foreground/60">
+            {models.length} model{models.length > 1 ? 's' : ''} responding
+          </span>
         </div>
       </div>
 
       {/* Horizontal Scroll Container - with scroll indicators */}
       <div className="relative">
         {/* Left gradient fade */}
-        <div className="absolute left-0 top-0 bottom-2 w-8 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+        <div className="absolute left-0 top-0 bottom-2 w-10 bg-gradient-to-r from-background via-background/80 to-transparent z-10 pointer-events-none" />
         {/* Right gradient fade */}
-        <div className="absolute right-0 top-0 bottom-2 w-8 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-2 w-10 bg-gradient-to-l from-background via-background/80 to-transparent z-10 pointer-events-none" />
         
-        <div className="overflow-x-auto scrollbar-hide pb-2 scroll-smooth snap-x snap-mandatory">
-          <div className="flex gap-2.5 px-6" style={{ minWidth: 'min-content' }}>
+        <div className="overflow-x-auto scrollbar-hide pb-3 scroll-smooth snap-x snap-mandatory">
+          <div className="flex gap-3 px-6" style={{ minWidth: 'min-content' }}>
             {models.map((model) => {
               const aiResponse = content[model] || '';
               const isGenerating = !aiResponse || aiResponse.trim() === '';
@@ -244,15 +250,15 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
               return (
                 <div
                   key={model}
-                  className="min-w-[260px] max-w-[360px] flex-1 flex-shrink-0 flex flex-col bg-card rounded-xl border border-border/40 shadow-sm overflow-hidden snap-start"
+                  className="min-w-[280px] max-w-[380px] flex-1 flex-shrink-0 flex flex-col bg-card rounded-xl border border-border/30 shadow-sm overflow-hidden snap-start hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
                 >
-                  {/* Simplified Model Header */}
-                  <div className="flex-shrink-0 h-10 px-3 border-b border-border/30 bg-muted/20">
+                  {/* Compact Model Header */}
+                  <div className="flex-shrink-0 h-9 px-3 border-b border-border/20 bg-muted/10">
                     <div className="flex items-center h-full gap-2">
-                      <div className="w-5 h-5 flex-shrink-0 flex items-center justify-center">
+                      <div className="w-4 h-4 flex-shrink-0 flex items-center justify-center">
                         {getProviderIcon(model)}
                       </div>
-                      <span className="text-[13px] font-medium text-foreground truncate">
+                      <span className="text-[12px] font-medium text-foreground/80 truncate">
                         {formatModelName(model)}
                       </span>
                     </div>
@@ -260,17 +266,17 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
 
                   {/* AI Response Content - adaptive height */}
                   <div className={`flex-1 overflow-y-auto p-3 ${
-                    contentLength < 100 ? 'min-h-[60px]' : 'min-h-[80px]'
-                  } max-h-[320px]`}>
+                    contentLength < 100 ? 'min-h-[50px]' : 'min-h-[70px]'
+                  } max-h-[280px]`}>
                     <div className="text-[13px] leading-[1.55] text-foreground">
                       {isGenerating ? (
-                        <div className="flex items-center gap-2 text-muted-foreground py-2">
+                        <div className="flex items-center gap-2 text-muted-foreground py-1.5">
                           <div className="flex gap-1">
                             <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce [animation-delay:0ms]"></span>
                             <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce [animation-delay:150ms]"></span>
                             <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce [animation-delay:300ms]"></span>
                           </div>
-                          <span className="text-xs">Generating...</span>
+                          <span className="text-[11px]">Generating...</span>
                         </div>
                       ) : (
                         <ReactMarkdown
@@ -310,37 +316,37 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
                     </div>
                   </div>
 
-                  {/* Standardized Action Buttons - icon only */}
-                  <div className="flex items-center gap-1 h-9 px-2.5 border-t border-border/20 bg-muted/5 flex-shrink-0">
+                  {/* Compact Action Buttons */}
+                  <div className="flex items-center gap-0.5 h-8 px-2 border-t border-border/15 bg-muted/5 flex-shrink-0">
                     <button
                       onClick={() => handleCopy(model)}
-                      className="w-7 h-7 rounded-md hover:bg-muted/60 transition-colors flex items-center justify-center"
+                      className="w-6 h-6 rounded-md hover:bg-muted/50 transition-colors flex items-center justify-center"
                       title="Copy"
                     >
                       {copiedModel === model ? (
-                        <Check className="w-3.5 h-3.5 text-primary" />
+                        <Check className="w-3 h-3 text-primary" />
                       ) : (
-                        <Copy className="w-3.5 h-3.5 text-muted-foreground" />
+                        <Copy className="w-3 h-3 text-muted-foreground" />
                       )}
                     </button>
                     <button
-                      className="w-7 h-7 rounded-md hover:bg-muted/60 transition-colors flex items-center justify-center"
+                      className="w-6 h-6 rounded-md hover:bg-muted/50 transition-colors flex items-center justify-center"
                       title="Like"
                     >
-                      <ThumbsUp className="w-3.5 h-3.5 text-muted-foreground" />
+                      <ThumbsUp className="w-3 h-3 text-muted-foreground" />
                     </button>
                     <button
-                      className="w-7 h-7 rounded-md hover:bg-muted/60 transition-colors flex items-center justify-center"
+                      className="w-6 h-6 rounded-md hover:bg-muted/50 transition-colors flex items-center justify-center"
                       title="Dislike"
                     >
-                      <ThumbsDown className="w-3.5 h-3.5 text-muted-foreground" />
+                      <ThumbsDown className="w-3 h-3 text-muted-foreground" />
                     </button>
                     <button
                       onClick={() => handleDownload(model)}
-                      className="w-7 h-7 rounded-md hover:bg-muted/60 transition-colors flex items-center justify-center ml-auto"
+                      className="w-6 h-6 rounded-md hover:bg-muted/50 transition-colors flex items-center justify-center ml-auto"
                       title="Download"
                     >
-                      <Download className="w-3.5 h-3.5 text-muted-foreground" />
+                      <Download className="w-3 h-3 text-muted-foreground" />
                     </button>
                   </div>
                 </div>

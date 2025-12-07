@@ -99,29 +99,30 @@ export const Message = ({
   const contentString = typeof message.content === 'string' ? message.content : '';
   
   // Calculate dynamic sizing for user messages
-  const isShortMessage = contentString.length < 40;
+  const isShortMessage = contentString.length < 50;
+  const isVeryShortMessage = contentString.length < 20;
   
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-3 ${isUser ? 'animate-message-in-right' : 'animate-message-in-left'}`}>
-      <div className={`flex ${isUser ? 'flex-row-reverse ml-auto' : 'flex-row'} ${isUser ? 'max-w-[70%]' : 'max-w-[75%]'} gap-2.5`}>
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} ${isUser ? 'animate-message-in-right' : 'animate-message-in-left'}`}>
+      <div className={`flex ${isUser ? 'flex-row-reverse' : 'flex-row'} ${isUser ? 'max-w-[65%]' : 'max-w-[75%]'} gap-2`}>
         {/* Avatar for AI only */}
         {!isUser && (
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center shadow-sm flex-shrink-0">
-            <span className="text-primary font-semibold text-xs">Z</span>
+          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/15 to-primary/30 flex items-center justify-center shadow-sm flex-shrink-0 mt-0.5">
+            <span className="text-primary font-semibold text-[10px]">Z</span>
           </div>
         )}
         
         <div className="flex flex-col group">
           {/* Model name and timestamp for AI messages */}
           {!isUser && (
-            <div className="flex items-center gap-2 mb-1 ml-0.5">
+            <div className="flex items-center gap-1.5 mb-1 ml-0.5">
               {message.metadata?.model && (
-                <span className="text-[11px] font-medium text-muted-foreground/70">
+                <span className="text-[10px] font-medium text-muted-foreground/60">
                   {formatModelName(message.metadata.model)}
                 </span>
               )}
               {timeAgo && (
-                <span className="text-[10px] text-muted-foreground/40">
+                <span className="text-[9px] text-muted-foreground/35">
                   {timeAgo}
                 </span>
               )}
@@ -129,10 +130,10 @@ export const Message = ({
           )}
           
           {/* Message bubble - dynamic sizing */}
-          <div className={`rounded-[16px] shadow-sm transition-all duration-200 ${
+          <div className={`shadow-sm transition-all duration-200 ${
             isUser 
-              ? `rounded-br-[4px] bg-gradient-to-br from-primary to-primary/90 text-primary-foreground ${isShortMessage ? 'px-3.5 py-2' : 'px-4 py-2.5'}`
-              : 'rounded-bl-[4px] bg-card border border-border/40 text-foreground px-4 py-3'
+              ? `rounded-[14px] rounded-br-[4px] bg-gradient-to-br from-primary to-primary/90 text-primary-foreground ${isVeryShortMessage ? 'px-3 py-1.5' : isShortMessage ? 'px-3.5 py-2' : 'px-4 py-2.5'}`
+              : 'rounded-[14px] rounded-bl-[4px] bg-card border border-border/30 text-foreground px-3.5 py-2.5'
           }`}>
             {isUser ? (
               isEditing ? (
