@@ -45,7 +45,7 @@ export function ChatInterface() {
     const defaultModels: Record<string, string> = {
       text: 'GPT-5',
       image: 'DALL-E 3',
-      video: 'Gemini Video 2.0',
+      video: 'Vidu T2V',
       build: 'GPT-5'
     };
 
