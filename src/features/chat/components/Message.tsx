@@ -5,10 +5,11 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Copy, Check, RefreshCw, Pencil, X, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { MultiModelResponse } from './MultiModelResponse';
 import { MultiModelImageResponse } from './MultiModelImageResponse';
 import { formatModelName } from '@/lib/utils';
+import { formatDistanceToNow } from 'date-fns';
 
 interface MessageProps {
   message: MessageType;
@@ -31,7 +32,11 @@ export const Message = ({
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState('');
-  const { toast } = useToast();
+
+  // Format timestamp
+  const timeAgo = message.timestamp 
+    ? formatDistanceToNow(new Date(message.timestamp), { addSuffix: true })
+    : null;
 
   // Find the preceding user message for multi-model responses
   const getUserQuestion = (): string => {
@@ -50,10 +55,7 @@ export const Message = ({
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
     setCopiedCode(id);
-    toast({
-      title: 'Copied!',
-      description: 'Code copied to clipboard'
-    });
+    toast.success('Code copied to clipboard');
     setTimeout(() => setCopiedCode(null), 2000);
   };
   
@@ -61,10 +63,7 @@ export const Message = ({
     const textToCopy = typeof message.content === 'string' ? message.content : JSON.stringify(message.content);
     navigator.clipboard.writeText(textToCopy);
     setCopied(true);
-    toast({
-      title: 'Copied!',
-      description: 'Message copied to clipboard'
-    });
+    toast.success('Message copied to clipboard');
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -126,11 +125,20 @@ export const Message = ({
         )}
         
         <div className="flex flex-col">
-          {/* Model name for AI messages */}
-          {!isUser && message.metadata?.model && (
-            <span className="text-[11px] font-medium text-gray-400 mb-1 ml-0.5">
-              {formatModelName(message.metadata.model)}
-            </span>
+          {/* Model name and timestamp for AI messages */}
+          {!isUser && (
+            <div className="flex items-center gap-2 mb-1 ml-0.5">
+              {message.metadata?.model && (
+                <span className="text-[11px] font-medium text-gray-400">
+                  {formatModelName(message.metadata.model)}
+                </span>
+              )}
+              {timeAgo && (
+                <span className="text-[10px] text-muted-foreground/50">
+                  {timeAgo}
+                </span>
+              )}
+            </div>
           )}
           
           {/* Message bubble */}
@@ -224,6 +232,13 @@ export const Message = ({
               </div>
             )}
           </div>
+          
+          {/* Timestamp for user messages */}
+          {isUser && timeAgo && (
+            <span className="text-[10px] text-muted-foreground/50 mt-1 mr-0.5 text-right">
+              {timeAgo}
+            </span>
+          )}
           
           {/* Actions row */}
           <div className="flex items-center gap-2 mt-2 ml-0.5">
