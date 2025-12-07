@@ -75,13 +75,12 @@ serve(async (req) => {
       'GPT-4.1 Mini',
       'O3',
       'O4 Mini',
-      // Anthropic (direct API)
+      // Anthropic (direct API) - Current Claude 4.x models
       'Claude Sonnet 4.5',
-      'Claude Opus 4.1',
+      'Claude Haiku 4.5',
+      'Claude Opus 4.5',
       'Claude Sonnet 4',
       'Claude Opus 4',
-      'Claude Haiku 3.5',
-      'Claude Sonnet 3.5',
       // Google (via Lovable AI Gateway)
       'Gemini 2.5 Pro',
       'Gemini 3 Pro',
