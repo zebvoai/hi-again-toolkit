@@ -11,38 +11,6 @@ interface Message {
 }
 
 // Model mapping helper - supports OpenAI, Anthropic, Lovable (Gemini), and OpenRouter
-// OpenRouter models need their API IDs fetched dynamically
-let openRouterModelMap: Record<string, string> = {};
-
-async function fetchOpenRouterModelMap(): Promise<void> {
-  try {
-    const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
-    const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY');
-    
-    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-      console.error('SUPABASE_URL or SUPABASE_ANON_KEY not configured');
-      return;
-    }
-    
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/models`, {
-      headers: {
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'Content-Type': 'application/json',
-      },
-    });
-    
-    if (response.ok) {
-      const data = await response.json();
-      if (data._openRouterModelMap) {
-        openRouterModelMap = data._openRouterModelMap;
-        console.log('Loaded OpenRouter model map with', Object.keys(openRouterModelMap).length, 'models');
-      }
-    }
-  } catch (error) {
-    console.error('Failed to fetch OpenRouter model map:', error);
-  }
-}
-
 const getModelMapping = (displayName: string): { apiModel: string, provider: string } => {
   const modelMapping: Record<string, { apiModel: string, provider: string }> = {
     // OpenAI Models (direct API)
@@ -69,7 +37,67 @@ const getModelMapping = (displayName: string): { apiModel: string, provider: str
     'Gemini 3 Pro': { apiModel: 'google/gemini-3-pro-preview', provider: 'lovable' },
     'Gemini 2.5 Flash': { apiModel: 'google/gemini-2.5-flash', provider: 'lovable' },
     'Gemini 2.5 Flash Lite': { apiModel: 'google/gemini-2.5-flash-lite', provider: 'lovable' },
-    'Gemini 2.0 Flash': { apiModel: 'google/gemini-2.5-flash', provider: 'lovable' }
+    'Gemini 2.0 Flash': { apiModel: 'google/gemini-2.5-flash', provider: 'lovable' },
+    
+    // OpenRouter Models - Curated top-quality models with correct API IDs
+    // X.AI / Grok
+    'Grok 4.1 Fast': { apiModel: 'x-ai/grok-4.1-fast', provider: 'openrouter' },
+    'Grok 4 Fast': { apiModel: 'x-ai/grok-4-fast', provider: 'openrouter' },
+    'Grok Code Fast': { apiModel: 'x-ai/grok-code-fast-1', provider: 'openrouter' },
+    'Grok 3 Beta': { apiModel: 'x-ai/grok-3-beta', provider: 'openrouter' },
+    
+    // DeepSeek
+    'DeepSeek R1': { apiModel: 'deepseek/deepseek-r1', provider: 'openrouter' },
+    'DeepSeek V3': { apiModel: 'deepseek/deepseek-chat', provider: 'openrouter' },
+    'DeepSeek R1 Distill Qwen 32B': { apiModel: 'deepseek/deepseek-r1-distill-qwen-32b', provider: 'openrouter' },
+    
+    // Qwen
+    'Qwen 3 235B': { apiModel: 'qwen/qwen3-235b-a22b', provider: 'openrouter' },
+    'Qwen 3 32B': { apiModel: 'qwen/qwen3-32b', provider: 'openrouter' },
+    'Qwen 3 Coder': { apiModel: 'qwen/qwen3-coder', provider: 'openrouter' },
+    'Qwen 2.5 72B': { apiModel: 'qwen/qwen-2.5-72b-instruct', provider: 'openrouter' },
+    'Qwen QwQ 32B': { apiModel: 'qwen/qwq-32b', provider: 'openrouter' },
+    
+    // Mistral
+    'Mistral Large': { apiModel: 'mistralai/mistral-large-2411', provider: 'openrouter' },
+    'Mistral Medium': { apiModel: 'mistralai/mistral-medium-3', provider: 'openrouter' },
+    'Codestral': { apiModel: 'mistralai/codestral-2501', provider: 'openrouter' },
+    'Mistral Nemo': { apiModel: 'mistralai/mistral-nemo', provider: 'openrouter' },
+    
+    // Meta Llama
+    'Llama 4 Maverick': { apiModel: 'meta-llama/llama-4-maverick', provider: 'openrouter' },
+    'Llama 4 Scout': { apiModel: 'meta-llama/llama-4-scout', provider: 'openrouter' },
+    'Llama 3.3 70B': { apiModel: 'meta-llama/llama-3.3-70b-instruct', provider: 'openrouter' },
+    'Llama 3.1 405B': { apiModel: 'meta-llama/llama-3.1-405b-instruct', provider: 'openrouter' },
+    
+    // MiniMax
+    'MiniMax M2': { apiModel: 'minimax/minimax-m2', provider: 'openrouter' },
+    
+    // Cohere
+    'Command R+': { apiModel: 'cohere/command-r-plus-08-2024', provider: 'openrouter' },
+    'Command R': { apiModel: 'cohere/command-r-08-2024', provider: 'openrouter' },
+    'Command A': { apiModel: 'cohere/command-a-03-2025', provider: 'openrouter' },
+    
+    // Perplexity
+    'Perplexity Sonar Pro': { apiModel: 'perplexity/sonar-pro', provider: 'openrouter' },
+    'Perplexity Sonar': { apiModel: 'perplexity/sonar', provider: 'openrouter' },
+    
+    // AI21
+    'Jamba 1.6 Large': { apiModel: 'ai21/jamba-1.6-large', provider: 'openrouter' },
+    'Jamba 1.6 Mini': { apiModel: 'ai21/jamba-1.6-mini', provider: 'openrouter' },
+    
+    // Microsoft
+    'Phi 4': { apiModel: 'microsoft/phi-4', provider: 'openrouter' },
+    'Phi 4 Reasoning': { apiModel: 'microsoft/phi-4-reasoning-plus', provider: 'openrouter' },
+    
+    // NVIDIA
+    'Nemotron 70B': { apiModel: 'nvidia/llama-3.1-nemotron-70b-instruct', provider: 'openrouter' },
+    
+    // Google via OpenRouter
+    'Gemma 3 27B': { apiModel: 'google/gemma-3-27b-it', provider: 'openrouter' },
+    
+    // Alibaba
+    'Marco o1': { apiModel: 'alibaba/marco-o1', provider: 'openrouter' },
   };
   
   // If in mapping, use it
@@ -77,13 +105,9 @@ const getModelMapping = (displayName: string): { apiModel: string, provider: str
     return modelMapping[displayName];
   }
   
-  // Check if it's an OpenRouter model with a known API ID
-  if (openRouterModelMap[displayName]) {
-    return { apiModel: openRouterModelMap[displayName], provider: 'openrouter' };
-  }
-  
-  // Fallback: use display name as API model (shouldn't happen ideally)
-  return { apiModel: displayName, provider: 'openrouter' };
+  // Fallback: unknown model - try to make a reasonable guess
+  console.warn(`Unknown model: ${displayName}, using as-is with openrouter`);
+  return { apiModel: displayName.toLowerCase().replace(/ /g, '-'), provider: 'openrouter' };
 };
 
 // Multi-model request handler
@@ -336,11 +360,6 @@ serve(async (req) => {
   }
 
   try {
-    // Fetch OpenRouter model map if not already loaded
-    if (Object.keys(openRouterModelMap).length === 0) {
-      await fetchOpenRouterModelMap();
-    }
-    
     const { message, mode, conversationHistory = [], provider, model: requestedModel, models, stream = false }: ChatRequest = await req.json();
     
     console.log('Chat request:', { message, mode, provider, requestedModel, models, historyLength: conversationHistory.length });
