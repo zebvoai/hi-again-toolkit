@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { ChatInterface } from "@/components/ChatInterface";
+import SharedChat from "./pages/SharedChat";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -16,17 +17,25 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <SidebarProvider defaultOpen={false}>
-          <div className="flex min-h-screen w-full overflow-hidden">
-            <AppSidebar />
-            <div className="flex-1 flex flex-col overflow-hidden">
-              <Routes>
-                <Route path="/" element={<ChatInterface />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </div>
-          </div>
-        </SidebarProvider>
+        <Routes>
+          {/* Shared chat route - no sidebar */}
+          <Route path="/chat/:conversationId" element={<SharedChat />} />
+          
+          {/* Main app with sidebar */}
+          <Route path="*" element={
+            <SidebarProvider defaultOpen={false}>
+              <div className="flex min-h-screen w-full overflow-hidden">
+                <AppSidebar />
+                <div className="flex-1 flex flex-col overflow-hidden">
+                  <Routes>
+                    <Route path="/" element={<ChatInterface />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </div>
+              </div>
+            </SidebarProvider>
+          } />
+        </Routes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

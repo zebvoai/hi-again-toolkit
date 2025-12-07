@@ -3,30 +3,35 @@ import type { Message as MessageType, MultiModelContent } from '@/types';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Copy, Check, User, Bot } from 'lucide-react';
+import { Copy, Check, RefreshCw, Pencil, X, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Badge } from '@/components/ui/badge';
 import { MultiModelResponse } from './MultiModelResponse';
 import { MultiModelImageResponse } from './MultiModelImageResponse';
 import { formatModelName } from '@/lib/utils';
+
 interface MessageProps {
   message: MessageType;
   onRetry?: () => void;
+  onRegenerate?: () => void;
+  onEdit?: (newContent: string) => void;
   allMessages?: MessageType[];
 }
+
 export const Message = ({
   message,
   onRetry,
+  onRegenerate,
+  onEdit,
   allMessages = []
 }: MessageProps) => {
   const isUser = message.role === 'user';
   const isMultiModel = !isUser && typeof message.content === 'object' && !Array.isArray(message.content);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const {
-    toast
-  } = useToast();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState('');
+  const { toast } = useToast();
 
   // Find the preceding user message for multi-model responses
   const getUserQuestion = (): string => {
@@ -39,7 +44,9 @@ export const Message = ({
     }
     return '';
   };
+  
   const userQuestion = getUserQuestion();
+  
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
     setCopiedCode(id);
@@ -49,6 +56,7 @@ export const Message = ({
     });
     setTimeout(() => setCopiedCode(null), 2000);
   };
+  
   const copyMessage = () => {
     const textToCopy = typeof message.content === 'string' ? message.content : JSON.stringify(message.content);
     navigator.clipboard.writeText(textToCopy);
@@ -60,42 +68,70 @@ export const Message = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleStartEdit = () => {
+    if (typeof message.content === 'string') {
+      setEditContent(message.content);
+      setIsEditing(true);
+    }
+  };
+
+  const handleSaveEdit = () => {
+    if (editContent.trim() && onEdit) {
+      onEdit(editContent.trim());
+      setIsEditing(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditContent('');
+  };
+
   // Handle multi-model responses
   if (isMultiModel) {
     const multiContent = message.content as MultiModelContent;
     const models = message.metadata?.models || Object.keys(multiContent);
     const isImageMode = message.metadata?.isImage;
 
-    // If it's multi-model image generation
     if (isImageMode) {
-      return <div className="flex justify-start mb-4 animate-message-in-left">
+      return (
+        <div className="flex justify-start mb-4 animate-message-in-left">
           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-200 to-blue-300 flex items-center justify-center shadow-[0_2px_4px_rgba(0,0,0,0.08)] mr-2 flex-shrink-0">
             <span className="text-blue-700 font-semibold text-sm">Z</span>
           </div>
           <div className="flex-1 max-w-[75%]">
             <MultiModelImageResponse content={multiContent} models={models} />
           </div>
-        </div>;
+        </div>
+      );
     }
-    return <div className="w-full">
+    return (
+      <div className="w-full">
         <MultiModelResponse content={multiContent} models={models} userQuestion={userQuestion} allMessages={allMessages} />
-      </div>;
+      </div>
+    );
   }
 
   // Get content as string for user and single AI messages
   const contentString = typeof message.content === 'string' ? message.content : '';
-  return <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 ${isUser ? 'animate-message-in-right' : 'animate-message-in-left'}`}>
+  
+  return (
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 ${isUser ? 'animate-message-in-right' : 'animate-message-in-left'}`}>
       <div className={`flex ${isUser ? 'flex-row-reverse ml-auto' : 'flex-row'} max-w-[75%] gap-2`}>
         {/* Avatar for AI only */}
-        {!isUser && <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-200 to-blue-300 flex items-center justify-center shadow-[0_2px_4px_rgba(0,0,0,0.08)] flex-shrink-0">
+        {!isUser && (
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-200 to-blue-300 flex items-center justify-center shadow-[0_2px_4px_rgba(0,0,0,0.08)] flex-shrink-0">
             <span className="text-blue-700 font-semibold text-sm">Z</span>
-          </div>}
+          </div>
+        )}
         
         <div className="flex flex-col">
           {/* Model name for AI messages */}
-          {!isUser && message.metadata?.model && <span className="text-[11px] font-medium text-gray-400 mb-1 ml-0.5">
+          {!isUser && message.metadata?.model && (
+            <span className="text-[11px] font-medium text-gray-400 mb-1 ml-0.5">
               {formatModelName(message.metadata.model)}
-            </span>}
+            </span>
+          )}
           
           {/* Message bubble */}
           <div className={`rounded-[18px] px-4 py-3 shadow-sm ${
@@ -104,9 +140,36 @@ export const Message = ({
               : 'rounded-bl-[4px] bg-[#F0F0F0] dark:bg-muted text-foreground'
           }`}>
             {isUser ? (
-              <p className="text-[15px] leading-[1.5] whitespace-pre-wrap break-words">
-                {contentString}
-              </p>
+              isEditing ? (
+                <div className="space-y-2">
+                  <textarea
+                    value={editContent}
+                    onChange={(e) => setEditContent(e.target.value)}
+                    className="w-full min-h-[60px] bg-white/10 rounded-lg p-2 text-[15px] leading-[1.5] resize-none outline-none focus:ring-2 focus:ring-white/30"
+                    autoFocus
+                  />
+                  <div className="flex items-center gap-2 justify-end">
+                    <button
+                      onClick={handleCancelEdit}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[12px] bg-white/10 hover:bg-white/20 transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSaveEdit}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[12px] bg-white/20 hover:bg-white/30 transition-colors"
+                    >
+                      <Save className="w-3.5 h-3.5" />
+                      Save & Regenerate
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-[15px] leading-[1.5] whitespace-pre-wrap break-words">
+                  {contentString}
+                </p>
+              )
             ) : (
               <div className="prose prose-sm max-w-none dark:prose-invert">
                 <ReactMarkdown
@@ -162,23 +225,63 @@ export const Message = ({
             )}
           </div>
           
-          {/* Actions row for AI messages */}
-          {!isUser && <div className="flex items-center gap-2 mt-2 ml-0.5">
-              <button onClick={copyMessage} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] text-muted-foreground hover:bg-accent/80 hover:text-foreground transition-all duration-[180ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.95]">
-                {copied ? <>
-                    <Check className="w-3.5 h-3.5" />
-                    <span>Copied!</span>
-                  </> : <>
-                    <Copy className="w-3.5 h-3.5" />
-                    <span>Copy</span>
-                  </>}
+          {/* Actions row */}
+          <div className="flex items-center gap-2 mt-2 ml-0.5">
+            {/* User message actions */}
+            {isUser && !isEditing && (
+              <button
+                onClick={handleStartEdit}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] text-muted-foreground hover:bg-accent/80 hover:text-foreground transition-all duration-[180ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.95]"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                <span>Edit</span>
               </button>
-              
-              {message.metadata?.error && onRetry && <button onClick={onRetry} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] text-muted-foreground hover:bg-accent/80 hover:text-foreground transition-all duration-[180ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.95]">
-                  Retry
-                </button>}
-            </div>}
+            )}
+            
+            {/* AI message actions */}
+            {!isUser && (
+              <>
+                <button
+                  onClick={copyMessage}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] text-muted-foreground hover:bg-accent/80 hover:text-foreground transition-all duration-[180ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.95]"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Copy</span>
+                    </>
+                  )}
+                </button>
+                
+                {/* Regenerate button */}
+                {onRegenerate && (
+                  <button
+                    onClick={onRegenerate}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] text-muted-foreground hover:bg-accent/80 hover:text-foreground transition-all duration-[180ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.95]"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Regenerate</span>
+                  </button>
+                )}
+                
+                {message.metadata?.error && onRetry && (
+                  <button
+                    onClick={onRetry}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] text-muted-foreground hover:bg-accent/80 hover:text-foreground transition-all duration-[180ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.95]"
+                  >
+                    Retry
+                  </button>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };

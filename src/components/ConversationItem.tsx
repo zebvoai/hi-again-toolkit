@@ -1,10 +1,13 @@
 import { useState } from 'react';
-import { MoreVertical, Share, Edit, Archive, Trash2, Copy } from 'lucide-react';
+import { MoreVertical, Share, Edit, Archive, Trash2, Copy, Download, FileJson, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { formatDistanceToNow } from 'date-fns';
@@ -20,6 +23,8 @@ interface ConversationItemProps {
   onRename?: () => void;
   onArchive?: () => void;
   onDuplicate?: () => void;
+  onExportMarkdown?: () => void;
+  onExportJSON?: () => void;
 }
 
 export const ConversationItem = ({
@@ -32,6 +37,8 @@ export const ConversationItem = ({
   onRename,
   onArchive,
   onDuplicate,
+  onExportMarkdown,
+  onExportJSON,
 }: ConversationItemProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const timeAgo = formatDistanceToNow(new Date(updatedAt), { addSuffix: true });
@@ -132,6 +139,36 @@ export const ConversationItem = ({
               <Share className="w-4 h-4 mr-2.5 text-muted-foreground" />
               Share
             </DropdownMenuItem>
+
+            {/* Export submenu */}
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger className="rounded-lg px-3 py-2 text-[13px] cursor-pointer">
+                <Download className="w-4 h-4 mr-2.5 text-muted-foreground" />
+                Export
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent className="min-w-[140px] bg-white/95 dark:bg-[#2C2C2E]/95 backdrop-blur-xl border border-border/20 shadow-lg rounded-xl p-1">
+                <DropdownMenuItem
+                  className="rounded-lg px-3 py-2 text-[13px] cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onExportMarkdown?.();
+                  }}
+                >
+                  <FileText className="w-4 h-4 mr-2.5 text-muted-foreground" />
+                  Markdown
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="rounded-lg px-3 py-2 text-[13px] cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onExportJSON?.();
+                  }}
+                >
+                  <FileJson className="w-4 h-4 mr-2.5 text-muted-foreground" />
+                  JSON
+                </DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
 
             <DropdownMenuItem
               className="rounded-lg px-3 py-2 text-[13px] cursor-pointer
