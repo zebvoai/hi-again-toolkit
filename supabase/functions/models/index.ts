@@ -179,7 +179,7 @@ serve(async (req) => {
   }
 
   try {
-    // Base models (always included)
+    // Base models (always included) - Gemini 1.5 models removed (deprecated)
     const baseModels = [
       // OpenAI
       'GPT-5',
@@ -196,13 +196,11 @@ serve(async (req) => {
       'Claude Opus 4',
       'Claude Haiku 3.5',
       'Claude Sonnet 3.5',
-      // Google
+      // Google (via Lovable AI Gateway - no quota issues)
       'Gemini 2.5 Pro',
       'Gemini 3 Pro',
       'Gemini 2.5 Flash',
       'Gemini 2.5 Flash Lite',
-      'Gemini 1.5 Pro',
-      'Gemini 1.5 Flash',
       'Gemini 2.0 Flash',
     ];
     
