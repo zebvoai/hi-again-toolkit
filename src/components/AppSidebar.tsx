@@ -29,6 +29,9 @@ import { useConversations } from "@/features/chat/hooks/useConversations";
 import { ConversationItem } from "./ConversationItem";
 import { RenameDialog } from "./RenameDialog";
 import { isToday, isYesterday, format } from "date-fns";
+import { exportAsMarkdown, exportAsJSON } from "@/lib/exportConversation";
+import { useToast } from "@/hooks/use-toast";
+import type { Message } from "@/types";
 
 export function AppSidebar() {
   const { state } = useSidebar();
@@ -36,6 +39,7 @@ export function AppSidebar() {
   const { clearMessages, setCurrentConversationId, currentConversationId, setMessages } =
     useChatStore();
   const { conversations, isLoading, loadConversation, deleteConversation, renameConversation, shareConversation, refreshConversations } = useConversations();
+  const { toast } = useToast();
 
   // Projects state
   const [isProjectsOpen, setIsProjectsOpen] = useState(true);
@@ -117,6 +121,24 @@ export function AppSidebar() {
     }
 
     refreshConversations();
+  };
+
+  const handleExportMarkdown = async (conversationId: string) => {
+    const conversation = conversations.find((c) => c.id === conversationId);
+    if (!conversation) return;
+    
+    const messages = await loadConversation(conversationId);
+    exportAsMarkdown(messages, conversation.title);
+    toast({ title: 'Exported!', description: 'Conversation exported as Markdown' });
+  };
+
+  const handleExportJSON = async (conversationId: string) => {
+    const conversation = conversations.find((c) => c.id === conversationId);
+    if (!conversation) return;
+    
+    const messages = await loadConversation(conversationId);
+    exportAsJSON(messages, conversation.title);
+    toast({ title: 'Exported!', description: 'Conversation exported as JSON' });
   };
   
   const handleCreateProject = () => {
@@ -381,6 +403,8 @@ export function AppSidebar() {
                         onShare={() => handleShare(conv.id)}
                         onRename={() => handleRename(conv.id)}
                         onArchive={() => handleArchive(conv.id)}
+                        onExportMarkdown={() => handleExportMarkdown(conv.id)}
+                        onExportJSON={() => handleExportJSON(conv.id)}
                       />
                     ))}
                   </div>
