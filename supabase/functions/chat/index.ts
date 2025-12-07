@@ -97,6 +97,24 @@ const getModelMapping = (displayName: string): { apiModel: string, provider: str
 };
 
 // Multi-model request handler
+// Sanitize conversation history - ensure content is always a string (handles multi-model object responses)
+const sanitizeHistory = (history: Message[]): Message[] => {
+  return history.map(m => {
+    let content = m.content;
+    
+    if (typeof content === 'object' && content !== null) {
+      // Multi-model object - pick first model's response
+      const values = Object.values(content);
+      content = typeof values[0] === 'string' ? values[0] : '';
+    }
+    
+    return {
+      role: m.role,
+      content: typeof content === 'string' ? content : ''
+    };
+  });
+};
+
 async function handleMultiModelRequest(
   message: string,
   models: string[],
@@ -105,6 +123,9 @@ async function handleMultiModelRequest(
   mode: string = 'text'
 ): Promise<Response> {
   const encoder = new TextEncoder();
+  
+  // Sanitize history before processing
+  const sanitizedHistory = sanitizeHistory(conversationHistory);
   
   if (stream) {
     const streamBody = new ReadableStream({
@@ -137,7 +158,7 @@ async function handleMultiModelRequest(
                 
                 const messages = [
                   { role: 'system', content: systemPrompt },
-                  ...conversationHistory.map(m => ({ role: m.role, content: m.content })),
+                  ...sanitizedHistory.map(m => ({ role: m.role, content: m.content })),
                   { role: 'user', content: message }
                 ];
                 
@@ -154,7 +175,7 @@ async function handleMultiModelRequest(
                 };
                 
                 const messages = [
-                  ...conversationHistory.filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content })),
+                  ...sanitizedHistory.filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content })),
                   { role: 'user', content: message }
                 ];
                 
@@ -177,7 +198,7 @@ async function handleMultiModelRequest(
                 
                 const messages = [
                   { role: 'system', content: systemPrompt },
-                  ...conversationHistory.map(m => ({ role: m.role, content: m.content })),
+                  ...sanitizedHistory.map(m => ({ role: m.role, content: m.content })),
                   { role: 'user', content: message }
                 ];
                 
@@ -192,7 +213,7 @@ async function handleMultiModelRequest(
                   'x-goog-api-key': apiKey
                 };
                 
-                const contents = conversationHistory.map(m => ({
+                const contents = sanitizedHistory.map(m => ({
                   role: m.role === 'assistant' ? 'model' : 'user',
                   parts: [{ text: m.content }]
                 }));
@@ -215,7 +236,7 @@ async function handleMultiModelRequest(
                 
                 const messages = [
                   { role: 'system', content: systemPrompt },
-                  ...conversationHistory.map(m => ({ role: m.role, content: m.content })),
+                  ...sanitizedHistory.map(m => ({ role: m.role, content: m.content })),
                   { role: 'user', content: message }
                 ];
                 
