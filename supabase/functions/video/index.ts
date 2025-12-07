@@ -12,7 +12,7 @@ interface VideoRequest {
 }
 
 // Map frontend model names to API model names
-const modelMapping: Record<string, { api: string; provider: 'google' | 'wavespeed' | 'vidu' }> = {
+const modelMapping: Record<string, { api: string; provider: 'google' | 'wavespeed' }> = {
   'gemini-video-2.0': { api: 'gemini-2.0-flash-exp', provider: 'google' },
   'gemini-video-flash': { api: 'gemini-2.0-flash-exp', provider: 'google' },
   
@@ -20,10 +20,6 @@ const modelMapping: Record<string, { api: string; provider: 'google' | 'wavespee
   'wan-2.1-t2v-480p': { api: 'alibaba/wan-2.1-t2v-480p', provider: 'wavespeed' },
   'wan-2.1-t2v-720p': { api: 'alibaba/wan-2.1-t2v-720p', provider: 'wavespeed' },
   'wan-2.2-plus-t2v': { api: 'alibaba/wan-2.2-plus-t2v', provider: 'wavespeed' },
-  
-  // Vidu Text-to-Video Model
-  'vidu-t2v': { api: 'vidu/text-to-video', provider: 'vidu' },
-  'vidu-text-to-video': { api: 'vidu/text-to-video', provider: 'vidu' },
 };
 
 serve(async (req) => {
@@ -227,111 +223,6 @@ serve(async (req) => {
       
       if (!videoUrl) {
         throw new Error('Video generation timed out after 5 minutes');
-      }
-      
-      return new Response(
-        JSON.stringify({
-          videoUrl,
-          model: model
-        }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
-    }
-
-    // Use Vidu API for Vidu models
-    if (actualProvider === 'vidu') {
-      const wavespeedApiKey = Deno.env.get('WAVESPEED_API_KEY');
-      
-      if (!wavespeedApiKey) {
-        throw new Error('WAVESPEED_API_KEY not configured for Vidu');
-      }
-      
-      console.log('Submitting Vidu text-to-video request...');
-      
-      // Submit the video generation request to Vidu API
-      const submitResponse = await fetch('https://api.wavespeed.ai/api/v3/vidu/text-to-video', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${wavespeedApiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          movement_amplitude: 'auto',
-          prompt: prompt
-        })
-      });
-      
-      if (!submitResponse.ok) {
-        const errorText = await submitResponse.text();
-        console.error('Vidu submit error:', submitResponse.status, errorText);
-        throw new Error(`Vidu API error: ${submitResponse.status} - ${errorText}`);
-      }
-      
-      const submitData = await submitResponse.json();
-      const requestId = submitData.data?.id || submitData.requestId;
-      
-      if (!requestId) {
-        console.error('Vidu response missing requestId:', submitData);
-        throw new Error('Vidu API error: invalid response format - missing requestId');
-      }
-      
-      console.log('Vidu video task submitted with requestId:', requestId);
-      
-      // Poll for results every 3 seconds (max 5 minutes)
-      let videoUrl = null;
-      const maxAttempts = 100; // 5 minutes at 3-second intervals
-      const pollInterval = 3000; // 3 seconds
-      
-      for (let attempt = 0; attempt < maxAttempts; attempt++) {
-        await new Promise(resolve => setTimeout(resolve, pollInterval));
-        
-        const resultResponse = await fetch(`https://api.wavespeed.ai/api/v3/predictions/${requestId}/result`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${wavespeedApiKey}`
-          }
-        });
-        
-        if (!resultResponse.ok) {
-          const errorText = await resultResponse.text();
-          console.error(`Vidu poll error (attempt ${attempt + 1}):`, resultResponse.status, errorText);
-          continue;
-        }
-        
-        const resultData = await resultResponse.json();
-        const status = resultData.data?.status || resultData.status;
-        const outputs = resultData.data?.outputs || resultData.outputs;
-        const video_url = resultData.data?.video_url || resultData.video_url;
-        const errorMessage = resultData.data?.error || resultData.error;
-        
-        console.log(`Vidu status (attempt ${attempt + 1}):`, status, 'outputs:', outputs, 'video_url:', video_url);
-        
-        // Check if generation is complete
-        if (status === 'succeeded' || status === 'completed') {
-          // Try different response formats
-          if (video_url) {
-            videoUrl = video_url;
-          } else if (Array.isArray(outputs) && outputs.length > 0) {
-            videoUrl = outputs[0];
-          } else if (typeof outputs === 'string') {
-            videoUrl = outputs;
-          }
-          
-          if (videoUrl) {
-            console.log('Vidu video generated successfully');
-            console.log('Video URL:', videoUrl);
-            break;
-          }
-        } else if (status === 'failed' || status === 'error') {
-          throw new Error(`Vidu generation failed: ${errorMessage || 'Unknown error'}`);
-        }
-        // Continue polling if status is 'processing', 'pending', 'created', etc.
-      }
-      
-      if (!videoUrl) {
-        throw new Error('Vidu video generation timed out after 5 minutes');
       }
       
       return new Response(

@@ -196,28 +196,30 @@ export const useChat = () => {
           });
         }
       } else if (selectedMode === 'video') {
-        // VIDEO MODE: Filter to only video models (including Vidu)
-        const videoModels = ['Gemini Video 2.0', 'Gemini Video Flash', 'Vidu T2V', 'Vidu Text-to-Video'];
+        // VIDEO MODE: Filter to only video models
+        const videoModels = ['Gemini Video 2.0', 'Gemini Video Flash'];
         const filteredModels = selectedModels.filter(m => videoModels.includes(m));
         
-        // Default to Vidu if no video model selected
-        const videoModel = filteredModels.length > 0 ? filteredModels[0] : 'Vidu T2V';
+        if (filteredModels.length === 0) {
+          throw new Error('No video model selected. Please select a Gemini video model.');
+        }
         
+        const selectedModel = filteredModels[0];
         const response = await api.generateVideo(
           content,
           undefined,
-          videoModel.toLowerCase().replace(/\s+/g, '-'),
+          selectedModel.toLowerCase().replace(/\s+/g, '-'),
           abortControllerRef.current?.signal
         );
         
         const assistantMessage: Message = {
           id: assistantId,
           role: 'assistant' as const,
-          content: `Video generated with ${videoModel}`,
+          content: `Video generated with ${selectedModel}`,
           timestamp: Date.now(),
           metadata: {
             videoUrl: response.videoUrl,
-            model: videoModel
+            model: selectedModel
           }
         };
         

@@ -140,7 +140,7 @@ const builtInPresets: ModelPreset[] = [
     models: {
       text: ['GPT-5 Nano', 'Claude Haiku 3.5', 'Gemini 2.5 Flash Lite'],
       image: ['Flux Schnell', 'Ideogram V2 Turbo', 'Ideogram V3 Turbo', 'Stable Diffusion'],
-      video: ['Vidu T2V', 'WAN 2.1 T2V 480p'],
+      video: ['Gemini Video Flash'],
       build: ['GPT-5 Nano']
     }
   },
@@ -152,7 +152,7 @@ const builtInPresets: ModelPreset[] = [
     models: {
       text: ['GPT-5', 'Claude Sonnet 4.5', 'Gemini 2.5 Pro'],
       image: ['Flux Pro 1.1 Ultra', 'DALL-E 3', 'Ideogram V3 Balanced', 'Stable Diffusion 3.5 Large'],
-      video: ['Vidu T2V'],
+      video: ['Gemini Video 2.0'],
       build: ['GPT-5', 'Claude Sonnet 4.5']
     }
   },
@@ -164,7 +164,7 @@ const builtInPresets: ModelPreset[] = [
     models: {
       text: ['GPT-5 Mini', 'Claude Sonnet 3.5', 'Gemini 2.5 Flash'],
       image: ['Flux Dev', 'Ideogram V2', 'Recraft 20B', 'Stable Diffusion 3'],
-      video: ['Vidu T2V', 'WAN 2.1 T2V 720p'],
+      video: ['Gemini Video Flash'],
       build: ['GPT-5 Mini']
     }
   },
@@ -176,7 +176,7 @@ const builtInPresets: ModelPreset[] = [
     models: {
       text: ['GPT-5 Nano', 'Claude Haiku 3.5', 'Gemini 2.5 Flash Lite'],
       image: ['Flux Schnell', 'DALL-E 2', 'Stable Diffusion'],
-      video: ['Vidu T2V', 'WAN 2.1 T2V 480p'],
+      video: ['Gemini Video Flash'],
       build: ['GPT-5 Nano']
     }
   },
@@ -188,7 +188,7 @@ const builtInPresets: ModelPreset[] = [
     models: {
       text: ['GPT-5', 'Claude Sonnet 4.5', 'Gemini 2.5 Pro'],
       image: ['Flux Pro 1.1 Ultra', 'Flux Dev', 'DALL-E 3', 'Ideogram V3 Balanced'],
-      video: ['Vidu T2V'],
+      video: ['Gemini Video 2.0'],
       build: ['GPT-5', 'Claude Sonnet 4.5']
     }
   }
