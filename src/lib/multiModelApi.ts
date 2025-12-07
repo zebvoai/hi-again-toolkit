@@ -2,6 +2,25 @@ import type { Mode, Message, MultiModelChatResponse, MultiModelContent } from '@
 
 const API_BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
 
+// Sanitize conversation history for API calls - converts multi-model object content to string
+const sanitizeHistoryForAPI = (history: Message[]): { role: string; content: string }[] => {
+  return history.map(msg => {
+    let content: string;
+    
+    if (typeof msg.content === 'string') {
+      content = msg.content;
+    } else if (typeof msg.content === 'object' && msg.content !== null && !Array.isArray(msg.content)) {
+      // Multi-model response object - extract first model's response
+      const values = Object.values(msg.content);
+      content = typeof values[0] === 'string' ? values[0] : '';
+    } else {
+      content = '';
+    }
+    
+    return { role: msg.role, content };
+  });
+};
+
 export const multiModelApi = {
   async sendMessageMultiModel(
     message: string,
@@ -21,7 +40,7 @@ export const multiModelApi = {
       body: JSON.stringify({
         message,
         mode,
-        conversationHistory: history,
+        conversationHistory: sanitizeHistoryForAPI(history),
         models, // Array of models
         stream: !!onProgress
       }),
