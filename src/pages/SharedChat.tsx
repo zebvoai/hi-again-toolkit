@@ -141,7 +141,7 @@ export default function SharedChat() {
       <main className="flex-1 overflow-y-auto py-8">
         <div className="max-w-[800px] mx-auto px-6">
           {messages.map((message) => (
-            <Message key={message.id} message={message} allMessages={messages} />
+            <Message key={message.id} message={message} />
           ))}
         </div>
       </main>
