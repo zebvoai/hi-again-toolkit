@@ -51,7 +51,6 @@ const getModelMapping = (displayName: string): { apiModel: string, provider: str
     // Qwen
     'Qwen 3 235B': { apiModel: 'qwen/qwen3-235b-a22b', provider: 'openrouter' },
     'Qwen 3 32B': { apiModel: 'qwen/qwen3-32b', provider: 'openrouter' },
-    'Qwen 3 Coder': { apiModel: 'qwen/qwen3-coder-480b-a35b', provider: 'openrouter' },
     'Qwen 2.5 72B': { apiModel: 'qwen/qwen-2.5-72b-instruct', provider: 'openrouter' },
     
     // Mistral

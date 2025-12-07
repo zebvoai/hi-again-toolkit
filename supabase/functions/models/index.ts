@@ -22,7 +22,6 @@ const OPENROUTER_MODELS: { displayName: string; apiId: string }[] = [
   // Qwen - High quality Chinese AI models
   { displayName: 'Qwen 3 235B', apiId: 'qwen/qwen3-235b-a22b' },
   { displayName: 'Qwen 3 32B', apiId: 'qwen/qwen3-32b' },
-  { displayName: 'Qwen 3 Coder', apiId: 'qwen/qwen3-coder-480b-a35b' },
   { displayName: 'Qwen 2.5 72B', apiId: 'qwen/qwen-2.5-72b-instruct' },
   
   // Mistral - Strong European AI
