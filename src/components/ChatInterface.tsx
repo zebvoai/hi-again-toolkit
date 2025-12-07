@@ -202,7 +202,7 @@ export function ChatInterface() {
 
       {/* Chat Input Area - Fixed at bottom, respects sidebar */}
       <div 
-        className="fixed bottom-0 right-0 p-4 pb-6 bg-background/90 backdrop-blur-xl border-t border-border/30 z-40 transition-[left] duration-200 ease-linear"
+        className="fixed bottom-0 right-0 p-4 pb-6 bg-background/90 backdrop-blur-xl border-t border-border/30 z-40 transition-[left] duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)]"
         style={{ left: sidebarOffset }}
       >
         <div key={selectedMode} className="max-w-4xl mx-auto animate-scale-in">
