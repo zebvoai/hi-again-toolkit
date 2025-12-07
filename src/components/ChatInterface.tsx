@@ -9,6 +9,8 @@ import { ModelSelector } from '@/features/chat/components/ModelSelector';
 import { ModeDropdown } from '@/features/modes/components/ModeDropdown';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useModels } from '@/features/chat/hooks/useModels';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { useToast } from '@/hooks/use-toast';
 
 export function ChatInterface() {
   const [input, setInput] = useState('');
@@ -19,20 +21,58 @@ export function ChatInterface() {
     sendMessage,
     isLoading,
     retryMessage,
-    cancelGeneration
+    cancelGeneration,
+    regenerateResponse,
+    editAndRegenerate,
   } = useChat();
   const {
     selectedMode
   } = useModeStore();
   const {
     selectedModels,
-    setSelectedModels
+    setSelectedModels,
+    clearMessages,
+    setCurrentConversationId,
   } = useChatStore();
   const {
     models
   } = useModels();
+  const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts({
+    onSend: () => {
+      if (input.trim() && !isLoading && selectedModels.length > 0) {
+        sendMessage(input, attachedFiles);
+        setInput('');
+        setAttachedFiles([]);
+      }
+    },
+    onNewChat: () => {
+      clearMessages();
+      setCurrentConversationId(null);
+      setInput('');
+      toast({ title: 'New chat started' });
+    },
+    onFocusInput: () => {
+      inputRef.current?.focus();
+    },
+    onCopyLastResponse: () => {
+      const lastAssistant = [...messages].reverse().find(m => m.role === 'assistant');
+      if (lastAssistant) {
+        const content = typeof lastAssistant.content === 'string' 
+          ? lastAssistant.content 
+          : JSON.stringify(lastAssistant.content);
+        navigator.clipboard.writeText(content);
+        toast({ title: 'Copied!', description: 'Last response copied to clipboard' });
+      }
+    },
+    onCancelGeneration: cancelGeneration,
+    isLoading,
+  });
 
   // Reset selected models when mode changes
   useEffect(() => {
@@ -44,18 +84,13 @@ export function ChatInterface() {
       build: 'GPT-5'
     };
 
-    // Get available models for current mode
     const availableModelsForMode = models[selectedMode] || [];
-
-    // Filter out models that don't belong to current mode
     const validModels = selectedModels.filter(model => availableModelsForMode.includes(model));
 
-    // If no valid models remain, set the default model
     if (validModels.length === 0) {
       const defaultModel = defaultModels[selectedMode] || 'GPT-5';
       setSelectedModels([defaultModel]);
     } else if (validModels.length !== selectedModels.length) {
-      // Some models were invalid, update to only valid ones
       setSelectedModels(validModels);
     }
   }, [selectedMode, models, selectedModels, setSelectedModels]);
@@ -76,7 +111,7 @@ export function ChatInterface() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim() && !isLoading && selectedModels.length > 0) {
-      sendMessage(input);
+      sendMessage(input, attachedFiles);
       setInput('');
       setAttachedFiles([]);
     }
@@ -87,7 +122,6 @@ export function ChatInterface() {
     if (files) {
       setAttachedFiles(prev => [...prev, ...Array.from(files)]);
     }
-    // Reset input so same file can be selected again
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -134,22 +168,31 @@ export function ChatInterface() {
       {messages.length > 0 ? (
         <div className="flex-1 overflow-y-auto overflow-x-hidden py-8 bg-gradient-to-b from-transparent via-primary/[0.02] to-transparent">
           {messages.map((message) => {
-            // Check if this is a multi-model compare response
             const isMultiModelResponse = message.role === 'assistant' && typeof message.content === 'object' && !Array.isArray(message.content) && message.metadata?.models?.length > 1;
 
-            // Multi-model responses get full width edge-to-edge
             if (isMultiModelResponse) {
               return (
                 <div key={message.id} className="w-full mb-6">
-                  <Message message={message} allMessages={messages} onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')} />
+                  <Message 
+                    message={message} 
+                    allMessages={messages} 
+                    onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')}
+                    onRegenerate={() => regenerateResponse(message.id)}
+                    onEdit={(newContent) => editAndRegenerate(message.id, newContent)}
+                  />
                 </div>
               );
             }
 
-            // Regular messages constrained to readable width
             return (
               <div key={message.id} className="max-w-[800px] mx-auto px-6">
-                <Message message={message} allMessages={messages} onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')} />
+                <Message 
+                  message={message} 
+                  allMessages={messages} 
+                  onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')}
+                  onRegenerate={() => regenerateResponse(message.id)}
+                  onEdit={(newContent) => editAndRegenerate(message.id, newContent)}
+                />
               </div>
             );
           })}
@@ -170,10 +213,25 @@ export function ChatInterface() {
             <p className="text-muted-foreground text-base mb-6 animate-tagline-entrance">
               The World's Greatest AI Platform
             </p>
-            <div className="flex items-center justify-center gap-1.5">
+            <div className="flex items-center justify-center gap-1.5 mb-8">
               <div className="w-2 h-2 rounded-full bg-[#5B9FFF] animate-dot-pulse-wave" />
               <div className="w-2 h-2 rounded-full bg-[#B8D4FF] animate-dot-pulse-wave" style={{ animationDelay: '0.2s' }} />
               <div className="w-2 h-2 rounded-full bg-[#B8D4FF] animate-dot-pulse-wave" style={{ animationDelay: '0.4s' }} />
+            </div>
+            {/* Keyboard shortcuts hint */}
+            <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground/60">
+              <span className="flex items-center gap-1">
+                <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono">⌘K</kbd>
+                <span>Focus</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono">⌘↵</kbd>
+                <span>Send</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono">⌘N</kbd>
+                <span>New Chat</span>
+              </span>
             </div>
           </div>
         </div>
@@ -183,7 +241,7 @@ export function ChatInterface() {
       <div className="sticky bottom-0 flex-shrink-0 p-4 pb-6 bg-background/80 backdrop-blur-xl border-t border-border/30 z-10">
         <div key={selectedMode} className="max-w-4xl mx-auto animate-scale-in">
           <form onSubmit={handleSubmit}>
-            {/* Dropdowns Row - Keep above input */}
+            {/* Dropdowns Row */}
             <div className="flex items-center gap-2.5 mb-3">
               <ModeDropdown />
               {selectedMode !== 'video' && <ModelSelector values={selectedModels} onChange={setSelectedModels} />}
@@ -221,7 +279,16 @@ export function ChatInterface() {
               </button>
 
               {/* Input Field */}
-              <input type="text" value={input} onChange={e => setInput(e.target.value)} placeholder="Ask Zebvo ai" disabled={isLoading} className="flex-1 bg-transparent outline-none text-[17px] font-medium placeholder:text-muted-foreground/70 disabled:opacity-50 px-4 text-foreground" maxLength={4000} />
+              <input 
+                ref={inputRef}
+                type="text" 
+                value={input} 
+                onChange={e => setInput(e.target.value)} 
+                placeholder="Ask Zebvo ai" 
+                disabled={isLoading} 
+                className="flex-1 bg-transparent outline-none text-[17px] font-medium placeholder:text-muted-foreground/70 disabled:opacity-50 px-4 text-foreground" 
+                maxLength={4000} 
+              />
 
               {/* Right Send Button */}
               <button type={isLoading ? "button" : "submit"} onClick={isLoading ? cancelGeneration : undefined} disabled={!isLoading && (!input.trim() || selectedModels.length === 0)} className={`flex-shrink-0 w-[42px] h-[42px] rounded-full flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] ${isLoading ? 'bg-primary text-primary-foreground hover:bg-primary/80 shadow-lg shadow-primary/25' : !input.trim() || selectedModels.length === 0 ? 'bg-muted text-muted-foreground cursor-not-allowed border border-border/50' : 'bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-110 hover:shadow-lg hover:shadow-primary/25 animate-scale-in'}`}>

@@ -14,4 +14,11 @@ export interface ChatState {
   setSelectedModels: (models: string[]) => void;
   setMessages: (messages: Message[]) => void;
   setCurrentConversationId: (id: string | null) => void;
+  
+  // New actions for editing and regeneration
+  editMessage: (id: string, newContent: string) => void;
+  deleteMessage: (id: string) => void;
+  deleteMessagesAfter: (id: string) => void;
+  getMessageById: (id: string) => Message | undefined;
+  findUserMessageBefore: (assistantMessageId: string) => Message | null;
 }

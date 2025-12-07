@@ -17,12 +17,15 @@ export const useChat = () => {
     isLoading, 
     selectedModels,
     currentConversationId,
-    setCurrentConversationId 
+    setCurrentConversationId,
+    deleteMessage,
+    deleteMessagesAfter,
+    findUserMessageBefore,
   } = useChatStore();
   const { selectedMode } = useModeStore();
   const { toast } = useToast();
   const [lastRequestTime, setLastRequestTime] = useState(0);
-  const cooldownMs = 2000; // 2 second cooldown
+  const cooldownMs = 2000;
   const abortControllerRef = useRef<AbortController | null>(null);
   
   const cancelGeneration = () => {
@@ -36,8 +39,83 @@ export const useChat = () => {
       });
     }
   };
+
+  // Regenerate a specific AI response using the cached user prompt
+  const regenerateResponse = async (messageId: string) => {
+    const userMessage = findUserMessageBefore(messageId);
+    if (!userMessage || typeof userMessage.content !== 'string') {
+      toast({
+        title: 'Cannot regenerate',
+        description: 'Could not find the original prompt.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Delete the AI message from database
+    if (currentConversationId) {
+      await supabase
+        .from('messages')
+        .delete()
+        .eq('conversation_id', currentConversationId)
+        .eq('id', messageId);
+    }
+
+    // Delete from local state
+    deleteMessage(messageId);
+
+    // Re-send the original user prompt
+    await sendMessage(userMessage.content);
+  };
+
+  // Edit a user message and regenerate all subsequent responses
+  const editAndRegenerate = async (messageId: string, newContent: string) => {
+    const messages = useChatStore.getState().messages;
+    const messageIndex = messages.findIndex(m => m.id === messageId);
+    
+    if (messageIndex === -1) return;
+
+    const message = messages[messageIndex];
+    
+    // If it's a user message, edit it and delete everything after
+    if (message.role === 'user') {
+      // Update the user message content locally
+      updateMessage(messageId, { content: newContent });
+
+      // Delete all messages after this one from database
+      if (currentConversationId) {
+        const messagesAfter = messages.slice(messageIndex + 1);
+        for (const msg of messagesAfter) {
+          await supabase
+            .from('messages')
+            .delete()
+            .eq('conversation_id', currentConversationId)
+            .eq('id', msg.id);
+        }
+        
+        // Update the user message in database
+        await supabase
+          .from('messages')
+          .update({ content: newContent })
+          .eq('conversation_id', currentConversationId)
+          .eq('id', messageId);
+      }
+
+      // Delete messages after from local state
+      deleteMessagesAfter(messageId);
+
+      // Regenerate with new content
+      await sendMessage(newContent);
+    } else {
+      // It's an AI message - find the user message before it and edit that
+      const userMessage = findUserMessageBefore(messageId);
+      if (userMessage) {
+        await editAndRegenerate(userMessage.id, newContent);
+      }
+    }
+  };
   
-  const sendMessage = async (content: string) => {
+  const sendMessage = async (content: string, files?: File[]) => {
     // Rate limiting check
     const now = Date.now();
     const timeSinceLastRequest = now - lastRequestTime;
@@ -53,7 +131,6 @@ export const useChat = () => {
     
     setLastRequestTime(now);
     
-    // Create new abort controller for this request
     abortControllerRef.current = new AbortController();
     
     // Create conversation if this is the first message
@@ -71,12 +148,49 @@ export const useChat = () => {
         setCurrentConversationId(convId);
       }
     }
+
+    // Handle file uploads if present
+    let fileUrls: string[] = [];
+    if (files && files.length > 0) {
+      try {
+        for (const file of files) {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+          const filePath = `${convId || 'temp'}/${fileName}`;
+          
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('chat-attachments')
+            .upload(filePath, file);
+          
+          if (uploadError) {
+            console.error('File upload error:', uploadError);
+            continue;
+          }
+          
+          const { data: urlData } = supabase.storage
+            .from('chat-attachments')
+            .getPublicUrl(filePath);
+          
+          if (urlData?.publicUrl) {
+            fileUrls.push(urlData.publicUrl);
+          }
+        }
+      } catch (err) {
+        console.error('Error uploading files:', err);
+        toast({
+          title: 'File upload failed',
+          description: 'Some files could not be uploaded.',
+          variant: 'destructive',
+        });
+      }
+    }
     
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user' as const,
       content,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      metadata: fileUrls.length > 0 ? { attachments: fileUrls } : undefined,
     };
     
     addMessage(userMessage);
@@ -93,7 +207,6 @@ export const useChat = () => {
       });
     }
     
-    // Add placeholder for assistant response
     const assistantId = (Date.now() + 1).toString();
     
     try {
@@ -117,7 +230,6 @@ export const useChat = () => {
             }
           });
 
-          // Wait for all images to generate
           await Promise.all(imagePromises);
 
           const assistantMessage: Message = {
@@ -133,7 +245,6 @@ export const useChat = () => {
 
           addMessage(assistantMessage);
 
-          // Save to database
           if (convId) {
             await supabase.from('messages').insert({
               conversation_id: convId,
@@ -153,7 +264,6 @@ export const useChat = () => {
             description: `Generated images with ${selectedModels.length} models`,
           });
         } else {
-          // Single model image generation
           const selectedModel = selectedModels[0] || 'DALL-E 3';
           const response = await api.generateImage(
             content, 
@@ -175,7 +285,6 @@ export const useChat = () => {
           
           addMessage(assistantMessage);
           
-          // Save to database
           if (convId) {
             await supabase.from('messages').insert({
               conversation_id: convId,
@@ -196,7 +305,6 @@ export const useChat = () => {
           });
         }
       } else if (selectedMode === 'video') {
-        // VIDEO MODE: Filter to only video models
         const videoModels = ['Gemini Video 2.0', 'Gemini Video Flash'];
         const filteredModels = selectedModels.filter(m => videoModels.includes(m));
         
@@ -225,7 +333,6 @@ export const useChat = () => {
         
         addMessage(assistantMessage);
         
-        // Save to database
         if (convId) {
           await supabase.from('messages').insert({
             conversation_id: convId,
@@ -245,7 +352,6 @@ export const useChat = () => {
           description: 'Your video has been created successfully',
         });
       } else if (selectedModels.length > 1) {
-        // Multi-model handling
         let multiModelContent: MultiModelContent = {};
         let hasCreatedMessage = false;
 
@@ -259,7 +365,6 @@ export const useChat = () => {
           messages,
           selectedModels,
           (modelName: string, chunk: string) => {
-            // Update content for specific model
             multiModelContent[modelName] += chunk;
 
             if (!hasCreatedMessage) {
@@ -281,7 +386,6 @@ export const useChat = () => {
           abortControllerRef.current?.signal
         );
 
-        // Final update after all models complete
         if (hasCreatedMessage) {
           const finalMessage = {
             content: response.content,
@@ -291,7 +395,6 @@ export const useChat = () => {
           };
           updateMessage(assistantId, finalMessage);
           
-          // Save to database
           if (convId) {
             await supabase.from('messages').insert({
               conversation_id: convId,
@@ -317,7 +420,6 @@ export const useChat = () => {
           };
           addMessage(assistantMessage);
           
-          // Save to database
           if (convId) {
             await supabase.from('messages').insert({
               conversation_id: convId,
@@ -333,14 +435,18 @@ export const useChat = () => {
           }
         }
       } else {
-        // Single model handling
         let streamingContent = '';
         let hasCreatedMessage = false;
         const selectedModel = selectedModels[0];
         const isOpenAIModel = selectedModel?.startsWith('GPT') || selectedModel?.startsWith('O');
 
+        // Include file URLs in the message content for vision models
+        const messageContent = fileUrls.length > 0 
+          ? `${content}\n\n[Attached files: ${fileUrls.join(', ')}]`
+          : content;
+
         const response = await api.sendMessage(
-          content,
+          messageContent,
           selectedMode,
           messages,
           undefined,
@@ -380,7 +486,6 @@ export const useChat = () => {
           };
           updateMessage(assistantId, finalMessage);
           
-          // Save assistant message to database
           if (convId) {
             await supabase.from('messages').insert({
               conversation_id: convId,
@@ -389,7 +494,6 @@ export const useChat = () => {
               metadata: finalMessage.metadata
             });
             
-            // Update conversation timestamp
             await supabase
               .from('conversations')
               .update({ updated_at: new Date().toISOString() })
@@ -408,7 +512,6 @@ export const useChat = () => {
           };
           addMessage(assistantMessage);
           
-          // Save to database
           if (convId) {
             await supabase.from('messages').insert({
               conversation_id: convId,
@@ -425,7 +528,6 @@ export const useChat = () => {
         }
       }
     } catch (error) {
-      // Don't show error toast if user cancelled
       if (error instanceof Error && error.name === 'AbortError') {
         console.log('Request was cancelled by user');
         return;
@@ -434,7 +536,6 @@ export const useChat = () => {
       const errorMessage = error instanceof Error ? error.message : 'Something went wrong';
       setError(errorMessage);
       
-      // Add error message
       const errorAssistantMessage = {
         id: assistantId,
         role: 'assistant' as const,
@@ -461,5 +562,13 @@ export const useChat = () => {
     await sendMessage(content);
   };
   
-  return { messages, sendMessage, isLoading, retryMessage, cancelGeneration };
+  return { 
+    messages, 
+    sendMessage, 
+    isLoading, 
+    retryMessage, 
+    cancelGeneration,
+    regenerateResponse,
+    editAndRegenerate,
+  };
 };

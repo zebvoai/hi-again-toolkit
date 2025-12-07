@@ -18,6 +18,7 @@ export interface Message {
     videoUrl?: string;
     error?: string;
     isImage?: boolean;
+    attachments?: string[];
   };
 }
 
