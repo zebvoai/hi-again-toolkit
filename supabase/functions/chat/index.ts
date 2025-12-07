@@ -22,13 +22,12 @@ const getModelMapping = (displayName: string): { apiModel: string, provider: str
     'O3': { apiModel: 'o3-2025-04-16', provider: 'openai' },
     'O4 Mini': { apiModel: 'o4-mini-2025-04-16', provider: 'openai' },
     
-    // Anthropic Models (direct API) - Using correct model IDs per Anthropic docs
+    // Anthropic Models (direct API) - Current Claude 4.x models per Anthropic docs
     'Claude Sonnet 4.5': { apiModel: 'claude-sonnet-4-5', provider: 'anthropic' },
-    'Claude Opus 4.1': { apiModel: 'claude-opus-4-1-20250805', provider: 'anthropic' },
+    'Claude Haiku 4.5': { apiModel: 'claude-haiku-4-5', provider: 'anthropic' },
+    'Claude Opus 4.5': { apiModel: 'claude-opus-4-5', provider: 'anthropic' },
     'Claude Sonnet 4': { apiModel: 'claude-sonnet-4-20250514', provider: 'anthropic' },
     'Claude Opus 4': { apiModel: 'claude-opus-4-20250514', provider: 'anthropic' },
-    'Claude Haiku 3.5': { apiModel: 'claude-3-5-haiku-20241022', provider: 'anthropic' },
-    'Claude Sonnet 3.5': { apiModel: 'claude-3-5-sonnet-20241022', provider: 'anthropic' },
     
     // Google Models (via Lovable AI Gateway)
     'Gemini 2.5 Pro': { apiModel: 'google/gemini-2.5-pro', provider: 'lovable' },
@@ -382,8 +381,8 @@ serve(async (req) => {
       );
     }
 
-    // Handle multi-model requests (text mode only)
-    if (models && Array.isArray(models) && models.length > 1) {
+    // Handle multi-model requests (text mode only) - includes single model in array
+    if (models && Array.isArray(models) && models.length >= 1) {
       console.log('Multi-model request:', models);
       return await handleMultiModelRequest(message, models, conversationHistory, stream, mode);
     }
@@ -399,15 +398,12 @@ serve(async (req) => {
       'O3': { api: 'o3-2025-04-16', provider: 'openai' },
       'O4 Mini': { api: 'o4-mini-2025-04-16', provider: 'openai' },
       
-      // Anthropic Models - ALL Claude models use anthropic provider directly
+      // Anthropic Models - Current Claude 4.x models
       'Claude Sonnet 4.5': { api: 'claude-sonnet-4-5', provider: 'anthropic' },
-      'Claude Opus 4.1': { api: 'claude-opus-4-1-20250805', provider: 'anthropic' },
+      'Claude Haiku 4.5': { api: 'claude-haiku-4-5', provider: 'anthropic' },
+      'Claude Opus 4.5': { api: 'claude-opus-4-5', provider: 'anthropic' },
       'Claude Sonnet 4': { api: 'claude-sonnet-4-20250514', provider: 'anthropic' },
-      'Claude Opus 4': { api: 'claude-opus-4', provider: 'anthropic' },
-      'Claude 3.7 Sonnet': { api: 'claude-3-7-sonnet-20250219', provider: 'anthropic' },
-      'Claude Haiku 3.5': { api: 'claude-3-5-haiku-20241022', provider: 'anthropic' },
-      'Claude Sonnet 3.5': { api: 'claude-3-5-sonnet-20241022', provider: 'anthropic' },
-      'Claude 3.5 Haiku': { api: 'claude-3-5-haiku-20241022', provider: 'anthropic' },
+      'Claude Opus 4': { api: 'claude-opus-4-20250514', provider: 'anthropic' },
       
       // Google Models - ALL Gemini models use lovable gateway
       'Gemini 2.5 Pro': { api: 'google/gemini-2.5-pro', provider: 'lovable' },
