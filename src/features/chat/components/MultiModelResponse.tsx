@@ -90,105 +90,160 @@ export const MultiModelResponse = ({ content, models, userQuestion, allMessages 
   // Single view (carousel)
   if (viewMode === 'single') {
     const currentModel = models[currentIndex];
-    const currentContent = content[currentModel];
+    const currentContent = content[currentModel] || '';
+    const isGenerating = !currentContent || currentContent.trim() === '';
 
     return (
-      <div className="w-full space-y-3">
-        {/* Toggle Button */}
-        <div className="flex justify-end">
-          <div className="glass-panel flex items-center gap-1 p-1">
-            <button 
-              onClick={() => setViewMode('single')}
-              className="px-4 py-2 rounded-[14px] text-xs font-medium bg-card text-foreground shadow-sm apple-interactive"
-            >
-              Single
-            </button>
-            <button 
-              onClick={() => setViewMode('sideBySide')}
-              className="px-4 py-2 rounded-[14px] text-xs font-medium text-muted-foreground hover:text-foreground panel-button"
-            >
-              Compare
-            </button>
-          </div>
-        </div>
-
-        {/* Single Model Response */}
-        <div className="max-w-[75%]">
-          <div className="flex gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center shadow-[0_4px_12px_rgba(77,112,255,0.15)] flex-shrink-0">
-              <span className="text-primary font-semibold text-sm">Z</span>
+      <div className="w-full px-4 animate-message-in-left">
+        {/* Premium Parent Container */}
+        <div className="bg-white/60 dark:bg-card/30 backdrop-blur-xl rounded-[24px] border border-white/40 dark:border-white/10 shadow-[0_8px_40px_rgba(0,0,0,0.06),0_2px_12px_rgba(0,0,0,0.04)] p-5">
+          {/* Toggle Button */}
+          <div className="flex justify-end mb-4">
+            <div className="bg-white/80 dark:bg-card/60 backdrop-blur-sm flex items-center gap-1 p-1 rounded-[16px] border border-border/30 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+              <button 
+                onClick={() => setViewMode('single')}
+                className="px-4 py-2 rounded-[14px] text-xs font-medium bg-card text-foreground shadow-sm apple-interactive"
+              >
+                Single
+              </button>
+              <button 
+                onClick={() => setViewMode('sideBySide')}
+                className="px-4 py-2 rounded-[14px] text-xs font-medium text-muted-foreground hover:text-foreground panel-button"
+              >
+                Compare
+              </button>
             </div>
-            
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-[11px] font-medium text-muted-foreground">
-                  {formatModelName(currentModel)} • {currentIndex + 1}/{models.length}
-                </span>
-                
-                {models.length > 1 && (
-                  <div className="flex items-center gap-1 ml-auto">
-                    <button 
-                      onClick={() => setCurrentIndex((prev) => (prev - 1 + models.length) % models.length)}
-                      className="w-7 h-7 rounded-full hover:bg-muted flex items-center justify-center panel-button"
-                      aria-label="Previous model"
-                    >
-                      <ChevronLeft className="w-4 h-4 text-muted-foreground" />
-                    </button>
-                    <button 
-                      onClick={() => setCurrentIndex((prev) => (prev + 1) % models.length)}
-                      className="w-7 h-7 rounded-full hover:bg-muted flex items-center justify-center panel-button"
-                      aria-label="Next model"
-                    >
-                      <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                    </button>
+          </div>
+
+          {/* User Question */}
+          {userQuestion && (
+            <div className="flex justify-end mb-5">
+              <div className="max-w-[50%] rounded-[18px_18px_4px_18px] bg-gradient-to-br from-primary to-primary/85 text-primary-foreground px-4 py-3 shadow-[0_2px_8px_rgba(77,112,255,0.2)]">
+                <p className="text-[15px] leading-[1.5] whitespace-pre-wrap break-words">
+                  {userQuestion}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Single Model Response Card */}
+          <div className="max-w-full">
+            <div className="bg-white dark:bg-card/60 rounded-[20px] border border-border/40 dark:border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.04),0_1px_6px_rgba(0,0,0,0.02)] overflow-hidden">
+              {/* Model Header */}
+              <div className="flex-shrink-0 h-12 px-4 border-b border-border/30 bg-white/80 dark:bg-card/40 backdrop-blur-sm">
+                <div className="flex items-center justify-between h-full">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className="w-6 h-6 flex-shrink-0 flex items-center justify-center">
+                      {getProviderIcon(currentModel)}
+                    </div>
+                    <span className="text-sm font-semibold text-foreground truncate">
+                      {formatModelName(currentModel)}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {currentIndex + 1}/{models.length}
+                    </span>
                   </div>
-                )}
+                  
+                  {models.length > 1 && (
+                    <div className="flex items-center gap-1">
+                      <button 
+                        onClick={() => setCurrentIndex((prev) => (prev - 1 + models.length) % models.length)}
+                        className="w-8 h-8 rounded-full hover:bg-muted/50 flex items-center justify-center transition-colors"
+                        aria-label="Previous model"
+                      >
+                        <ChevronLeft className="w-4 h-4 text-muted-foreground" />
+                      </button>
+                      <button 
+                        onClick={() => setCurrentIndex((prev) => (prev + 1) % models.length)}
+                        className="w-8 h-8 rounded-full hover:bg-muted/50 flex items-center justify-center transition-colors"
+                        aria-label="Next model"
+                      >
+                        <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
               
-              <div className="glass-panel px-4 py-3">
-                <div className="prose prose-sm max-w-none text-foreground">
-                  <ReactMarkdown
-                    components={{
-                      code({ inline, className, children, ...props }: any) {
-                        const match = /language-(\w+)/.exec(className || '');
-                        return !inline && match ? (
-                          <SyntaxHighlighter
-                            style={vscDarkPlus}
-                            language={match[1]}
-                            PreTag="div"
-                            {...props}
-                          >
-                            {String(children).replace(/\n$/, '')}
-                          </SyntaxHighlighter>
-                        ) : (
-                          <code className="bg-muted px-1.5 py-0.5 rounded text-sm" {...props}>
-                            {children}
-                          </code>
-                        );
-                      },
-                    }}
-                  >
-                    {currentContent}
-                  </ReactMarkdown>
+              {/* Response Content */}
+              <div className="p-4 max-h-[500px] overflow-y-auto">
+                <div className="text-[14px] leading-[1.6] text-foreground">
+                  {isGenerating ? (
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <div className="flex gap-1">
+                        <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce [animation-delay:0ms]"></span>
+                        <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce [animation-delay:150ms]"></span>
+                        <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce [animation-delay:300ms]"></span>
+                      </div>
+                      <span className="text-sm">Generating response...</span>
+                    </div>
+                  ) : (
+                    <ReactMarkdown
+                      components={{
+                        code({ inline, className, children, ...props }: any) {
+                          const match = /language-(\w+)/.exec(className || '');
+                          return !inline && match ? (
+                            <div className="my-2 rounded-lg overflow-hidden">
+                              <SyntaxHighlighter
+                                style={vscDarkPlus}
+                                language={match[1]}
+                                PreTag="div"
+                                {...props}
+                              >
+                                {String(children).replace(/\n$/, '')}
+                              </SyntaxHighlighter>
+                            </div>
+                          ) : (
+                            <code className="bg-muted px-1 py-0.5 rounded text-[13px] font-mono" {...props}>
+                              {children}
+                            </code>
+                          );
+                        },
+                        p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                        ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
+                        ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
+                        h1: ({ children }) => <h1 className="text-lg font-bold mb-2">{children}</h1>,
+                        h2: ({ children }) => <h2 className="text-base font-bold mb-2">{children}</h2>,
+                        h3: ({ children }) => <h3 className="text-sm font-semibold mb-1.5">{children}</h3>,
+                      }}
+                    >
+                      {currentContent}
+                    </ReactMarkdown>
+                  )}
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 mt-3 ml-1">
+              {/* Action Buttons */}
+              <div className="flex items-center gap-1 h-10 px-3 border-t border-border/20 bg-muted/5">
                 <button
                   onClick={() => handleCopy(currentModel)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-muted-foreground panel-button"
+                  className="w-7 h-7 rounded-md hover:bg-muted/50 transition-colors flex items-center justify-center"
+                  title="Copy response"
                 >
                   {copiedModel === currentModel ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-primary" />
-                      <span className="text-primary">Copied!</span>
-                    </>
+                    <Check className="w-3.5 h-3.5 text-primary" />
                   ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5" />
-                      <span>Copy</span>
-                    </>
+                    <Copy className="w-3.5 h-3.5 text-muted-foreground" />
                   )}
+                </button>
+                <button
+                  className="w-7 h-7 rounded-md hover:bg-muted/50 transition-colors flex items-center justify-center"
+                  title="Good response"
+                >
+                  <ThumbsUp className="w-3.5 h-3.5 text-muted-foreground" />
+                </button>
+                <button
+                  className="w-7 h-7 rounded-md hover:bg-muted/50 transition-colors flex items-center justify-center"
+                  title="Bad response"
+                >
+                  <ThumbsDown className="w-3.5 h-3.5 text-muted-foreground" />
+                </button>
+                <button
+                  onClick={() => handleDownload(currentModel)}
+                  className="flex items-center gap-1.5 h-7 px-2.5 rounded-md hover:bg-muted/50 transition-colors text-[12px] text-muted-foreground ml-auto"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Download</span>
                 </button>
               </div>
             </div>
