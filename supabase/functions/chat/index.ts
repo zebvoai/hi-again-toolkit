@@ -10,8 +10,39 @@ interface Message {
   content: string;
 }
 
-// Model mapping helper - Only working models included
 // Model mapping helper - supports OpenAI, Anthropic, Lovable (Gemini), and OpenRouter
+// OpenRouter models need their API IDs fetched dynamically
+let openRouterModelMap: Record<string, string> = {};
+
+async function fetchOpenRouterModelMap(): Promise<void> {
+  try {
+    const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+    const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY');
+    
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      console.error('SUPABASE_URL or SUPABASE_ANON_KEY not configured');
+      return;
+    }
+    
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/models`, {
+      headers: {
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      if (data._openRouterModelMap) {
+        openRouterModelMap = data._openRouterModelMap;
+        console.log('Loaded OpenRouter model map with', Object.keys(openRouterModelMap).length, 'models');
+      }
+    }
+  } catch (error) {
+    console.error('Failed to fetch OpenRouter model map:', error);
+  }
+}
+
 const getModelMapping = (displayName: string): { apiModel: string, provider: string } => {
   const modelMapping: Record<string, { apiModel: string, provider: string }> = {
     // OpenAI Models (direct API)
@@ -41,8 +72,18 @@ const getModelMapping = (displayName: string): { apiModel: string, provider: str
     'Gemini 2.0 Flash': { apiModel: 'google/gemini-2.5-flash', provider: 'lovable' }
   };
   
-  // If in mapping, use it; otherwise route to OpenRouter
-  return modelMapping[displayName] || { apiModel: displayName, provider: 'openrouter' };
+  // If in mapping, use it
+  if (modelMapping[displayName]) {
+    return modelMapping[displayName];
+  }
+  
+  // Check if it's an OpenRouter model with a known API ID
+  if (openRouterModelMap[displayName]) {
+    return { apiModel: openRouterModelMap[displayName], provider: 'openrouter' };
+  }
+  
+  // Fallback: use display name as API model (shouldn't happen ideally)
+  return { apiModel: displayName, provider: 'openrouter' };
 };
 
 // Multi-model request handler
@@ -295,6 +336,11 @@ serve(async (req) => {
   }
 
   try {
+    // Fetch OpenRouter model map if not already loaded
+    if (Object.keys(openRouterModelMap).length === 0) {
+      await fetchOpenRouterModelMap();
+    }
+    
     const { message, mode, conversationHistory = [], provider, model: requestedModel, models, stream = false }: ChatRequest = await req.json();
     
     console.log('Chat request:', { message, mode, provider, requestedModel, models, historyLength: conversationHistory.length });
