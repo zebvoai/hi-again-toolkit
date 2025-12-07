@@ -559,7 +559,7 @@ All colors MUST be HSL.
     min-height: 100vh;
   }
 
-  /* Blurred gradient orbs overlay - blue left, pink right */
+  /* Premium gradient mesh background with subtle animated orbs */
   body::before {
     content: '';
     position: fixed;
@@ -568,12 +568,25 @@ All colors MUST be HSL.
     right: 0;
     bottom: 0;
     background: 
-      radial-gradient(ellipse 60% 80% at 10% 30%, rgba(200, 220, 255, 0.5) 0%, transparent 50%),
-      radial-gradient(ellipse 50% 70% at 90% 40%, rgba(240, 200, 240, 0.45) 0%, transparent 50%),
-      radial-gradient(ellipse 40% 50% at 50% 80%, rgba(230, 240, 255, 0.3) 0%, transparent 45%);
+      radial-gradient(ellipse 60% 80% at 10% 30%, hsla(210, 100%, 85%, 0.4) 0%, transparent 50%),
+      radial-gradient(ellipse 50% 70% at 90% 40%, hsla(280, 80%, 90%, 0.35) 0%, transparent 50%),
+      radial-gradient(ellipse 40% 50% at 50% 80%, hsla(200, 100%, 90%, 0.25) 0%, transparent 45%),
+      radial-gradient(at 40% 20%, hsla(28, 100%, 74%, 0.08) 0px, transparent 50%),
+      radial-gradient(at 80% 0%, hsla(189, 100%, 56%, 0.08) 0px, transparent 50%),
+      radial-gradient(at 0% 50%, hsla(355, 100%, 93%, 0.1) 0px, transparent 50%);
     pointer-events: none;
     z-index: -1;
     filter: blur(40px);
+    animation: gradient-shift 20s ease infinite;
+  }
+
+  @keyframes gradient-shift {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.85;
+    }
   }
 
   /* Hide scrollbar but keep functionality */

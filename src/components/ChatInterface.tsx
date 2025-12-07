@@ -1,21 +1,25 @@
 import { useState, useEffect, useRef } from 'react';
 import { Square } from 'lucide-react';
+import { toast } from 'sonner';
 import { useChat } from '@/features/chat/hooks/useChat';
 import { useModeStore } from '@/features/modes/store/modeStore';
 import { useChatStore } from '@/features/chat/store/chatStore';
 import { Message } from '@/features/chat/components/Message';
+import { MessageSkeleton } from '@/features/chat/components/MessageSkeleton';
 import { TypingIndicator } from '@/features/chat/components/TypingIndicator';
 import { ModelSelector } from '@/features/chat/components/ModelSelector';
 import { ModeDropdown } from '@/features/modes/components/ModeDropdown';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useModels } from '@/features/chat/hooks/useModels';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
-import { useToast } from '@/hooks/use-toast';
+import { triggerHapticFeedback, triggerConfetti, updatePageTitle, smoothScrollTo } from '@/lib/microInteractions';
 
 export function ChatInterface() {
   const [input, setInput] = useState('');
   const [isTemporaryMode, setIsTemporaryMode] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const [isFirstResponse, setIsFirstResponse] = useState(true);
+  const [isLoadingConversation, setIsLoadingConversation] = useState(false);
   const {
     messages,
     sendMessage,
@@ -37,25 +41,43 @@ export function ChatInterface() {
   const {
     models
   } = useModels();
-  const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const prevMessagesLengthRef = useRef(messages.length);
+
+  // Update page title based on loading state
+  useEffect(() => {
+    updatePageTitle(isLoading ? 'generating' : 'idle');
+    return () => updatePageTitle('idle');
+  }, [isLoading]);
+
+  // Trigger confetti on first AI response
+  useEffect(() => {
+    const hasNewAssistantMessage = messages.length > prevMessagesLengthRef.current && 
+      messages[messages.length - 1]?.role === 'assistant';
+    
+    if (hasNewAssistantMessage && isFirstResponse && !isLoading) {
+      triggerConfetti();
+      setIsFirstResponse(false);
+    }
+    
+    prevMessagesLengthRef.current = messages.length;
+  }, [messages, isFirstResponse, isLoading]);
 
   // Keyboard shortcuts
   useKeyboardShortcuts({
     onSend: () => {
       if (input.trim() && !isLoading && selectedModels.length > 0) {
-        sendMessage(input, attachedFiles);
-        setInput('');
-        setAttachedFiles([]);
+        handleSendMessage();
       }
     },
     onNewChat: () => {
       clearMessages();
       setCurrentConversationId(null);
       setInput('');
-      toast({ title: 'New chat started' });
+      setIsFirstResponse(true);
+      toast.success('New chat started');
     },
     onFocusInput: () => {
       inputRef.current?.focus();
@@ -67,7 +89,7 @@ export function ChatInterface() {
           ? lastAssistant.content 
           : JSON.stringify(lastAssistant.content);
         navigator.clipboard.writeText(content);
-        toast({ title: 'Copied!', description: 'Last response copied to clipboard' });
+        toast.success('Copied to clipboard');
       }
     },
     onCancelGeneration: cancelGeneration,
@@ -102,18 +124,24 @@ export function ChatInterface() {
     }
   }, [selectedModels.length, setSelectedModels]);
 
+  // Smooth scroll to new messages
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({
-      behavior: 'smooth'
-    });
+    smoothScrollTo(messagesEndRef.current);
   }, [messages, isLoading]);
+
+  const handleSendMessage = () => {
+    // Haptic feedback on mobile
+    triggerHapticFeedback(10);
+    
+    sendMessage(input, attachedFiles);
+    setInput('');
+    setAttachedFiles([]);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim() && !isLoading && selectedModels.length > 0) {
-      sendMessage(input, attachedFiles);
-      setInput('');
-      setAttachedFiles([]);
+      handleSendMessage();
     }
   };
 
@@ -121,6 +149,7 @@ export function ChatInterface() {
     const files = e.target.files;
     if (files) {
       setAttachedFiles(prev => [...prev, ...Array.from(files)]);
+      toast.success(`${files.length} file(s) attached`);
     }
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -165,7 +194,13 @@ export function ChatInterface() {
       )}
 
       {/* Messages Area */}
-      {messages.length > 0 ? (
+      {isLoadingConversation ? (
+        <div className="flex-1 overflow-y-auto overflow-x-hidden py-8">
+          <div className="max-w-[800px] mx-auto px-6">
+            <MessageSkeleton />
+          </div>
+        </div>
+      ) : messages.length > 0 ? (
         <div className="flex-1 overflow-y-auto overflow-x-hidden py-8 bg-gradient-to-b from-transparent via-primary/[0.02] to-transparent">
           {messages.map((message) => {
             const isMultiModelResponse = message.role === 'assistant' && typeof message.content === 'object' && !Array.isArray(message.content) && message.metadata?.models?.length > 1;
@@ -289,6 +324,13 @@ export function ChatInterface() {
                 className="flex-1 bg-transparent outline-none text-[17px] font-medium placeholder:text-muted-foreground/70 disabled:opacity-50 px-4 text-foreground" 
                 maxLength={4000} 
               />
+
+              {/* Character count */}
+              {input.length > 3500 && (
+                <span className={`text-xs mr-2 ${input.length > 3900 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                  {4000 - input.length}
+                </span>
+              )}
 
               {/* Right Send Button */}
               <button type={isLoading ? "button" : "submit"} onClick={isLoading ? cancelGeneration : undefined} disabled={!isLoading && (!input.trim() || selectedModels.length === 0)} className={`flex-shrink-0 w-[42px] h-[42px] rounded-full flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] ${isLoading ? 'bg-primary text-primary-foreground hover:bg-primary/80 shadow-lg shadow-primary/25' : !input.trim() || selectedModels.length === 0 ? 'bg-muted text-muted-foreground cursor-not-allowed border border-border/50' : 'bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-110 hover:shadow-lg hover:shadow-primary/25 animate-scale-in'}`}>
