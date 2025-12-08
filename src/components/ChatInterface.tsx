@@ -249,7 +249,7 @@ export function ChatInterface() {
               </div>
             );
           })}
-          {isLoading && selectedModels.length === 1 && (
+          {isLoading && (
             <div className="max-w-[800px] mx-auto px-6">
               <TypingIndicator models={selectedModels} />
             </div>
