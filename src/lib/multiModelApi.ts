@@ -28,7 +28,8 @@ export const multiModelApi = {
     history: Message[],
     models: string[],
     onProgress?: (modelName: string, chunk: string) => void,
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    attachments?: string[]
   ): Promise<MultiModelChatResponse> {
     // Send request to backend with multiple models
     const response = await fetch(`${API_BASE}/chat`, {
@@ -42,7 +43,8 @@ export const multiModelApi = {
         mode,
         conversationHistory: sanitizeHistoryForAPI(history),
         models, // Array of models
-        stream: !!onProgress
+        stream: !!onProgress,
+        attachments
       }),
       signal
     });
