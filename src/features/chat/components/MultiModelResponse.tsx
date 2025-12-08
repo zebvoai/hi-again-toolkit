@@ -1,13 +1,12 @@
 import { useState } from 'react';
-import { ChevronDown, Copy, ThumbsUp, ThumbsDown, Download, Check, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Copy, ThumbsUp, ThumbsDown, Download, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import type { MultiModelContent, Message } from '@/types';
+import type { MultiModelContent } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { formatModelName } from '@/lib/utils';
-
+import { ViewModeToggle } from './ViewModeToggle';
 interface MultiModelResponseProps {
   content: MultiModelContent;
   models: string[];
@@ -85,38 +84,18 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
     });
   };
 
+  const currentModel = models[currentIndex];
+  const currentContent = content[currentModel] || '';
+
   // Single view (carousel)
   if (viewMode === 'single') {
-    const currentModel = models[currentIndex];
-    const currentContent = content[currentModel];
-
     return (
       <div className="w-full space-y-3">
-        {/* Toggle Button - RIGHT ALIGNED with Apple style */}
-        <div className="flex items-center justify-end gap-3 px-6">
-          <span className="text-[12px] text-muted-foreground/70 font-medium">
-            {currentIndex + 1} of {models.length} model{models.length > 1 ? 's' : ''}
-          </span>
-          <div className="relative flex items-center p-[3px] bg-muted/40 rounded-full border border-border/30 backdrop-blur-sm">
-            {/* Animated pill background - positioned left for 'single' */}
-            <div 
-              className="absolute h-[calc(100%-6px)] w-[calc(50%-3px)] bg-card rounded-full shadow-sm transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)]"
-              style={{ left: '3px' }}
-            />
-            <button 
-              onClick={() => setViewMode('single')}
-              className="relative z-10 px-4 py-1.5 rounded-full text-[12px] font-medium transition-colors duration-200 text-foreground"
-            >
-              Single
-            </button>
-            <button 
-              onClick={() => setViewMode('sideBySide')}
-              className="relative z-10 px-4 py-1.5 rounded-full text-[12px] font-medium transition-colors duration-200 text-muted-foreground hover:text-foreground/80"
-            >
-              Compare
-            </button>
-          </div>
-        </div>
+        <ViewModeToggle 
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          modelInfo={`${currentIndex + 1} of ${models.length} model${models.length > 1 ? 's' : ''}`}
+        />
 
         {/* Single Model Response */}
         <div className="max-w-[75%]">
@@ -218,29 +197,12 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
   return (
     <div className="w-full overflow-visible animate-message-in-left">
       {/* Unified Response Header - Toggle RIGHT + Model Count */}
-      <div className="flex items-center justify-end gap-3 mb-3 px-6">
-        <span className="text-[12px] text-muted-foreground/70 font-medium">
-          {models.length} model{models.length > 1 ? 's' : ''} responding
-        </span>
-        <div className="relative flex items-center p-[3px] bg-muted/40 rounded-full border border-border/30 backdrop-blur-sm">
-          {/* Animated pill background - positioned right for 'sideBySide' */}
-          <div 
-            className="absolute h-[calc(100%-6px)] w-[calc(50%-3px)] bg-card rounded-full shadow-sm transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)]"
-            style={{ left: 'calc(50%)' }}
-          />
-          <button 
-            onClick={() => setViewMode('single')}
-            className="relative z-10 px-4 py-1.5 rounded-full text-[12px] font-medium transition-colors duration-200 text-muted-foreground hover:text-foreground/80"
-          >
-            Single
-          </button>
-          <button 
-            onClick={() => setViewMode('sideBySide')}
-            className="relative z-10 px-4 py-1.5 rounded-full text-[12px] font-medium transition-colors duration-200 text-foreground"
-          >
-            Compare
-          </button>
-        </div>
+      <div className="mb-3">
+        <ViewModeToggle 
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          modelInfo={`${models.length} model${models.length > 1 ? 's' : ''} responding`}
+        />
       </div>
 
       {/* Horizontal Scroll Container - with scroll indicators */}
