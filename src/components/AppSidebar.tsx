@@ -230,17 +230,31 @@ export function AppSidebar() {
         <SidebarHeader className="px-3 pt-3 pb-2 space-y-2.5">
           <SidebarTrigger className="w-8 h-8 hover:bg-black/5 dark:hover:bg-white/10 text-[#8E8E93] hover:text-foreground transition-all duration-200 rounded-full" />
 
-          {/* New Chat */}
-          <Button
-            variant="ghost"
-            className="w-full h-10 justify-start gap-2.5 px-2.5 bg-white/60 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 active:scale-[0.98] rounded-xl transition-all duration-200 border border-border/20 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
-            onClick={handleNewChat}
-          >
-            <div className="w-7 h-7 rounded-full bg-[#007AFF] flex items-center justify-center flex-shrink-0 shadow-sm">
-              <Plus className="w-3.5 h-3.5 text-white" />
-            </div>
-            <span className="text-[13px] font-medium text-foreground">New Chat</span>
-          </Button>
+          {/* New Chat + Clear All Row */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              className="flex-1 h-10 justify-start gap-2.5 px-2.5 bg-white/60 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 active:scale-[0.98] rounded-xl transition-all duration-200 border border-border/20 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+              onClick={handleNewChat}
+            >
+              <div className="w-7 h-7 rounded-full bg-[#007AFF] flex items-center justify-center flex-shrink-0 shadow-sm">
+                <Plus className="w-3.5 h-3.5 text-white" />
+              </div>
+              <span className="text-[13px] font-medium text-foreground">New Chat</span>
+            </Button>
+            
+            {conversations.length > 0 && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-10 h-10 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-all duration-200 border border-border/20"
+                onClick={handleClearAllChats}
+                title="Clear all chats"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
 
           {/* Search Chats */}
           <div className="relative w-full">
@@ -386,21 +400,6 @@ export function AppSidebar() {
             )}
           </div>
 
-          {/* Chat History Header with Clear All */}
-          {conversations.length > 0 && (
-            <div className="flex items-center justify-between px-2.5 py-1">
-              <span className="text-[11px] font-semibold text-[#8E8E93] uppercase tracking-wider">History</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 px-2 text-[11px] text-destructive hover:text-destructive hover:bg-destructive/10 rounded-lg"
-                onClick={handleClearAllChats}
-              >
-                <Trash2 className="w-3 h-3 mr-1" />
-                Clear All
-              </Button>
-            </div>
-          )}
 
           {/* Chat History */}
           {isLoading ? (
