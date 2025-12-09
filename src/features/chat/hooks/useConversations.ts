@@ -140,6 +140,30 @@ export const useConversations = () => {
     }
   };
 
+  const clearAllConversations = async () => {
+    try {
+      const { error } = await supabase
+        .from('conversations')
+        .delete()
+        .neq('id', ''); // Delete all rows
+
+      if (error) throw error;
+
+      await fetchConversations();
+      
+      toast({
+        description: 'All conversations cleared',
+      });
+    } catch (error) {
+      console.error('Error clearing conversations:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to clear conversations',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const renameConversation = async (conversationId: string, newTitle: string) => {
     try {
       const { error } = await supabase
@@ -213,6 +237,7 @@ export const useConversations = () => {
     loadConversation,
     saveMessage,
     deleteConversation,
+    clearAllConversations,
     renameConversation,
     shareConversation,
     refreshConversations: fetchConversations
