@@ -136,16 +136,36 @@ export const useChat = () => {
     // Create conversation if this is the first message
     let convId = currentConversationId;
     if (!convId && messages.length === 0) {
+      // Get the current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: 'Not authenticated',
+          description: 'Please log in to save your conversations',
+          variant: 'destructive',
+        });
+        setLoading(false);
+        return;
+      }
+      
       const title = content.slice(0, 50) + (content.length > 50 ? '...' : '');
       const { data, error } = await supabase
         .from('conversations')
-        .insert({ title })
+        .insert({ title, user_id: user.id })
         .select()
         .single();
       
       if (data && !error) {
         convId = data.id;
         setCurrentConversationId(convId);
+      } else if (error) {
+        console.error('Error creating conversation:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to create conversation',
+          variant: 'destructive',
+        });
       }
     }
 
