@@ -165,13 +165,36 @@ async function handleMultiModelRequest(
             // Perplexity models have internet access and can search the web
             const isPerplexityModel = modelName.toLowerCase().includes('perplexity') || modelName.toLowerCase().includes('sonar');
             
+            // Determine if model is premium (deep answers) or speed (fast answers)
+            const modelLower = modelName.toLowerCase();
+            const isPremiumModel = modelLower.includes('pro') || modelLower.includes('opus') || 
+              modelLower.includes('sonnet') || modelLower.includes('large') || 
+              modelLower.includes('gpt-5') && !modelLower.includes('nano') && !modelLower.includes('mini') ||
+              modelLower.includes('o3') || modelLower.includes('deepseek r1') ||
+              modelLower.includes('llama 4') || modelLower.includes('405b') ||
+              modelLower.includes('nemotron') || modelLower.includes('command r+');
+            
+            const isSpeedModel = modelLower.includes('nano') || modelLower.includes('lite') || 
+              modelLower.includes('haiku') || modelLower.includes('flash') ||
+              modelLower.includes('mini') || modelLower.includes('nemo') ||
+              modelLower.includes('fast') || modelLower.includes('phi-4');
+            
+            // Token limits: Premium = 8192, Speed = 2048, Default = 4096
+            const maxTokens = isPremiumModel ? 8192 : (isSpeedModel ? 2048 : 4096);
+            
             let systemPrompt = '';
             if (mode === 'build') {
-              systemPrompt = 'You are an expert software engineer. Generate production-ready code with clear explanations. Use markdown code blocks.';
+              systemPrompt = isPremiumModel 
+                ? 'You are an expert software engineer. Generate complete, production-ready code with thorough explanations, best practices, error handling, and comprehensive documentation. Use markdown code blocks.'
+                : 'You are an expert software engineer. Generate production-ready code with clear explanations. Use markdown code blocks.';
             } else if (isPerplexityModel) {
-              systemPrompt = 'You are Perplexity with real-time web search. Provide accurate, well-sourced responses with citations. Use markdown formatting.';
+              systemPrompt = isPremiumModel
+                ? 'You are Perplexity with real-time web search. Provide comprehensive, deeply researched responses with multiple sources, detailed analysis, and thorough citations. Use markdown formatting for clarity.'
+                : 'You are Perplexity with real-time web search. Provide accurate, well-sourced responses with citations. Use markdown formatting.';
             } else {
-              systemPrompt = 'You are a helpful AI assistant. Provide clear, well-structured responses using markdown formatting.';
+              systemPrompt = isPremiumModel
+                ? 'You are an advanced AI assistant. Provide comprehensive, detailed, and well-structured responses. Include thorough explanations, multiple perspectives, and actionable insights. Use markdown formatting.'
+                : 'You are a helpful AI assistant. Provide clear, well-structured responses using markdown formatting.';
             }
             
             try {
@@ -299,8 +322,8 @@ async function handleMultiModelRequest(
                   { role: 'user', content: createUserContent(message, attachments) }
                 ];
                 
-                // Balanced token limit for speed + quality
-                body = { model: apiModel, messages, stream: true, max_tokens: 4096 };
+                // Token limit based on model tier
+                body = { model: apiModel, messages, stream: true, max_tokens: maxTokens };
               } else {
                 throw new Error(`Unsupported provider: ${provider}`);
               }
@@ -491,13 +514,36 @@ serve(async (req) => {
     // Perplexity models have internet access and can search the web
     const isPerplexityModel = requestedModel?.toLowerCase().includes('perplexity') || requestedModel?.toLowerCase().includes('sonar');
     
+    // Determine if model is premium (deep answers) or speed (fast answers)
+    const modelLower = requestedModel?.toLowerCase() || '';
+    const isPremiumModel = modelLower.includes('pro') || modelLower.includes('opus') || 
+      modelLower.includes('sonnet') || modelLower.includes('large') || 
+      modelLower.includes('gpt-5') && !modelLower.includes('nano') && !modelLower.includes('mini') ||
+      modelLower.includes('o3') || modelLower.includes('deepseek r1') ||
+      modelLower.includes('llama 4') || modelLower.includes('405b') ||
+      modelLower.includes('nemotron') || modelLower.includes('command r+');
+    
+    const isSpeedModel = modelLower.includes('nano') || modelLower.includes('lite') || 
+      modelLower.includes('haiku') || modelLower.includes('flash') ||
+      modelLower.includes('mini') || modelLower.includes('nemo') ||
+      modelLower.includes('fast') || modelLower.includes('phi-4');
+    
+    // Token limits: Premium = 8192, Speed = 2048, Default = 4096
+    const maxTokens = isPremiumModel ? 8192 : (isSpeedModel ? 2048 : 4096);
+    
     let systemPrompt = '';
     if (mode === 'build') {
-      systemPrompt = 'You are an expert software engineer. Generate production-ready code with clear explanations. Use markdown code blocks.';
+      systemPrompt = isPremiumModel 
+        ? 'You are an expert software engineer. Generate complete, production-ready code with thorough explanations, best practices, error handling, and comprehensive documentation. Use markdown code blocks.'
+        : 'You are an expert software engineer. Generate production-ready code with clear explanations. Use markdown code blocks.';
     } else if (isPerplexityModel) {
-      systemPrompt = 'You are Perplexity with real-time web search. Provide accurate, well-sourced responses with citations. Use markdown formatting.';
+      systemPrompt = isPremiumModel
+        ? 'You are Perplexity with real-time web search. Provide comprehensive, deeply researched responses with multiple sources, detailed analysis, and thorough citations. Use markdown formatting for clarity.'
+        : 'You are Perplexity with real-time web search. Provide accurate, well-sourced responses with citations. Use markdown formatting.';
     } else {
-      systemPrompt = 'You are a helpful AI assistant. Provide clear, well-structured responses using markdown formatting.';
+      systemPrompt = isPremiumModel
+        ? 'You are an advanced AI assistant. Provide comprehensive, detailed, and well-structured responses. Include thorough explanations, multiple perspectives, and actionable insights. Use markdown formatting.'
+        : 'You are a helpful AI assistant. Provide clear, well-structured responses using markdown formatting.';
     }
     
     // Helper to create user message content with attachments for vision models
@@ -550,7 +596,7 @@ serve(async (req) => {
       body = {
         model,
         messages,
-        max_completion_tokens: 4096,
+        max_completion_tokens: maxTokens,
         stream
       };
     } else if (selectedProvider === 'anthropic') {
@@ -593,7 +639,7 @@ serve(async (req) => {
       body = {
         model,
         messages,
-        max_tokens: 4096,
+        max_tokens: maxTokens,
         system: systemPrompt
       };
     } else if (selectedProvider === 'lovable') {
@@ -678,12 +724,12 @@ serve(async (req) => {
       
       console.log(`Single model OpenRouter request: ${requestedModel} -> ${model}`);
       
-      // Balanced token limit for speed + quality
+      // Token limit based on model tier
       body = {
         model,
         messages,
         stream,
-        max_tokens: 4096
+        max_tokens: maxTokens
       };
     } else {
       throw new Error(`Unsupported provider: ${selectedProvider}`);
