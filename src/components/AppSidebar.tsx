@@ -38,7 +38,7 @@ export function AppSidebar() {
   const isCollapsed = state === "collapsed";
   const { clearMessages, setCurrentConversationId, currentConversationId, setMessages } =
     useChatStore();
-  const { conversations, isLoading, loadConversation, deleteConversation, clearAllConversations, renameConversation, shareConversation, refreshConversations } = useConversations();
+  const { conversations, isLoading, loadConversation, deleteConversation, renameConversation, shareConversation, refreshConversations } = useConversations();
   const { toast } = useToast();
 
   // Projects state
@@ -79,16 +79,6 @@ export function AppSidebar() {
     if (currentConversationId === conversationId) {
       handleNewChat();
     }
-  };
-
-  const handleClearAllChats = async () => {
-    if (conversations.length === 0) return;
-    
-    const confirmed = window.confirm(`Are you sure you want to delete all ${conversations.length} conversations? This cannot be undone.`);
-    if (!confirmed) return;
-    
-    await clearAllConversations();
-    handleNewChat();
   };
 
   const handleProjectAction = (projectId: number, action: "rename" | "duplicate" | "archive" | "delete") => {
@@ -230,31 +220,17 @@ export function AppSidebar() {
         <SidebarHeader className="px-3 pt-3 pb-2 space-y-2.5">
           <SidebarTrigger className="w-8 h-8 hover:bg-black/5 dark:hover:bg-white/10 text-[#8E8E93] hover:text-foreground transition-all duration-200 rounded-full" />
 
-          {/* New Chat + Clear All Row */}
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              className="flex-1 h-10 justify-start gap-2.5 px-2.5 bg-white/60 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 active:scale-[0.98] rounded-xl transition-all duration-200 border border-border/20 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
-              onClick={handleNewChat}
-            >
-              <div className="w-7 h-7 rounded-full bg-[#007AFF] flex items-center justify-center flex-shrink-0 shadow-sm">
-                <Plus className="w-3.5 h-3.5 text-white" />
-              </div>
-              <span className="text-[13px] font-medium text-foreground">New Chat</span>
-            </Button>
-            
-            {conversations.length > 0 && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="w-10 h-10 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-all duration-200 border border-border/20"
-                onClick={handleClearAllChats}
-                title="Clear all chats"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            )}
-          </div>
+          {/* New Chat */}
+          <Button
+            variant="ghost"
+            className="w-full h-10 justify-start gap-2.5 px-2.5 bg-white/60 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 active:scale-[0.98] rounded-xl transition-all duration-200 border border-border/20 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+            onClick={handleNewChat}
+          >
+            <div className="w-7 h-7 rounded-full bg-[#007AFF] flex items-center justify-center flex-shrink-0 shadow-sm">
+              <Plus className="w-3.5 h-3.5 text-white" />
+            </div>
+            <span className="text-[13px] font-medium text-foreground">New Chat</span>
+          </Button>
 
           {/* Search Chats */}
           <div className="relative w-full">
@@ -279,8 +255,8 @@ export function AppSidebar() {
         </SidebarHeader>
       </div>
 
-      <ScrollArea className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 w-full">
-        <SidebarContent className="pb-4 space-y-3 w-full max-w-full">
+      <ScrollArea className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3">
+        <SidebarContent className="pb-4 space-y-3">
           {/* Projects Section */}
           <div className="space-y-0.5">
             {/* Projects Header */}
@@ -400,7 +376,6 @@ export function AppSidebar() {
             )}
           </div>
 
-
           {/* Chat History */}
           {isLoading ? (
             <div className="text-[13px] text-[#8E8E93] text-center py-6">Loading...</div>
@@ -409,13 +384,13 @@ export function AppSidebar() {
           ) : filteredConversations.length === 0 ? (
             <div className="text-[13px] text-[#8E8E93] text-center py-6">No chats found</div>
           ) : (
-            <div className="space-y-3 w-full max-w-full overflow-hidden">
+            <div className="space-y-3">
               {Object.entries(groupedConversations).map(([label, convs]) => (
                 <div key={label} className="space-y-0.5">
                   <div className="flex items-center gap-2 px-2.5 py-1 text-[11px] font-semibold text-[#8E8E93] uppercase tracking-wider">
                     <span>{label}</span>
                   </div>
-                  <div className="space-y-0.5 pl-0.5 w-full max-w-full overflow-hidden">
+                  <div className="space-y-0.5 pl-0.5">
                     {convs.map((conv) => (
                       <ConversationItem
                         key={conv.id}

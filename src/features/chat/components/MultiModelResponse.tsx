@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { Copy, ThumbsUp, ThumbsDown, Download, Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronDown, Copy, ThumbsUp, ThumbsDown, Download, Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import type { MultiModelContent } from '@/types';
+import type { MultiModelContent, Message } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { formatModelName } from '@/lib/utils';
-import { ViewModeToggle } from './ViewModeToggle';
+
 interface MultiModelResponseProps {
   content: MultiModelContent;
   models: string[];
@@ -17,14 +18,6 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
   const [currentIndex, setCurrentIndex] = useState(0);
   const [copiedModel, setCopiedModel] = useState<string | null>(null);
   const { toast } = useToast();
-
-  // Helper to get display name - always show "Zebvo AI" for Zebvo-routed models
-  const getDisplayName = (model: string) => {
-    if (model === 'Zebvo AI' || model.startsWith('Zebvo AI')) {
-      return 'Zebvo AI';
-    }
-    return formatModelName(model);
-  };
 
   const getProviderIcon = (model: string) => {
     const modelLower = model.toLowerCase();
@@ -80,7 +73,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${getDisplayName(model)}-response.txt`;
+    a.download = `${formatModelName(model)}-response.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -92,18 +85,33 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
     });
   };
 
-  const currentModel = models[currentIndex];
-  const currentContent = content[currentModel] || '';
-
   // Single view (carousel)
   if (viewMode === 'single') {
+    const currentModel = models[currentIndex];
+    const currentContent = content[currentModel];
+
     return (
       <div className="w-full space-y-3">
-        <ViewModeToggle 
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
-          modelInfo={`${currentIndex + 1} of ${models.length} model${models.length > 1 ? 's' : ''}`}
-        />
+        {/* Toggle Button - LEFT ALIGNED for consistency */}
+        <div className="flex items-center justify-start gap-3 px-6">
+          <div className="flex items-center gap-0.5 p-0.5 bg-muted/30 rounded-lg border border-border/20">
+            <button 
+              onClick={() => setViewMode('single')}
+              className="px-3 py-1.5 rounded-md text-[11px] font-medium bg-card text-foreground shadow-sm"
+            >
+              Single
+            </button>
+            <button 
+              onClick={() => setViewMode('sideBySide')}
+              className="px-3 py-1.5 rounded-md text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Compare
+            </button>
+          </div>
+          <span className="text-[11px] text-muted-foreground/60">
+            {currentIndex + 1} of {models.length} model{models.length > 1 ? 's' : ''}
+          </span>
+        </div>
 
         {/* Single Model Response */}
         <div className="max-w-[75%]">
@@ -115,7 +123,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-[11px] font-medium text-muted-foreground">
-                  {getDisplayName(currentModel)} • {currentIndex + 1}/{models.length}
+                  {formatModelName(currentModel)} • {currentIndex + 1}/{models.length}
                 </span>
                 
                 {models.length > 1 && (
@@ -204,13 +212,28 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
   // Side by Side view - unified response container
   return (
     <div className="w-full overflow-visible animate-message-in-left">
-      {/* Unified Response Header - Toggle RIGHT + Model Count */}
-      <div className="mb-3">
-        <ViewModeToggle 
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
-          modelInfo={`${models.length} model${models.length > 1 ? 's' : ''} responding`}
-        />
+      {/* Unified Response Header - Toggle LEFT + Model Count */}
+      <div className="flex items-center justify-between mb-3 px-6">
+        {/* Left side: Toggle + Count */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-0.5 p-0.5 bg-muted/30 rounded-lg border border-border/20">
+            <button 
+              onClick={() => setViewMode('single')}
+              className="px-3 py-1.5 rounded-md text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Single
+            </button>
+            <button 
+              onClick={() => setViewMode('sideBySide')}
+              className="px-3 py-1.5 rounded-md text-[11px] font-medium bg-card text-foreground shadow-sm"
+            >
+              Compare
+            </button>
+          </div>
+          <span className="text-[11px] text-muted-foreground/60">
+            {models.length} model{models.length > 1 ? 's' : ''} responding
+          </span>
+        </div>
       </div>
 
       {/* Horizontal Scroll Container - with scroll indicators */}
@@ -239,7 +262,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
                         {getProviderIcon(model)}
                       </div>
                       <span className="text-[12px] font-medium text-foreground/80 truncate">
-                        {getDisplayName(model)}
+                        {formatModelName(model)}
                       </span>
                     </div>
                   </div>

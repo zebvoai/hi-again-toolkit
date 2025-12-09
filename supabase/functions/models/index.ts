@@ -55,10 +55,6 @@ const OPENROUTER_MODELS: { displayName: string; apiId: string }[] = [
   
   // Google via OpenRouter
   { displayName: 'Gemma 3 27B', apiId: 'google/gemma-3-27b-it' },
-  
-  // Moonshot AI - Kimi models
-  { displayName: 'Kimi K2', apiId: 'moonshotai/kimi-k2' },
-  { displayName: 'Kimi VL', apiId: 'moonshotai/kimi-vl-a3b-thinking' },
 ];
 
 serve(async (req) => {
@@ -69,9 +65,6 @@ serve(async (req) => {
   try {
     // Base models (direct API - always included)
     const baseModels = [
-      // Zebvo AI - Intelligent Auto-Router (FIRST)
-      'Zebvo AI',
-      
       // OpenAI (direct API)
       'GPT-5',
       'GPT-5 Mini',

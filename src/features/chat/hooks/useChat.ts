@@ -1,16 +1,11 @@
 import { useState, useRef } from 'react';
 import { api } from '@/lib/api';
-import { multiModelApi, ZebvoAIConfirmation } from '@/lib/multiModelApi';
+import { multiModelApi } from '@/lib/multiModelApi';
 import { useChatStore } from '../store/chatStore';
 import { useModeStore } from '@/features/modes/store/modeStore';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import type { MultiModelContent, Message, MultiModelChatResponse } from '@/types';
-
-// Type guard for ZebvoAIConfirmation
-const isZebvoAIConfirmation = (response: MultiModelChatResponse | ZebvoAIConfirmation): response is ZebvoAIConfirmation => {
-  return 'requiresConfirmation' in response && response.requiresConfirmation === true;
-};
+import type { MultiModelContent, Message } from '@/types';
 
 export const useChat = () => {
   const { 
@@ -392,27 +387,11 @@ export const useChat = () => {
           fileUrls.length > 0 ? fileUrls : undefined
         );
 
-        // Handle Zebvo AI confirmation response
-        if (isZebvoAIConfirmation(response)) {
-          const confirmMessage: Message = {
-            id: assistantId,
-            role: 'assistant' as const,
-            content: response.content,
-            timestamp: Date.now(),
-            metadata: { models: ['Zebvo AI'] }
-          };
-          addMessage(confirmMessage);
-          setLoading(false);
-          return;
-        }
-
-        const responseModels = response.models || selectedModels;
-
         if (hasCreatedMessage) {
           const finalMessage = {
             content: response.content,
             metadata: {
-              models: responseModels
+              models: response.models
             }
           };
           updateMessage(assistantId, finalMessage);
@@ -437,7 +416,7 @@ export const useChat = () => {
             content: response.content,
             timestamp: Date.now(),
             metadata: {
-              models: responseModels
+              models: response.models
             }
           };
           addMessage(assistantMessage);
@@ -460,8 +439,7 @@ export const useChat = () => {
         let streamingContent = '';
         let hasCreatedMessage = false;
         const selectedModel = selectedModels[0];
-        // Enable streaming for OpenAI models and Zebvo AI (which routes internally and requires streaming)
-        const shouldStream = selectedModel?.startsWith('GPT') || selectedModel?.startsWith('O') || selectedModel === 'Zebvo AI';
+        const isOpenAIModel = selectedModel?.startsWith('GPT') || selectedModel?.startsWith('O');
 
         const response = await api.sendMessage(
           content,
@@ -469,7 +447,7 @@ export const useChat = () => {
           messages,
           undefined,
           selectedModel,
-          shouldStream
+          isOpenAIModel
             ? (chunk: string) => {
                 streamingContent += chunk;
                 

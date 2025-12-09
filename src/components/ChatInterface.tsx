@@ -100,7 +100,7 @@ export function ChatInterface() {
   useEffect(() => {
     if (!models) return;
     const defaultModels: Record<string, string> = {
-      text: 'Perplexity Sonar Pro',
+      text: 'GPT-5',
       image: 'DALL-E 3',
       video: 'Gemini Video 2.0',
       build: 'GPT-5'
@@ -110,7 +110,7 @@ export function ChatInterface() {
     const validModels = selectedModels.filter(model => availableModelsForMode.includes(model));
 
     if (validModels.length === 0) {
-      const defaultModel = defaultModels[selectedMode] || 'Perplexity Sonar Pro';
+      const defaultModel = defaultModels[selectedMode] || 'GPT-5';
       setSelectedModels([defaultModel]);
     } else if (validModels.length !== selectedModels.length) {
       setSelectedModels(validModels);
@@ -120,7 +120,7 @@ export function ChatInterface() {
   // Initialize with default model if none selected
   useEffect(() => {
     if (selectedModels.length === 0) {
-      setSelectedModels(['Perplexity Sonar Pro']);
+      setSelectedModels(['GPT-5']);
     }
   }, [selectedModels.length, setSelectedModels]);
 
@@ -181,7 +181,7 @@ export function ChatInterface() {
   };
 
   return (
-    <div className="flex flex-col h-full relative bg-background overflow-hidden pb-[180px]">
+    <div className="flex flex-col h-full relative bg-background overflow-hidden">
       {/* Temporary Mode Banner */}
       {isTemporaryMode && (
         <div className="px-4 pt-4">
@@ -291,7 +291,7 @@ export function ChatInterface() {
       )}
 
       {/* Chat Input Area */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 pb-6 bg-background/80 backdrop-blur-xl border-t border-border/30 z-50">
+      <div className="sticky bottom-0 flex-shrink-0 p-4 pb-6 bg-background/80 backdrop-blur-xl border-t border-border/30 z-10">
         <div key={selectedMode} className="max-w-4xl mx-auto animate-scale-in">
           <form onSubmit={handleSubmit}>
             {/* Dropdowns Row */}
