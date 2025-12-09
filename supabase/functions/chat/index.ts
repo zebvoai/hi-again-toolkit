@@ -547,9 +547,9 @@ async function handleMultiModelRequest(
       async start(controller) {
         try {
           await Promise.all(finalModels.map(async (modelName) => {
-            // Determine display name (show routing info for Zebvo AI)
+            // For Zebvo AI routing, just show "Zebvo AI" without revealing the underlying model
             const displayName = (hasZebvoAI && modelName === zebvoRoutedModel) 
-              ? `Zebvo AI → ${modelName}` 
+              ? 'Zebvo AI' 
               : modelName;
             
             const mapping = getModelMapping(modelName);
