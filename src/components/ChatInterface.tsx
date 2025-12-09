@@ -181,7 +181,7 @@ export function ChatInterface() {
   };
 
   return (
-    <div className="flex flex-col h-full relative bg-background overflow-hidden pb-[180px]">
+    <div className="flex flex-col h-full relative bg-background overflow-hidden">
       {/* Temporary Mode Banner */}
       {isTemporaryMode && (
         <div className="px-4 pt-4">
@@ -291,7 +291,7 @@ export function ChatInterface() {
       )}
 
       {/* Chat Input Area */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 pb-6 bg-background/80 backdrop-blur-xl border-t border-border/30 z-50">
+      <div className="sticky bottom-0 flex-shrink-0 p-4 pb-6 bg-background/80 backdrop-blur-xl border-t border-border/30 z-10">
         <div key={selectedMode} className="max-w-4xl mx-auto animate-scale-in">
           <form onSubmit={handleSubmit}>
             {/* Dropdowns Row */}

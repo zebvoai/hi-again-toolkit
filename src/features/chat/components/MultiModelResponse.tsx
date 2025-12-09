@@ -92,30 +92,25 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
 
     return (
       <div className="w-full space-y-3">
-        {/* Toggle Button - RIGHT ALIGNED with Apple style */}
-        <div className="flex items-center justify-end gap-3 px-6">
-          <span className="text-[12px] text-muted-foreground/70 font-medium">
-            {currentIndex + 1} of {models.length} model{models.length > 1 ? 's' : ''}
-          </span>
-          <div className="relative flex items-center p-[3px] bg-muted/40 rounded-full border border-border/30 backdrop-blur-sm">
-            {/* Animated pill background - positioned left for 'single' */}
-            <div 
-              className="absolute h-[calc(100%-6px)] w-[calc(50%-3px)] bg-card rounded-full shadow-sm transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)]"
-              style={{ left: '3px' }}
-            />
+        {/* Toggle Button - LEFT ALIGNED for consistency */}
+        <div className="flex items-center justify-start gap-3 px-6">
+          <div className="flex items-center gap-0.5 p-0.5 bg-muted/30 rounded-lg border border-border/20">
             <button 
               onClick={() => setViewMode('single')}
-              className="relative z-10 px-4 py-1.5 rounded-full text-[12px] font-medium transition-colors duration-200 text-foreground"
+              className="px-3 py-1.5 rounded-md text-[11px] font-medium bg-card text-foreground shadow-sm"
             >
               Single
             </button>
             <button 
               onClick={() => setViewMode('sideBySide')}
-              className="relative z-10 px-4 py-1.5 rounded-full text-[12px] font-medium transition-colors duration-200 text-muted-foreground hover:text-foreground/80"
+              className="px-3 py-1.5 rounded-md text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
               Compare
             </button>
           </div>
+          <span className="text-[11px] text-muted-foreground/60">
+            {currentIndex + 1} of {models.length} model{models.length > 1 ? 's' : ''}
+          </span>
         </div>
 
         {/* Single Model Response */}
@@ -217,29 +212,27 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
   // Side by Side view - unified response container
   return (
     <div className="w-full overflow-visible animate-message-in-left">
-      {/* Unified Response Header - Toggle RIGHT + Model Count */}
-      <div className="flex items-center justify-end gap-3 mb-3 px-6">
-        <span className="text-[12px] text-muted-foreground/70 font-medium">
-          {models.length} model{models.length > 1 ? 's' : ''} responding
-        </span>
-        <div className="relative flex items-center p-[3px] bg-muted/40 rounded-full border border-border/30 backdrop-blur-sm">
-          {/* Animated pill background - positioned right for 'sideBySide' */}
-          <div 
-            className="absolute h-[calc(100%-6px)] w-[calc(50%-3px)] bg-card rounded-full shadow-sm transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)]"
-            style={{ left: 'calc(50%)' }}
-          />
-          <button 
-            onClick={() => setViewMode('single')}
-            className="relative z-10 px-4 py-1.5 rounded-full text-[12px] font-medium transition-colors duration-200 text-muted-foreground hover:text-foreground/80"
-          >
-            Single
-          </button>
-          <button 
-            onClick={() => setViewMode('sideBySide')}
-            className="relative z-10 px-4 py-1.5 rounded-full text-[12px] font-medium transition-colors duration-200 text-foreground"
-          >
-            Compare
-          </button>
+      {/* Unified Response Header - Toggle LEFT + Model Count */}
+      <div className="flex items-center justify-between mb-3 px-6">
+        {/* Left side: Toggle + Count */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-0.5 p-0.5 bg-muted/30 rounded-lg border border-border/20">
+            <button 
+              onClick={() => setViewMode('single')}
+              className="px-3 py-1.5 rounded-md text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Single
+            </button>
+            <button 
+              onClick={() => setViewMode('sideBySide')}
+              className="px-3 py-1.5 rounded-md text-[11px] font-medium bg-card text-foreground shadow-sm"
+            >
+              Compare
+            </button>
+          </div>
+          <span className="text-[11px] text-muted-foreground/60">
+            {models.length} model{models.length > 1 ? 's' : ''} responding
+          </span>
         </div>
       </div>
 
