@@ -169,7 +169,7 @@ async function handleMultiModelRequest(
             if (mode === 'build') {
               systemPrompt = 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags.';
             } else if (isPerplexityModel) {
-              systemPrompt = 'You are a helpful AI assistant with real-time internet access. You can search the web for current information including weather, news, prices, and live data. Always provide up-to-date information when asked about current events or real-time data.';
+              systemPrompt = 'You are Perplexity, an advanced AI research assistant with real-time web search capabilities. When answering questions:\n1. Search the web thoroughly for the most current and accurate information\n2. Provide comprehensive, detailed, and well-structured responses\n3. Include specific facts, statistics, dates, and sources when available\n4. Cite your sources with URLs when possible\n5. For news and current events, always include the latest updates\n6. Give thorough explanations with multiple perspectives when relevant\n7. Use markdown formatting for better readability (headers, lists, bold text)\n8. Never give brief or superficial answers - always aim for depth and completeness';
             } else {
               systemPrompt = 'You are a helpful AI assistant. Note: You do not have real-time internet access. For current weather, news, or live data, users should use Perplexity Sonar or Perplexity Sonar Pro models which have web search capabilities.';
             }
@@ -299,7 +299,9 @@ async function handleMultiModelRequest(
                   { role: 'user', content: createUserContent(message, attachments) }
                 ];
                 
-                body = { model: apiModel, messages, stream: true, max_tokens: mode === 'build' ? 4096 : 2048 };
+                // Perplexity models need higher token limits for comprehensive responses
+                const maxTokens = isPerplexityModel ? 8192 : (mode === 'build' ? 4096 : 2048);
+                body = { model: apiModel, messages, stream: true, max_tokens: maxTokens };
               } else {
                 throw new Error(`Unsupported provider: ${provider}`);
               }
@@ -487,9 +489,17 @@ serve(async (req) => {
     let body: any = {};
     
     // Build mode gets a code-generation system prompt
-    const systemPrompt = mode === 'build' 
-      ? 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags.'
-      : 'You are a helpful AI assistant.';
+    // Perplexity models have internet access and can search the web
+    const isPerplexityModel = requestedModel?.toLowerCase().includes('perplexity') || requestedModel?.toLowerCase().includes('sonar');
+    
+    let systemPrompt = '';
+    if (mode === 'build') {
+      systemPrompt = 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags.';
+    } else if (isPerplexityModel) {
+      systemPrompt = 'You are Perplexity, an advanced AI research assistant with real-time web search capabilities. When answering questions:\n1. Search the web thoroughly for the most current and accurate information\n2. Provide comprehensive, detailed, and well-structured responses\n3. Include specific facts, statistics, dates, and sources when available\n4. Cite your sources with URLs when possible\n5. For news and current events, always include the latest updates\n6. Give thorough explanations with multiple perspectives when relevant\n7. Use markdown formatting for better readability (headers, lists, bold text)\n8. Never give brief or superficial answers - always aim for depth and completeness';
+    } else {
+      systemPrompt = 'You are a helpful AI assistant.';
+    }
     
     // Helper to create user message content with attachments for vision models
     const createUserContent = (text: string, fileUrls: string[]): any => {
@@ -669,11 +679,14 @@ serve(async (req) => {
       
       console.log(`Single model OpenRouter request: ${requestedModel} -> ${model}`);
       
+      // Perplexity models need higher token limits for comprehensive responses
+      const maxTokens = isPerplexityModel ? 8192 : (mode === 'build' ? 4096 : 2048);
+      
       body = {
         model,
         messages,
         stream,
-        max_tokens: mode === 'build' ? 4096 : 2048
+        max_tokens: maxTokens
       };
     } else {
       throw new Error(`Unsupported provider: ${selectedProvider}`);
