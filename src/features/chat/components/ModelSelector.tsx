@@ -111,6 +111,28 @@ const modelInfo: Record<string, { description: string; strengths: string[]; spee
     speed: 'Moderate',
     quality: 'High',
     specialization: 'General purpose images'
+  },
+  // Kimi / Moonshot AI models
+  'Kimi VL A3B': {
+    description: 'Advanced vision-language model with strong multimodal understanding',
+    strengths: ['Vision understanding', 'Multimodal', 'Image analysis', 'Document parsing'],
+    speed: 'Fast',
+    quality: 'High',
+    specialization: 'Vision-language tasks'
+  },
+  'Kimi K2': {
+    description: 'Latest Kimi model with enhanced reasoning and coding capabilities',
+    strengths: ['Strong reasoning', 'Code generation', 'Long context', 'Math'],
+    speed: 'Moderate',
+    quality: 'High',
+    specialization: 'Reasoning, coding, math'
+  },
+  'Kimi K1.5': {
+    description: 'Powerful language model with excellent general capabilities',
+    strengths: ['General purpose', 'Good reasoning', 'Multilingual', 'Efficient'],
+    speed: 'Fast',
+    quality: 'High',
+    specialization: 'General purpose, multilingual'
   }
 };
 
