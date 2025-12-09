@@ -84,6 +84,10 @@ const getModelMapping = (displayName: string): { apiModel: string, provider: str
     
     // Google via OpenRouter
     'Gemma 3 27B': { apiModel: 'google/gemma-3-27b-it', provider: 'openrouter' },
+    
+    // Moonshot AI - Kimi models
+    'Kimi K2': { apiModel: 'moonshotai/kimi-k2', provider: 'openrouter' },
+    'Kimi VL': { apiModel: 'moonshotai/kimi-vl-a3b-thinking', provider: 'openrouter' },
   };
   
   // If in mapping, use it
