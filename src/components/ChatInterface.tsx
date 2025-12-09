@@ -12,6 +12,7 @@ import { ModeDropdown } from '@/features/modes/components/ModeDropdown';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useModels } from '@/features/chat/hooks/useModels';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { useRealtimeMessages } from '@/features/chat/hooks/useRealtimeMessages';
 import { triggerHapticFeedback, triggerConfetti, updatePageTitle, smoothScrollTo } from '@/lib/microInteractions';
 
 export function ChatInterface() {
@@ -45,6 +46,9 @@ export function ChatInterface() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const prevMessagesLengthRef = useRef(messages.length);
+
+  // Enable realtime sync for messages across tabs
+  useRealtimeMessages();
 
   // Update page title based on loading state
   useEffect(() => {
