@@ -413,8 +413,34 @@ const getModelSpeed = (model: string): 'ultrafast' | 'fast' | 'moderate' | null 
 const hasWebSearch = (model: string): boolean => {
   const modelLower = model.toLowerCase();
   return modelLower.includes('perplexity') || modelLower.includes('sonar');
+};
+
+// Get estimated response time based on model tier
+const getEstimatedTime = (model: string): { time: string; color: string } => {
+  const modelLower = model.toLowerCase();
   
-  return null;
+  // Speed models - ultra fast
+  if (modelLower.includes('nano') || modelLower.includes('lite') || 
+      modelLower.includes('haiku') || modelLower.includes('flash') && !modelLower.includes('pro') ||
+      modelLower.includes('mini') || modelLower.includes('nemo') ||
+      modelLower.includes('fast') || modelLower.includes('phi-4') ||
+      modelLower.includes('schnell') || modelLower.includes('turbo')) {
+    return { time: '~2-4s', color: 'text-[#30D158]' };
+  }
+  
+  // Premium models - slower but higher quality
+  if (modelLower.includes('pro') || modelLower.includes('opus') || 
+      modelLower.includes('sonnet') || modelLower.includes('large') || 
+      modelLower.includes('gpt-5') && !modelLower.includes('nano') && !modelLower.includes('mini') ||
+      modelLower.includes('o3') || modelLower.includes('deepseek r1') ||
+      modelLower.includes('llama 4') || modelLower.includes('405b') ||
+      modelLower.includes('nemotron') || modelLower.includes('command r+') ||
+      modelLower.includes('ultra')) {
+    return { time: '~8-15s', color: 'text-[#FF9F0A]' };
+  }
+  
+  // Default - moderate speed
+  return { time: '~4-8s', color: 'text-[#0071E3]' };
 };
 
 export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps) => {
@@ -999,6 +1025,7 @@ const ModelItem = ({ model, isSelected, isDisabled, isFavorite, onToggle, onTogg
   const tier = getModelTier(model);
   const speed = getModelSpeed(model);
   const info = modelInfo[model];
+  const estimatedTime = getEstimatedTime(model);
   
   const modelButton = (
     <div className="relative group">
@@ -1066,6 +1093,14 @@ const ModelItem = ({ model, isSelected, isDisabled, isFavorite, onToggle, onTogg
                 </span>
               )}
             </div>
+          </div>
+          
+          {/* Estimated response time */}
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <Clock className="w-3 h-3 text-[#86868B]" />
+            <span className={cn("text-[11px] font-medium", estimatedTime.color)}>
+              {estimatedTime.time}
+            </span>
           </div>
         </div>
         
