@@ -75,6 +75,11 @@ const getModelMapping = (displayName: string): { apiModel: string, provider: str
     'Perplexity Sonar Pro': { apiModel: 'perplexity/sonar-pro', provider: 'openrouter' },
     'Perplexity Sonar': { apiModel: 'perplexity/sonar', provider: 'openrouter' },
     
+    // Kimi / Moonshot AI
+    'Kimi VL A3B': { apiModel: 'moonshotai/kimi-vl-a3b', provider: 'openrouter' },
+    'Kimi K2': { apiModel: 'moonshotai/kimi-k2', provider: 'openrouter' },
+    'Kimi K1.5': { apiModel: 'moonshotai/kimi-k1.5', provider: 'openrouter' },
+    
     // Microsoft
     'Phi 4': { apiModel: 'microsoft/phi-4', provider: 'openrouter' },
     'Phi 4 Reasoning': { apiModel: 'microsoft/phi-4-reasoning-plus', provider: 'openrouter' },

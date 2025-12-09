@@ -46,6 +46,11 @@ const OPENROUTER_MODELS: { displayName: string; apiId: string }[] = [
   { displayName: 'Perplexity Sonar Pro', apiId: 'perplexity/sonar-pro' },
   { displayName: 'Perplexity Sonar', apiId: 'perplexity/sonar' },
   
+  // Kimi / Moonshot AI - Advanced vision and reasoning
+  { displayName: 'Kimi VL A3B', apiId: 'moonshotai/kimi-vl-a3b' },
+  { displayName: 'Kimi K2', apiId: 'moonshotai/kimi-k2' },
+  { displayName: 'Kimi K1.5', apiId: 'moonshotai/kimi-k1.5' },
+  
   // Microsoft - Phi models
   { displayName: 'Phi 4', apiId: 'microsoft/phi-4' },
   { displayName: 'Phi 4 Reasoning', apiId: 'microsoft/phi-4-reasoning-plus' },
