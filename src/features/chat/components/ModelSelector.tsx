@@ -3,7 +3,7 @@ import { useModels } from '../hooks/useModels';
 import { useModeStore } from '@/features/modes/store/modeStore';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Check, ChevronDown, Sparkles, Info, Search, Star, X, Clock, ArrowUpDown, Zap, Crown, Scale, Wallet, Palette, Save, Trash2, Cpu } from 'lucide-react';
+import { Check, ChevronDown, Sparkles, Info, Search, Star, X, Clock, ArrowUpDown, Zap, Crown, Scale, Wallet, Palette, Save, Trash2, Cpu, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
@@ -89,6 +89,20 @@ const modelInfo: Record<string, { description: string; strengths: string[]; spee
     speed: 'Very Fast',
     quality: 'Good',
     specialization: 'Classification, summarization'
+  },
+  'Perplexity Sonar Pro': {
+    description: 'Advanced AI with real-time web search for current information',
+    strengths: ['Live web search', 'Real-time data', 'Current events', 'Citations'],
+    speed: 'Fast',
+    quality: 'High',
+    specialization: 'Real-time information, research'
+  },
+  'Perplexity Sonar': {
+    description: 'AI with live internet access for up-to-date information',
+    strengths: ['Web search', 'Live data', 'News', 'Weather'],
+    speed: 'Fast',
+    quality: 'Good',
+    specialization: 'Current information, quick research'
   },
   // Image models - generic info
   'DALL-E 3': {
@@ -377,6 +391,14 @@ const getModelSpeed = (model: string): 'ultrafast' | 'fast' | 'moderate' | null 
       modelLower.includes('sonnet')) {
     return 'moderate';
   }
+  
+  return null;
+};
+
+// Check if model has web search / live internet access
+const hasWebSearch = (model: string): boolean => {
+  const modelLower = model.toLowerCase();
+  return modelLower.includes('perplexity') || modelLower.includes('sonar');
   
   return null;
 };
@@ -1021,6 +1043,12 @@ const ModelItem = ({ model, isSelected, isDisabled, isFavorite, onToggle, onTogg
               {(speed === 'ultrafast' || speed === 'fast') && (
                 <span className="px-1.5 py-0.5 text-[9px] font-semibold bg-[#0071E3] text-white rounded-full flex items-center gap-0.5">
                   <Zap className="w-2 h-2" />
+                </span>
+              )}
+              {hasWebSearch(model) && (
+                <span className="px-1.5 py-0.5 text-[9px] font-semibold bg-gradient-to-r from-[#34C759] to-[#30D158] text-white rounded-full flex items-center gap-0.5">
+                  <Globe className="w-2 h-2" />
+                  LIVE
                 </span>
               )}
             </div>
