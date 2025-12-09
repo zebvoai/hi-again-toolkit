@@ -4,6 +4,7 @@ import type { ChatState } from '../types';
 export const useChatStore = create<ChatState>((set, get) => ({
   messages: [],
   isLoading: false,
+  loadingConversationId: null,
   error: null,
   selectedModels: ['Perplexity Sonar Pro'],
   currentConversationId: null,
@@ -15,7 +16,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
       msg.id === id ? { ...msg, ...updates } : msg
     )
   })),
-  setLoading: (loading) => set({ isLoading: loading }),
+  setLoading: (loading, conversationId) => set((state) => ({ 
+    isLoading: loading,
+    loadingConversationId: loading ? (conversationId ?? state.currentConversationId) : null
+  })),
   setError: (error) => set({ error }),
   clearMessages: () => set({ messages: [] }),
   setSelectedModels: (models) => set({ selectedModels: models }),

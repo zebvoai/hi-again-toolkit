@@ -38,7 +38,12 @@ export function ChatInterface() {
     setSelectedModels,
     clearMessages,
     setCurrentConversationId,
+    currentConversationId,
+    loadingConversationId,
   } = useChatStore();
+  
+  // Only show loading if current conversation is the one loading
+  const isCurrentConversationLoading = isLoading && loadingConversationId === currentConversationId;
   const {
     models
   } = useModels();
@@ -52,27 +57,27 @@ export function ChatInterface() {
 
   // Update page title based on loading state
   useEffect(() => {
-    updatePageTitle(isLoading ? 'generating' : 'idle');
+    updatePageTitle(isCurrentConversationLoading ? 'generating' : 'idle');
     return () => updatePageTitle('idle');
-  }, [isLoading]);
+  }, [isCurrentConversationLoading]);
 
   // Trigger confetti on first AI response
   useEffect(() => {
     const hasNewAssistantMessage = messages.length > prevMessagesLengthRef.current && 
       messages[messages.length - 1]?.role === 'assistant';
     
-    if (hasNewAssistantMessage && isFirstResponse && !isLoading) {
+    if (hasNewAssistantMessage && isFirstResponse && !isCurrentConversationLoading) {
       triggerConfetti();
       setIsFirstResponse(false);
     }
     
     prevMessagesLengthRef.current = messages.length;
-  }, [messages, isFirstResponse, isLoading]);
+  }, [messages, isFirstResponse, isCurrentConversationLoading]);
 
   // Keyboard shortcuts
   useKeyboardShortcuts({
     onSend: () => {
-      if (input.trim() && !isLoading && selectedModels.length > 0) {
+      if (input.trim() && !isCurrentConversationLoading && selectedModels.length > 0) {
         handleSendMessage();
       }
     },
@@ -253,7 +258,7 @@ export function ChatInterface() {
               </div>
             );
           })}
-          {isLoading && (
+          {isCurrentConversationLoading && (
             <div className="max-w-[800px] mx-auto px-6">
               <TypingIndicator models={selectedModels} />
             </div>
@@ -342,8 +347,8 @@ export function ChatInterface() {
                 value={input} 
                 onChange={e => setInput(e.target.value)} 
                 placeholder="Ask Zebvo ai" 
-                disabled={isLoading} 
-                className="flex-1 bg-transparent outline-none text-[17px] font-medium placeholder:text-muted-foreground/70 disabled:opacity-50 px-4 text-foreground" 
+                disabled={isCurrentConversationLoading} 
+                className="flex-1 bg-transparent outline-none text-[17px] font-medium placeholder:text-muted-foreground/70 disabled:opacity-50 px-4 text-foreground"
                 maxLength={4000} 
               />
 
@@ -355,8 +360,8 @@ export function ChatInterface() {
               )}
 
               {/* Right Send Button */}
-              <button type={isLoading ? "button" : "submit"} onClick={isLoading ? cancelGeneration : undefined} disabled={!isLoading && (!input.trim() || selectedModels.length === 0)} className={`flex-shrink-0 w-[42px] h-[42px] rounded-full flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] ${isLoading ? 'bg-primary text-primary-foreground hover:bg-primary/80 shadow-lg shadow-primary/25' : !input.trim() || selectedModels.length === 0 ? 'bg-muted text-muted-foreground cursor-not-allowed border border-border/50' : 'bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-110 hover:shadow-lg hover:shadow-primary/25 animate-scale-in'}`}>
-                {isLoading ? <Square className="w-4 h-4 fill-current animate-pulse" /> : (
+              <button type={isCurrentConversationLoading ? "button" : "submit"} onClick={isCurrentConversationLoading ? cancelGeneration : undefined} disabled={!isCurrentConversationLoading && (!input.trim() || selectedModels.length === 0)} className={`flex-shrink-0 w-[42px] h-[42px] rounded-full flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] ${isCurrentConversationLoading ? 'bg-primary text-primary-foreground hover:bg-primary/80 shadow-lg shadow-primary/25' : !input.trim() || selectedModels.length === 0 ? 'bg-muted text-muted-foreground cursor-not-allowed border border-border/50' : 'bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-110 hover:shadow-lg hover:shadow-primary/25 animate-scale-in'}`}>
+                {isCurrentConversationLoading ? <Square className="w-4 h-4 fill-current animate-pulse" /> : (
                   <svg width="18" height="18" viewBox="0 0 20 20" fill="none" className="transition-all duration-300">
                     <path d="M3 10L17 10M17 10L11 4M17 10L11 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
