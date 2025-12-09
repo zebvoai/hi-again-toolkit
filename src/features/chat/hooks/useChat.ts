@@ -383,8 +383,7 @@ export const useChat = () => {
               updateMessage(assistantId, { content: { ...multiModelContent } });
             }
           },
-          abortControllerRef.current?.signal,
-          fileUrls.length > 0 ? fileUrls : undefined
+          abortControllerRef.current?.signal
         );
 
         if (hasCreatedMessage) {
@@ -441,8 +440,13 @@ export const useChat = () => {
         const selectedModel = selectedModels[0];
         const isOpenAIModel = selectedModel?.startsWith('GPT') || selectedModel?.startsWith('O');
 
+        // Include file URLs in the message content for vision models
+        const messageContent = fileUrls.length > 0 
+          ? `${content}\n\n[Attached files: ${fileUrls.join(', ')}]`
+          : content;
+
         const response = await api.sendMessage(
-          content,
+          messageContent,
           selectedMode,
           messages,
           undefined,
@@ -469,8 +473,7 @@ export const useChat = () => {
                 }
               }
             : undefined,
-          abortControllerRef.current?.signal,
-          fileUrls.length > 0 ? fileUrls : undefined
+          abortControllerRef.current?.signal
         );
         
         if (hasCreatedMessage) {

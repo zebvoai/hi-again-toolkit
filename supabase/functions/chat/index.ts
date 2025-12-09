@@ -120,29 +120,12 @@ async function handleMultiModelRequest(
   models: string[],
   conversationHistory: Message[],
   stream: boolean,
-  mode: string = 'text',
-  attachments: string[] = []
+  mode: string = 'text'
 ): Promise<Response> {
   const encoder = new TextEncoder();
   
   // Sanitize history before processing
   const sanitizedHistory = sanitizeHistory(conversationHistory);
-  
-  // Helper to create user message content with attachments for vision models
-  const createUserContent = (text: string, fileUrls: string[]): any => {
-    if (fileUrls.length === 0) return text;
-    
-    const content: any[] = [{ type: 'text', text }];
-    for (const url of fileUrls) {
-      const isImage = /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(url);
-      if (isImage) {
-        content.push({ type: 'image_url', image_url: { url } });
-      } else {
-        content.push({ type: 'text', text: `\n\n[Attached file: ${url}]` });
-      }
-    }
-    return content;
-  };
   
   if (stream) {
     const streamBody = new ReadableStream({
@@ -176,7 +159,7 @@ async function handleMultiModelRequest(
                 const messages = [
                   { role: 'system', content: systemPrompt },
                   ...sanitizedHistory.map(m => ({ role: m.role, content: m.content })),
-                  { role: 'user', content: createUserContent(message, attachments) }
+                  { role: 'user', content: message }
                 ];
                 
                 body = { model: apiModel, messages, stream: true, max_completion_tokens: mode === 'build' ? 8192 : 4096 };
@@ -191,24 +174,9 @@ async function handleMultiModelRequest(
                   'content-type': 'application/json'
                 };
                 
-                // Anthropic uses different format for images
-                const createAnthropicContent = (text: string, fileUrls: string[]): any => {
-                  if (fileUrls.length === 0) return text;
-                  const content: any[] = [{ type: 'text', text }];
-                  for (const url of fileUrls) {
-                    const isImage = /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(url);
-                    if (isImage) {
-                      content.push({ type: 'image', source: { type: 'url', url } });
-                    } else {
-                      content.push({ type: 'text', text: `\n\n[Attached file: ${url}]` });
-                    }
-                  }
-                  return content;
-                };
-                
                 const messages = [
                   ...sanitizedHistory.filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content })),
-                  { role: 'user', content: createAnthropicContent(message, attachments) }
+                  { role: 'user', content: message }
                 ];
                 
                 body = { 
@@ -231,7 +199,7 @@ async function handleMultiModelRequest(
                 const messages = [
                   { role: 'system', content: systemPrompt },
                   ...sanitizedHistory.map(m => ({ role: m.role, content: m.content })),
-                  { role: 'user', content: createUserContent(message, attachments) }
+                  { role: 'user', content: message }
                 ];
                 
                 body = { model: apiModel, messages, stream: true };
@@ -249,22 +217,7 @@ async function handleMultiModelRequest(
                   role: m.role === 'assistant' ? 'model' : 'user',
                   parts: [{ text: m.content }]
                 }));
-                
-                // Google uses parts array for multimodal content
-                const createGoogleParts = (text: string, fileUrls: string[]): any[] => {
-                  const parts: any[] = [{ text }];
-                  for (const url of fileUrls) {
-                    const isImage = /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(url);
-                    if (isImage) {
-                      parts.push({ inlineData: { mimeType: 'image/jpeg', data: url } });
-                    } else {
-                      parts.push({ text: `\n\n[Attached file: ${url}]` });
-                    }
-                  }
-                  return parts;
-                };
-                
-                contents.push({ role: 'user', parts: createGoogleParts(message, attachments) });
+                contents.push({ role: 'user', parts: [{ text: message }] });
                 
                 body = { contents };
               } else if (provider === 'openrouter') {
@@ -284,7 +237,7 @@ async function handleMultiModelRequest(
                 const messages = [
                   { role: 'system', content: systemPrompt },
                   ...sanitizedHistory.map(m => ({ role: m.role, content: m.content })),
-                  { role: 'user', content: createUserContent(message, attachments) }
+                  { role: 'user', content: message }
                 ];
                 
                 body = { model: apiModel, messages, stream: true, max_tokens: mode === 'build' ? 4096 : 2048 };
@@ -406,7 +359,6 @@ interface ChatRequest {
   model?: string;
   models?: string[];
   stream?: boolean;
-  attachments?: string[];
 }
 
 serve(async (req) => {
@@ -415,9 +367,9 @@ serve(async (req) => {
   }
 
   try {
-    const { message, mode, conversationHistory = [], provider, model: requestedModel, models, stream = false, attachments = [] }: ChatRequest = await req.json();
+    const { message, mode, conversationHistory = [], provider, model: requestedModel, models, stream = false }: ChatRequest = await req.json();
     
-    console.log('Chat request:', { message, mode, provider, requestedModel, models, historyLength: conversationHistory.length, attachmentsCount: attachments.length });
+    console.log('Chat request:', { message, mode, provider, requestedModel, models, historyLength: conversationHistory.length });
 
     // VIDEO MODE: Only process video models, ignore text models
     if (mode === 'video') {
@@ -450,8 +402,8 @@ serve(async (req) => {
 
     // Handle multi-model requests (text mode only) - includes single model in array
     if (models && Array.isArray(models) && models.length >= 1) {
-      console.log('Multi-model request:', models, 'attachments:', attachments.length);
-      return await handleMultiModelRequest(message, models, conversationHistory, stream, mode, attachments);
+      console.log('Multi-model request:', models);
+      return await handleMultiModelRequest(message, models, conversationHistory, stream, mode);
     }
     
     // Determine actual model and provider using the unified getModelMapping function
@@ -479,35 +431,6 @@ serve(async (req) => {
       ? 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags.'
       : 'You are a helpful AI assistant.';
     
-    // Helper to create user message content with attachments for vision models
-    const createUserContent = (text: string, fileUrls: string[]): any => {
-      if (fileUrls.length === 0) {
-        return text;
-      }
-      
-      // Vision models can process images - create multipart content
-      const content: any[] = [{ type: 'text', text }];
-      
-      for (const url of fileUrls) {
-        // Check if it's an image by extension
-        const isImage = /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(url);
-        if (isImage) {
-          content.push({
-            type: 'image_url',
-            image_url: { url }
-          });
-        } else {
-          // For non-image files, append URL as text context
-          content.push({
-            type: 'text',
-            text: `\n\n[Attached file: ${url}]`
-          });
-        }
-      }
-      
-      return content;
-    };
-    
     if (selectedProvider === 'openai') {
       apiKey = Deno.env.get('OPENAI_API_KEY');
       if (!apiKey) {
@@ -523,7 +446,7 @@ serve(async (req) => {
       const messages = [
         { role: 'system', content: systemPrompt },
         ...conversationHistory.map(m => ({ role: m.role, content: m.content })),
-        { role: 'user', content: createUserContent(message, attachments) }
+        { role: 'user', content: message }
       ];
       
       body = {
@@ -545,28 +468,9 @@ serve(async (req) => {
         'content-type': 'application/json'
       };
       
-      // Anthropic uses different format for images
-      const createAnthropicContent = (text: string, fileUrls: string[]): any => {
-        if (fileUrls.length === 0) return text;
-        
-        const content: any[] = [{ type: 'text', text }];
-        for (const url of fileUrls) {
-          const isImage = /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(url);
-          if (isImage) {
-            content.push({
-              type: 'image',
-              source: { type: 'url', url }
-            });
-          } else {
-            content.push({ type: 'text', text: `\n\n[Attached file: ${url}]` });
-          }
-        }
-        return content;
-      };
-      
       const messages = [
         ...conversationHistory.filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content })),
-        { role: 'user', content: createAnthropicContent(message, attachments) }
+        { role: 'user', content: message }
       ];
       
       body = {
@@ -591,7 +495,7 @@ serve(async (req) => {
       const messages = [
         { role: 'system', content: systemPrompt },
         ...conversationHistory.map(m => ({ role: m.role, content: m.content })),
-        { role: 'user', content: createUserContent(message, attachments) }
+        { role: 'user', content: message }
       ];
       
       body = {
@@ -611,27 +515,13 @@ serve(async (req) => {
         'x-goog-api-key': apiKey
       };
       
-      // Google uses parts array for multimodal content
-      const createGoogleParts = (text: string, fileUrls: string[]): any[] => {
-        const parts: any[] = [{ text }];
-        for (const url of fileUrls) {
-          const isImage = /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(url);
-          if (isImage) {
-            parts.push({ inlineData: { mimeType: 'image/jpeg', data: url } });
-          } else {
-            parts.push({ text: `\n\n[Attached file: ${url}]` });
-          }
-        }
-        return parts;
-      };
-      
       const contents = conversationHistory.map(m => ({
         role: m.role === 'assistant' ? 'model' : 'user',
         parts: [{ text: m.content }]
       }));
       contents.push({
         role: 'user',
-        parts: createGoogleParts(message, attachments)
+        parts: [{ text: message }]
       });
       
       body = { contents };
@@ -652,7 +542,7 @@ serve(async (req) => {
       const messages = [
         { role: 'system', content: systemPrompt },
         ...conversationHistory.map(m => ({ role: m.role, content: m.content })),
-        { role: 'user', content: createUserContent(message, attachments) }
+        { role: 'user', content: message }
       ];
       
       console.log(`Single model OpenRouter request: ${requestedModel} -> ${model}`);
