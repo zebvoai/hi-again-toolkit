@@ -20,6 +20,13 @@ interface ModelSelectorProps {
 
 // Model descriptions and capabilities
 const modelInfo: Record<string, { description: string; strengths: string[]; speed: string; quality?: string; specialization?: string }> = {
+  'Zebvo AI': {
+    description: 'Intelligent routing model that automatically selects the best AI for your query',
+    strengths: ['Auto-routing', 'Intent detection', 'Deep research', 'Best results'],
+    speed: 'Varies',
+    quality: 'Highest',
+    specialization: 'Intelligent model selection'
+  },
   'GPT-5': {
     description: 'Most advanced GPT model with superior reasoning and multimodal capabilities',
     strengths: ['Complex reasoning', 'Long context', 'Multimodal', 'High accuracy'],
@@ -502,6 +509,11 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
     : { 'All Models': sortedNonFavoriteNonRecentModels };
   
   const handleToggle = (model: string) => {
+    // Zebvo AI cannot be unselected
+    if (model === 'Zebvo AI') {
+      return; // Prevent toggling Zebvo AI off
+    }
+    
     if (values.includes(model)) {
       onChange(values.filter(m => m !== model));
     } else {
@@ -521,11 +533,11 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
     toast.success(`Selected all ${availableModels.length} models for testing`);
   };
   
-  // Clear all selections
+  // Clear all selections (except Zebvo AI which is always selected)
   const handleClearAll = () => {
-    onChange([]);
+    onChange(['Zebvo AI']); // Keep Zebvo AI selected
     setActivePresets(new Set());
-    toast.success('Cleared all selections');
+    toast.success('Cleared all selections (Zebvo AI remains active)');
   };
   
   // All presets (built-in + custom)
@@ -544,10 +556,14 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
     const newActivePresets = new Set(activePresets);
     
     if (activePresets.has(presetId)) {
-      // Deactivate preset - remove its models from selection
+      // Deactivate preset - remove its models from selection (but keep Zebvo AI)
       newActivePresets.delete(presetId);
       const modelsToRemove = new Set(availablePresetModels);
-      const newSelection = values.filter(m => !modelsToRemove.has(m));
+      const newSelection = values.filter(m => !modelsToRemove.has(m) || m === 'Zebvo AI');
+      // Ensure Zebvo AI is always in the selection
+      if (!newSelection.includes('Zebvo AI')) {
+        newSelection.unshift('Zebvo AI');
+      }
       onChange(newSelection);
     } else {
       // Activate preset - add its models to selection (merge with existing)
@@ -1026,27 +1042,31 @@ const ModelItem = ({ model, isSelected, isDisabled, isFavorite, onToggle, onTogg
   const speed = getModelSpeed(model);
   const info = modelInfo[model];
   const estimatedTime = getEstimatedTime(model);
+  const isZebvoAI = model === 'Zebvo AI';
   
   const modelButton = (
     <div className="relative group">
       <button
-        onClick={() => onToggle(model)}
+        onClick={() => !isZebvoAI && onToggle(model)}
         disabled={isDisabled}
         className={cn(
           "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200",
           isSelected 
             ? "bg-[#0071E3]/10 dark:bg-[#2997FF]/15" 
             : "bg-transparent",
-          !isSelected && "hover:bg-black/[0.03] dark:hover:bg-white/[0.05]",
+          !isSelected && !isZebvoAI && "hover:bg-black/[0.03] dark:hover:bg-white/[0.05]",
           "active:scale-[0.99]",
-          isDisabled && "opacity-50 cursor-not-allowed"
+          isDisabled && "opacity-50 cursor-not-allowed",
+          isZebvoAI && "cursor-default"
         )}
       >
         {/* Checkbox - Apple Style */}
         <div className={cn(
           "flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200",
           isSelected 
-            ? "bg-[#0071E3] border-[#0071E3]" 
+            ? isZebvoAI 
+              ? "bg-[#BF5AF2] border-[#BF5AF2]" // Purple for locked Zebvo AI
+              : "bg-[#0071E3] border-[#0071E3]" 
             : "border-[#C7C7CC] dark:border-[#48484A]"
         )}>
           {isSelected && (
@@ -1081,7 +1101,7 @@ const ModelItem = ({ model, isSelected, isDisabled, isFavorite, onToggle, onTogg
                   LITE
                 </span>
               )}
-              {(speed === 'ultrafast' || speed === 'fast') && (
+              {(speed === 'ultrafast' || speed === 'fast') && !isZebvoAI && (
                 <span className="px-1.5 py-0.5 text-[9px] font-semibold bg-[#0071E3] text-white rounded-full flex items-center gap-0.5">
                   <Zap className="w-2 h-2" />
                 </span>
@@ -1090,6 +1110,11 @@ const ModelItem = ({ model, isSelected, isDisabled, isFavorite, onToggle, onTogg
                 <span className="px-1.5 py-0.5 text-[9px] font-semibold bg-gradient-to-r from-[#34C759] to-[#30D158] text-white rounded-full flex items-center gap-0.5">
                   <Globe className="w-2 h-2" />
                   LIVE
+                </span>
+              )}
+              {isZebvoAI && (
+                <span className="px-1.5 py-0.5 text-[9px] font-semibold bg-gradient-to-r from-[#BF5AF2] to-[#AF52DE] text-white rounded-full">
+                  ALWAYS ON
                 </span>
               )}
             </div>
