@@ -1,11 +1,16 @@
 import { useState, useRef } from 'react';
 import { api } from '@/lib/api';
-import { multiModelApi } from '@/lib/multiModelApi';
+import { multiModelApi, ZebvoAIConfirmation } from '@/lib/multiModelApi';
 import { useChatStore } from '../store/chatStore';
 import { useModeStore } from '@/features/modes/store/modeStore';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import type { MultiModelContent, Message } from '@/types';
+import type { MultiModelContent, Message, MultiModelChatResponse } from '@/types';
+
+// Type guard for ZebvoAIConfirmation
+const isZebvoAIConfirmation = (response: MultiModelChatResponse | ZebvoAIConfirmation): response is ZebvoAIConfirmation => {
+  return 'requiresConfirmation' in response && response.requiresConfirmation === true;
+};
 
 export const useChat = () => {
   const { 
@@ -387,11 +392,27 @@ export const useChat = () => {
           fileUrls.length > 0 ? fileUrls : undefined
         );
 
+        // Handle Zebvo AI confirmation response
+        if (isZebvoAIConfirmation(response)) {
+          const confirmMessage: Message = {
+            id: assistantId,
+            role: 'assistant' as const,
+            content: response.content,
+            timestamp: Date.now(),
+            metadata: { models: ['Zebvo AI'] }
+          };
+          addMessage(confirmMessage);
+          setLoading(false);
+          return;
+        }
+
+        const responseModels = response.models || selectedModels;
+
         if (hasCreatedMessage) {
           const finalMessage = {
             content: response.content,
             metadata: {
-              models: response.models
+              models: responseModels
             }
           };
           updateMessage(assistantId, finalMessage);
@@ -416,7 +437,7 @@ export const useChat = () => {
             content: response.content,
             timestamp: Date.now(),
             metadata: {
-              models: response.models
+              models: responseModels
             }
           };
           addMessage(assistantMessage);

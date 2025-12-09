@@ -69,6 +69,9 @@ serve(async (req) => {
   try {
     // Base models (direct API - always included)
     const baseModels = [
+      // Zebvo AI - Intelligent Auto-Router (FIRST)
+      'Zebvo AI',
+      
       // OpenAI (direct API)
       'GPT-5',
       'GPT-5 Mini',
