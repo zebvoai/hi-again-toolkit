@@ -118,7 +118,10 @@ export const Message = ({
             <div className="flex items-center gap-1.5 mb-1 ml-0.5">
               {message.metadata?.model && (
                 <span className="text-[10px] font-medium text-muted-foreground/60">
-                  {formatModelName(message.metadata.model)}
+                  {/* Always show "Zebvo AI" if the model name contains it (regardless of internal routing) */}
+                  {message.metadata.model === 'Zebvo AI' || message.metadata.model.startsWith('Zebvo AI')
+                    ? 'Zebvo AI'
+                    : formatModelName(message.metadata.model)}
                 </span>
               )}
               {timeAgo && (
