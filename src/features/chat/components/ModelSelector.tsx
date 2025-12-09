@@ -104,6 +104,20 @@ const modelInfo: Record<string, { description: string; strengths: string[]; spee
     quality: 'Good',
     specialization: 'Current information, quick research'
   },
+  'Kimi K2': {
+    description: 'Advanced model from Moonshot AI with strong multilingual and reasoning capabilities',
+    strengths: ['Multilingual', 'Long context', 'Reasoning', 'Coding'],
+    speed: 'Fast',
+    quality: 'High',
+    specialization: 'General chat, multilingual tasks'
+  },
+  'Kimi VL': {
+    description: 'Vision-language model with thinking capabilities for complex visual reasoning',
+    strengths: ['Vision analysis', 'Deep thinking', 'Image understanding', 'Reasoning'],
+    speed: 'Moderate',
+    quality: 'High',
+    specialization: 'Vision tasks, complex reasoning'
+  },
   // Image models - generic info
   'DALL-E 3': {
     description: 'Advanced image generation with high quality and prompt adherence',
