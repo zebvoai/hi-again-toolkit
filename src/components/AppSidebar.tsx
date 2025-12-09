@@ -38,7 +38,7 @@ export function AppSidebar() {
   const isCollapsed = state === "collapsed";
   const { clearMessages, setCurrentConversationId, currentConversationId, setMessages } =
     useChatStore();
-  const { conversations, isLoading, loadConversation, deleteConversation, renameConversation, shareConversation, refreshConversations } = useConversations();
+  const { conversations, isLoading, loadConversation, deleteConversation, clearAllConversations, renameConversation, shareConversation, refreshConversations } = useConversations();
   const { toast } = useToast();
 
   // Projects state
@@ -79,6 +79,16 @@ export function AppSidebar() {
     if (currentConversationId === conversationId) {
       handleNewChat();
     }
+  };
+
+  const handleClearAllChats = async () => {
+    if (conversations.length === 0) return;
+    
+    const confirmed = window.confirm(`Are you sure you want to delete all ${conversations.length} conversations? This cannot be undone.`);
+    if (!confirmed) return;
+    
+    await clearAllConversations();
+    handleNewChat();
   };
 
   const handleProjectAction = (projectId: number, action: "rename" | "duplicate" | "archive" | "delete") => {
@@ -375,6 +385,22 @@ export function AppSidebar() {
               </div>
             )}
           </div>
+
+          {/* Chat History Header with Clear All */}
+          {conversations.length > 0 && (
+            <div className="flex items-center justify-between px-2.5 py-1">
+              <span className="text-[11px] font-semibold text-[#8E8E93] uppercase tracking-wider">History</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 px-2 text-[11px] text-destructive hover:text-destructive hover:bg-destructive/10 rounded-lg"
+                onClick={handleClearAllChats}
+              >
+                <Trash2 className="w-3 h-3 mr-1" />
+                Clear All
+              </Button>
+            </div>
+          )}
 
           {/* Chat History */}
           {isLoading ? (
