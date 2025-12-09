@@ -5,7 +5,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   messages: [],
   isLoading: false,
   error: null,
-  selectedModels: [],
+  selectedModels: ['Perplexity Sonar Pro'],
   currentConversationId: null,
   addMessage: (message) => set((state) => ({ 
     messages: [...state.messages, message] 
