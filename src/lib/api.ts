@@ -29,7 +29,8 @@ export const api = {
     provider?: Provider,
     model?: string,
     onChunk?: (chunk: string) => void,
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    attachments?: string[]
   ): Promise<ChatResponse> {
     const response = await fetch(`${API_BASE}/chat`, {
       method: 'POST',
@@ -43,7 +44,8 @@ export const api = {
         conversationHistory: sanitizeHistoryForAPI(history),
         provider,
         model,
-        stream: !!onChunk
+        stream: !!onChunk,
+        attachments
       }),
       signal
     });
