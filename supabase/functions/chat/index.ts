@@ -158,9 +158,17 @@ async function handleMultiModelRequest(
             let body: any = {};
             
             // Build mode gets a code-generation system prompt
-            const systemPrompt = mode === 'build' 
-              ? 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags.'
-              : 'You are a helpful AI assistant.';
+            // Perplexity models have internet access and can search the web
+            const isPerplexityModel = modelName.toLowerCase().includes('perplexity') || modelName.toLowerCase().includes('sonar');
+            
+            let systemPrompt = '';
+            if (mode === 'build') {
+              systemPrompt = 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags.';
+            } else if (isPerplexityModel) {
+              systemPrompt = 'You are a helpful AI assistant with real-time internet access. You can search the web for current information including weather, news, prices, and live data. Always provide up-to-date information when asked about current events or real-time data.';
+            } else {
+              systemPrompt = 'You are a helpful AI assistant. Note: You do not have real-time internet access. For current weather, news, or live data, users should use Perplexity Sonar or Perplexity Sonar Pro models which have web search capabilities.';
+            }
             
             try {
               if (provider === 'openai') {
