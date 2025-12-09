@@ -279,8 +279,8 @@ export function AppSidebar() {
         </SidebarHeader>
       </div>
 
-      <ScrollArea className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3">
-        <SidebarContent className="pb-4 space-y-3">
+      <ScrollArea className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 w-full">
+        <SidebarContent className="pb-4 space-y-3 w-full max-w-full">
           {/* Projects Section */}
           <div className="space-y-0.5">
             {/* Projects Header */}
@@ -409,13 +409,13 @@ export function AppSidebar() {
           ) : filteredConversations.length === 0 ? (
             <div className="text-[13px] text-[#8E8E93] text-center py-6">No chats found</div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3 w-full max-w-full overflow-hidden">
               {Object.entries(groupedConversations).map(([label, convs]) => (
                 <div key={label} className="space-y-0.5">
                   <div className="flex items-center gap-2 px-2.5 py-1 text-[11px] font-semibold text-[#8E8E93] uppercase tracking-wider">
                     <span>{label}</span>
                   </div>
-                  <div className="space-y-0.5 pl-0.5">
+                  <div className="space-y-0.5 pl-0.5 w-full max-w-full overflow-hidden">
                     {convs.map((conv) => (
                       <ConversationItem
                         key={conv.id}
