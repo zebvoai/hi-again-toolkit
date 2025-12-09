@@ -142,10 +142,11 @@ export const useConversations = () => {
 
   const clearAllConversations = async () => {
     try {
+      // Delete all conversations by matching any non-null id
       const { error } = await supabase
         .from('conversations')
         .delete()
-        .neq('id', ''); // Delete all rows
+        .not('id', 'is', null);
 
       if (error) throw error;
 
