@@ -5,7 +5,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   messages: [],
   isLoading: false,
   error: null,
-  selectedModels: [],
+  selectedModels: ['Zebvo AI'], // Zebvo AI is always selected by default
   currentConversationId: null,
   addMessage: (message) => set((state) => ({ 
     messages: [...state.messages, message] 
