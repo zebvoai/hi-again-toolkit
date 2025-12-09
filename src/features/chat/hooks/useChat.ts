@@ -460,7 +460,8 @@ export const useChat = () => {
         let streamingContent = '';
         let hasCreatedMessage = false;
         const selectedModel = selectedModels[0];
-        const isOpenAIModel = selectedModel?.startsWith('GPT') || selectedModel?.startsWith('O');
+        // Enable streaming for OpenAI models and Zebvo AI (which routes internally and requires streaming)
+        const shouldStream = selectedModel?.startsWith('GPT') || selectedModel?.startsWith('O') || selectedModel === 'Zebvo AI';
 
         const response = await api.sendMessage(
           content,
@@ -468,7 +469,7 @@ export const useChat = () => {
           messages,
           undefined,
           selectedModel,
-          isOpenAIModel
+          shouldStream
             ? (chunk: string) => {
                 streamingContent += chunk;
                 
