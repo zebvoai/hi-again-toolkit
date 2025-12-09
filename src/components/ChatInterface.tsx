@@ -100,7 +100,7 @@ export function ChatInterface() {
   useEffect(() => {
     if (!models) return;
     const defaultModels: Record<string, string> = {
-      text: 'GPT-5',
+      text: 'Perplexity Sonar Pro',
       image: 'DALL-E 3',
       video: 'Gemini Video 2.0',
       build: 'GPT-5'
@@ -110,7 +110,7 @@ export function ChatInterface() {
     const validModels = selectedModels.filter(model => availableModelsForMode.includes(model));
 
     if (validModels.length === 0) {
-      const defaultModel = defaultModels[selectedMode] || 'GPT-5';
+      const defaultModel = defaultModels[selectedMode] || 'Perplexity Sonar Pro';
       setSelectedModels([defaultModel]);
     } else if (validModels.length !== selectedModels.length) {
       setSelectedModels(validModels);
@@ -120,7 +120,7 @@ export function ChatInterface() {
   // Initialize with default model if none selected
   useEffect(() => {
     if (selectedModels.length === 0) {
-      setSelectedModels(['GPT-5']);
+      setSelectedModels(['Perplexity Sonar Pro']);
     }
   }, [selectedModels.length, setSelectedModels]);
 
