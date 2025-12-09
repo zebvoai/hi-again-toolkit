@@ -53,11 +53,12 @@ export const ConversationItem = ({
       onClick={onClick}
     >
       {/* Content area - uses right padding to reserve space for menu */}
-      <div className="flex-1 min-w-0 pr-7">
+      <div className="flex-1 min-w-0 max-w-[calc(100%-2rem)] pr-7 overflow-hidden">
         <p
-          className={`text-[13px] truncate leading-snug ${
+          className={`text-[13px] truncate leading-snug max-w-full ${
             isActive ? 'font-medium text-primary' : 'text-foreground/90 dark:text-foreground/80'
           }`}
+          title={title}
         >
           {title}
         </p>
