@@ -167,11 +167,11 @@ async function handleMultiModelRequest(
             
             let systemPrompt = '';
             if (mode === 'build') {
-              systemPrompt = 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags.';
+              systemPrompt = 'You are an expert software engineer. Generate production-ready code with clear explanations. Use markdown code blocks.';
             } else if (isPerplexityModel) {
-              systemPrompt = 'You are Perplexity, an advanced AI research assistant with real-time web search capabilities. When answering questions:\n1. Search the web thoroughly for the most current and accurate information\n2. Provide comprehensive, detailed, and well-structured responses\n3. Include specific facts, statistics, dates, and sources when available\n4. Cite your sources with URLs when possible\n5. For news and current events, always include the latest updates\n6. Give thorough explanations with multiple perspectives when relevant\n7. Use markdown formatting for better readability (headers, lists, bold text)\n8. Never give brief or superficial answers - always aim for depth and completeness';
+              systemPrompt = 'You are Perplexity with real-time web search. Provide accurate, well-sourced responses with citations. Use markdown formatting.';
             } else {
-              systemPrompt = 'You are an advanced AI assistant. When answering questions:\n1. Provide comprehensive, detailed, and well-structured responses\n2. Include specific facts, examples, and explanations when relevant\n3. Give thorough explanations with multiple perspectives when appropriate\n4. Use markdown formatting for better readability (headers, lists, bold text, code blocks)\n5. Never give brief or superficial answers - always aim for depth and completeness\n6. Break down complex topics into clear, organized sections\n7. Provide actionable insights and practical information';
+              systemPrompt = 'You are a helpful AI assistant. Provide clear, well-structured responses using markdown formatting.';
             }
             
             try {
@@ -299,8 +299,8 @@ async function handleMultiModelRequest(
                   { role: 'user', content: createUserContent(message, attachments) }
                 ];
                 
-                // All models get higher token limits for comprehensive responses
-                body = { model: apiModel, messages, stream: true, max_tokens: 8192 };
+                // Balanced token limit for speed + quality
+                body = { model: apiModel, messages, stream: true, max_tokens: 4096 };
               } else {
                 throw new Error(`Unsupported provider: ${provider}`);
               }
@@ -493,11 +493,11 @@ serve(async (req) => {
     
     let systemPrompt = '';
     if (mode === 'build') {
-      systemPrompt = 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags.';
+      systemPrompt = 'You are an expert software engineer. Generate production-ready code with clear explanations. Use markdown code blocks.';
     } else if (isPerplexityModel) {
-      systemPrompt = 'You are Perplexity, an advanced AI research assistant with real-time web search capabilities. When answering questions:\n1. Search the web thoroughly for the most current and accurate information\n2. Provide comprehensive, detailed, and well-structured responses\n3. Include specific facts, statistics, dates, and sources when available\n4. Cite your sources with URLs when possible\n5. For news and current events, always include the latest updates\n6. Give thorough explanations with multiple perspectives when relevant\n7. Use markdown formatting for better readability (headers, lists, bold text)\n8. Never give brief or superficial answers - always aim for depth and completeness';
+      systemPrompt = 'You are Perplexity with real-time web search. Provide accurate, well-sourced responses with citations. Use markdown formatting.';
     } else {
-      systemPrompt = 'You are an advanced AI assistant. When answering questions:\n1. Provide comprehensive, detailed, and well-structured responses\n2. Include specific facts, examples, and explanations when relevant\n3. Give thorough explanations with multiple perspectives when appropriate\n4. Use markdown formatting for better readability (headers, lists, bold text, code blocks)\n5. Never give brief or superficial answers - always aim for depth and completeness\n6. Break down complex topics into clear, organized sections\n7. Provide actionable insights and practical information';
+      systemPrompt = 'You are a helpful AI assistant. Provide clear, well-structured responses using markdown formatting.';
     }
     
     // Helper to create user message content with attachments for vision models
@@ -550,7 +550,7 @@ serve(async (req) => {
       body = {
         model,
         messages,
-        max_completion_tokens: 8192,
+        max_completion_tokens: 4096,
         stream
       };
     } else if (selectedProvider === 'anthropic') {
@@ -593,7 +593,7 @@ serve(async (req) => {
       body = {
         model,
         messages,
-        max_tokens: 8192,
+        max_tokens: 4096,
         system: systemPrompt
       };
     } else if (selectedProvider === 'lovable') {
@@ -678,12 +678,12 @@ serve(async (req) => {
       
       console.log(`Single model OpenRouter request: ${requestedModel} -> ${model}`);
       
-      // All models get higher token limits for comprehensive responses
+      // Balanced token limit for speed + quality
       body = {
         model,
         messages,
         stream,
-        max_tokens: 8192
+        max_tokens: 4096
       };
     } else {
       throw new Error(`Unsupported provider: ${selectedProvider}`);
