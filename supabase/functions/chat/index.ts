@@ -473,12 +473,58 @@ async function handleMultiModelRequest(
   conversationHistory: Message[],
   stream: boolean,
   mode: string = 'text',
-  attachments: string[] = []
+  attachments: string[] = [],
+  confirmDeepResearch: boolean = false
 ): Promise<Response> {
   const encoder = new TextEncoder();
   
   // Sanitize history before processing
   const sanitizedHistory = sanitizeHistory(conversationHistory);
+  
+  // Check if Zebvo AI is in the models array and handle it specially
+  const hasZebvoAI = models.some(m => m === 'Zebvo AI');
+  const otherModels = models.filter(m => m !== 'Zebvo AI');
+  
+  // If Zebvo AI is selected, analyze intent and route to appropriate model
+  let zebvoRoutedModel: string | null = null;
+  if (hasZebvoAI) {
+    const zebvoResult = await handleZebvoAIRequest(message, conversationHistory, stream, mode, attachments, confirmDeepResearch);
+    
+    // If deep research confirmation is needed, return early
+    if (zebvoResult.confirmationNeeded && zebvoResult.intent) {
+      return new Response(JSON.stringify({
+        requiresConfirmation: true,
+        content: `🔬 **Deep Research Mode**\n\nI've detected that your query would benefit from comprehensive, in-depth research. This will:\n- Generate a 6,000+ word detailed report\n- Include multiple sources and citations\n- Take longer than a standard response (1-2 minutes)\n\n**Query:** "${message}"\n\nWould you like me to proceed with deep research?`,
+        intent: zebvoResult.intent
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // If confirmed deep research, handle it
+    if (confirmDeepResearch && zebvoResult.intent?.intent === 'deep_research') {
+      return handleDeepResearchRequest(message, conversationHistory, attachments);
+    }
+    
+    // Get the routed model from intent analysis
+    if (zebvoResult.intent) {
+      zebvoRoutedModel = zebvoResult.intent.suggestedModel;
+      console.log(`[Zebvo AI] Routing to: ${zebvoRoutedModel} (Intent: ${zebvoResult.intent.intent}, Confidence: ${zebvoResult.intent.confidence})`);
+    }
+  }
+  
+  // Build final models list: routed Zebvo AI model + other selected models (deduplicated)
+  const finalModels = zebvoRoutedModel 
+    ? [zebvoRoutedModel, ...otherModels.filter(m => m !== zebvoRoutedModel)]
+    : otherModels;
+  
+  // If no models to process, return error
+  if (finalModels.length === 0) {
+    return new Response(JSON.stringify({ error: 'No valid models selected' }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
   
   // Helper to create user message content with attachments for vision models
   const createUserContent = (text: string, fileUrls: string[]): any => {
@@ -500,7 +546,12 @@ async function handleMultiModelRequest(
     const streamBody = new ReadableStream({
       async start(controller) {
         try {
-          await Promise.all(models.map(async (modelName) => {
+          await Promise.all(finalModels.map(async (modelName) => {
+            // Determine display name (show routing info for Zebvo AI)
+            const displayName = (hasZebvoAI && modelName === zebvoRoutedModel) 
+              ? `Zebvo AI → ${modelName}` 
+              : modelName;
+            
             const mapping = getModelMapping(modelName);
             const { apiModel, provider } = mapping;
             
@@ -699,7 +750,7 @@ async function handleMultiModelRequest(
                 }));
 
                 const fallbackContent = 'The model could not generate a response at the moment. Please try again.';
-                const sseData = `data: ${JSON.stringify({ model: modelName, content: fallbackContent, error: true })}\n\n`;
+                const sseData = `data: ${JSON.stringify({ model: displayName, content: fallbackContent, error: true })}\n\n`;
                 controller.enqueue(encoder.encode(sseData));
                 return;
               }
@@ -708,7 +759,7 @@ async function handleMultiModelRequest(
               if (provider === 'anthropic') {
                 const data = await response.json();
                 const content = data.content?.[0]?.text || 'No response generated.';
-                const sseData = `data: ${JSON.stringify({ model: modelName, content })}\n\n`;
+                const sseData = `data: ${JSON.stringify({ model: displayName, content })}\n\n`;
                 controller.enqueue(encoder.encode(sseData));
                 return;
               }
@@ -744,7 +795,7 @@ async function handleMultiModelRequest(
                       }
                       
                       if (content) {
-                        const sseData = `data: ${JSON.stringify({ model: modelName, content })}\n\n`;
+                        const sseData = `data: ${JSON.stringify({ model: displayName, content })}\n\n`;
                         controller.enqueue(encoder.encode(sseData));
                       }
                     } catch (e) {
@@ -756,7 +807,7 @@ async function handleMultiModelRequest(
             } catch (error) {
               console.error(`[ERROR] ${modelName}:`, error);
               const fallbackContent = 'The model could not generate a response at the moment. Please try again.';
-              const sseData = `data: ${JSON.stringify({ model: modelName, content: fallbackContent, error: true })}\n\n`;
+              const sseData = `data: ${JSON.stringify({ model: displayName, content: fallbackContent, error: true })}\n\n`;
               controller.enqueue(encoder.encode(sseData));
             }
           }));
@@ -867,13 +918,13 @@ serve(async (req) => {
       }
       
       // Route to the suggested model
-      return await handleMultiModelRequest(message, [routedModel], conversationHistory, stream, mode, attachments);
+      return await handleMultiModelRequest(message, [routedModel], conversationHistory, stream, mode, attachments, false);
     }
 
     // Handle multi-model requests (text mode only) - includes single model in array
     if (models && Array.isArray(models) && models.length >= 1) {
       console.log('Multi-model request:', models, 'attachments:', attachments.length);
-      return await handleMultiModelRequest(message, models, conversationHistory, stream, mode, attachments);
+      return await handleMultiModelRequest(message, models, conversationHistory, stream, mode, attachments, confirmDeepResearch);
     }
     
     // Determine actual model and provider using the unified getModelMapping function
