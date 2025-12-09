@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { generateConversationTitle } from '@/lib/generateTitle';
+import { useAuth } from '@/hooks/useAuth';
 import type { Message } from '@/types';
 
 export interface Conversation {
@@ -15,12 +16,20 @@ export const useConversations = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const fetchConversations = async () => {
+    if (!user) {
+      setConversations([]);
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('conversations')
         .select('*')
+        .eq('user_id', user.id)
         .order('updated_at', { ascending: false });
 
       if (error) throw error;
@@ -38,13 +47,22 @@ export const useConversations = () => {
   };
 
   const createConversation = async (firstMessage: string): Promise<string | null> => {
+    if (!user) {
+      toast({
+        title: 'Error',
+        description: 'You must be logged in to create a conversation',
+        variant: 'destructive',
+      });
+      return null;
+    }
+
     try {
       // Generate a short, meaningful title from first message
       const title = generateConversationTitle(firstMessage);
       
       const { data, error } = await supabase
         .from('conversations')
-        .insert({ title })
+        .insert({ title, user_id: user.id })
         .select()
         .single();
 
@@ -184,6 +202,10 @@ export const useConversations = () => {
 
   useEffect(() => {
     fetchConversations();
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
 
     // Set up realtime subscription to automatically refresh when conversations change
     const channel = supabase
@@ -193,7 +215,8 @@ export const useConversations = () => {
         {
           event: '*',
           schema: 'public',
-          table: 'conversations'
+          table: 'conversations',
+          filter: `user_id=eq.${user.id}`
         },
         () => {
           fetchConversations();
@@ -204,7 +227,7 @@ export const useConversations = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [user]);
 
   return {
     conversations,

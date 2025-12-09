@@ -31,6 +31,7 @@ import { RenameDialog } from "./RenameDialog";
 import { isToday, isYesterday, format } from "date-fns";
 import { exportAsMarkdown, exportAsJSON } from "@/lib/exportConversation";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import type { Message } from "@/types";
 
 export function AppSidebar() {
@@ -40,6 +41,11 @@ export function AppSidebar() {
     useChatStore();
   const { conversations, isLoading, loadConversation, deleteConversation, renameConversation, shareConversation, refreshConversations } = useConversations();
   const { toast } = useToast();
+  const { user, signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+  };
 
   // Projects state
   const [isProjectsOpen, setIsProjectsOpen] = useState(true);
@@ -422,7 +428,7 @@ export function AppSidebar() {
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#007AFF] to-[#5856D6] flex items-center justify-center flex-shrink-0 shadow-sm">
                 <User className="w-4 h-4 text-white" />
               </div>
-              <span className="text-[13px] font-medium flex-1 text-foreground truncate">user@example.com</span>
+              <span className="text-[13px] font-medium flex-1 text-foreground truncate">{user?.email || 'User'}</span>
               <ChevronDown className={`w-4 h-4 text-[#8E8E93] transition-transform duration-200 ${isProfileDropdownOpen ? 'rotate-180' : ''}`} />
             </div>
           </DropdownMenuTrigger>
@@ -440,7 +446,10 @@ export function AppSidebar() {
               Settings
             </DropdownMenuItem>
             <div className="h-px bg-border/20 my-1" />
-            <DropdownMenuItem className="rounded-xl px-3 py-2.5 text-[13px] text-[#FF3B30] hover:bg-[#FF3B30]/10 transition-colors">
+            <DropdownMenuItem 
+              className="rounded-xl px-3 py-2.5 text-[13px] text-[#FF3B30] hover:bg-[#FF3B30]/10 transition-colors"
+              onClick={handleLogout}
+            >
               <LogOut className="w-4 h-4 mr-2.5" />
               Logout
             </DropdownMenuItem>
