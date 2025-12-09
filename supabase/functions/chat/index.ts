@@ -474,7 +474,8 @@ async function handleMultiModelRequest(
   stream: boolean,
   mode: string = 'text',
   attachments: string[] = [],
-  confirmDeepResearch: boolean = false
+  confirmDeepResearch: boolean = false,
+  isZebvoAIRouted: boolean = false // Indicates this request came from Zebvo AI routing
 ): Promise<Response> {
   const encoder = new TextEncoder();
   
@@ -482,7 +483,7 @@ async function handleMultiModelRequest(
   const sanitizedHistory = sanitizeHistory(conversationHistory);
   
   // Check if Zebvo AI is in the models array and handle it specially
-  const hasZebvoAI = models.some(m => m === 'Zebvo AI');
+  const hasZebvoAI = isZebvoAIRouted || models.some(m => m === 'Zebvo AI');
   const otherModels = models.filter(m => m !== 'Zebvo AI');
   
   // If Zebvo AI is selected, analyze intent and route to appropriate model
@@ -547,8 +548,9 @@ async function handleMultiModelRequest(
       async start(controller) {
         try {
           await Promise.all(finalModels.map(async (modelName) => {
-            // For Zebvo AI routing, just show "Zebvo AI" without revealing the underlying model
-            const displayName = (hasZebvoAI && modelName === zebvoRoutedModel) 
+            // For Zebvo AI routing, show "Zebvo AI" without revealing the underlying model
+            // Either explicit routing flag OR if Zebvo AI was in original selection and this is the routed model
+            const displayName = (isZebvoAIRouted || (hasZebvoAI && modelName === zebvoRoutedModel)) 
               ? 'Zebvo AI' 
               : modelName;
             
@@ -918,7 +920,7 @@ serve(async (req) => {
       }
       
       // Route to the suggested model
-      return await handleMultiModelRequest(message, [routedModel], conversationHistory, stream, mode, attachments, false);
+      return await handleMultiModelRequest(message, [routedModel], conversationHistory, stream, mode, attachments, false, true);
     }
 
     // Handle multi-model requests (text mode only) - includes single model in array

@@ -18,6 +18,14 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
   const [copiedModel, setCopiedModel] = useState<string | null>(null);
   const { toast } = useToast();
 
+  // Helper to get display name - always show "Zebvo AI" for Zebvo-routed models
+  const getDisplayName = (model: string) => {
+    if (model === 'Zebvo AI' || model.startsWith('Zebvo AI')) {
+      return 'Zebvo AI';
+    }
+    return formatModelName(model);
+  };
+
   const getProviderIcon = (model: string) => {
     const modelLower = model.toLowerCase();
     
@@ -72,7 +80,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${formatModelName(model)}-response.txt`;
+    a.download = `${getDisplayName(model)}-response.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -107,7 +115,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-[11px] font-medium text-muted-foreground">
-                  {formatModelName(currentModel)} • {currentIndex + 1}/{models.length}
+                  {getDisplayName(currentModel)} • {currentIndex + 1}/{models.length}
                 </span>
                 
                 {models.length > 1 && (
@@ -231,7 +239,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
                         {getProviderIcon(model)}
                       </div>
                       <span className="text-[12px] font-medium text-foreground/80 truncate">
-                        {formatModelName(model)}
+                        {getDisplayName(model)}
                       </span>
                     </div>
                   </div>
