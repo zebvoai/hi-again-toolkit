@@ -631,8 +631,8 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
         </PopoverTrigger>
       <PopoverContent 
           className={cn(
-            "w-[420px] max-w-[92vw]",
-            "max-h-[520px] flex flex-col",
+            "w-[90vw] sm:w-[420px] max-w-[420px]",
+            "max-h-[60vh] sm:max-h-[520px] flex flex-col",
             "bg-white/98 dark:bg-[#1C1C1E]/98 backdrop-blur-2xl",
             "border border-black/[0.04] dark:border-white/[0.08]",
             "shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25),0_0_0_1px_rgba(0,0,0,0.03)]",
