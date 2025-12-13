@@ -220,7 +220,7 @@ export function ChatInterface() {
       {/* Messages Area */}
       {isLoadingConversation ? (
         <div className="flex-1 overflow-y-auto overflow-x-hidden py-6">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6">
+          <div className="w-full px-4 sm:px-6 lg:px-8">
             <MessageSkeleton />
           </div>
         </div>
@@ -269,37 +269,9 @@ export function ChatInterface() {
                 }
               }
 
-              // User message before multi-model - constrain width but align right
-              if (isUserMessage && nextIsMultiModel) {
-                return (
-                  <div key={message.id} className="max-w-3xl mx-auto px-4 sm:px-6">
-                    <Message 
-                      message={message} 
-                      onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')}
-                      onRegenerate={() => regenerateResponse(message.id)}
-                      onEdit={(newContent) => editAndRegenerate(message.id, newContent)}
-                    />
-                  </div>
-                );
-              }
-
-              // Multi-model response - full width for horizontal scroll
-              if (isMultiModelResponse) {
-                return (
-                  <div key={message.id} className="w-full">
-                    <Message 
-                      message={message} 
-                      onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')}
-                      onRegenerate={() => regenerateResponse(message.id)}
-                      onEdit={(newContent) => editAndRegenerate(message.id, newContent)}
-                    />
-                  </div>
-                );
-              }
-
-              // Regular messages - constrained width
+              // All messages use full width with consistent padding
               return (
-                <div key={message.id} className="max-w-3xl mx-auto px-4 sm:px-6">
+                <div key={message.id} className="w-full px-4 sm:px-6 lg:px-8">
                   <Message 
                     message={message} 
                     onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')}
@@ -312,7 +284,7 @@ export function ChatInterface() {
             
             {/* Typing indicator */}
             {isCurrentConversationLoading && selectedModels.length === 1 && (
-              <div className="max-w-3xl mx-auto px-4 sm:px-6">
+              <div className="w-full px-4 sm:px-6 lg:px-8">
                 <TypingIndicator models={selectedModels} />
               </div>
             )}
@@ -355,7 +327,7 @@ export function ChatInterface() {
 
       {/* Chat Input Area - Clean, focused */}
       <div className="flex-shrink-0 p-3 pb-4 sm:p-4 sm:pb-6 bg-gradient-to-t from-background via-background to-background/95 border-t border-border/20">
-        <div key={selectedMode} className="max-w-3xl mx-auto animate-scale-in">
+        <div key={selectedMode} className="w-full px-4 sm:px-6 lg:px-8 animate-scale-in">
           <form onSubmit={handleSubmit}>
             {/* Dropdowns Row */}
             <div className="flex items-center gap-2.5 mb-3">
