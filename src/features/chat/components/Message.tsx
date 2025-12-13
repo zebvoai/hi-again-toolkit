@@ -162,7 +162,7 @@ export const Message = ({
                 </p>
               )
             ) : (
-              <div className="text-[15px] leading-[1.7] text-foreground">
+              <div className="text-[15px] leading-[1.75] text-foreground/90">
                 <ReactMarkdown
                   components={{
                     code({ inline, className, children, ...props }: any) {
@@ -170,7 +170,7 @@ export const Message = ({
                       const codeId = `code-${Math.random().toString(36).substr(2, 9)}`;
                       if (!inline && match) {
                         return (
-                          <div className="relative group my-4">
+                          <div className="relative group my-5">
                             <Button
                               variant="ghost"
                               size="icon"
@@ -187,7 +187,7 @@ export const Message = ({
                               style={oneDark}
                               language={match[1]}
                               PreTag="div"
-                              className="rounded-xl !my-0 !text-[13px]"
+                              className="rounded-xl !my-0 !text-[13px] !leading-relaxed"
                             >
                               {String(children).replace(/\n$/, '')}
                             </SyntaxHighlighter>
@@ -195,24 +195,24 @@ export const Message = ({
                         );
                       }
                       return (
-                        <code className="bg-muted/60 px-1.5 py-0.5 rounded-md text-[13px] font-mono text-foreground/90" {...props}>
+                        <code className="bg-muted/50 px-1.5 py-0.5 rounded text-[13px] font-mono text-foreground/85" {...props}>
                           {children}
                         </code>
                       );
                     },
-                    p: ({ children }) => <p className="mb-4 last:mb-0">{children}</p>,
-                    ul: ({ children }) => <ul className="list-disc pl-6 mb-4 space-y-2">{children}</ul>,
-                    ol: ({ children }) => <ol className="list-decimal pl-6 mb-4 space-y-2">{children}</ol>,
-                    li: ({ children }) => <li className="pl-1">{children}</li>,
+                    p: ({ children }) => <p className="mb-3.5 last:mb-0 leading-[1.75]">{children}</p>,
+                    ul: ({ children }) => <ul className="list-disc pl-5 mb-3.5 space-y-1.5 marker:text-muted-foreground/60">{children}</ul>,
+                    ol: ({ children }) => <ol className="list-decimal pl-5 mb-3.5 space-y-1.5 marker:text-muted-foreground/60">{children}</ol>,
+                    li: ({ children }) => <li className="leading-[1.7]">{children}</li>,
                     strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
-                    em: ({ children }) => <em className="italic">{children}</em>,
-                    h1: ({ children }) => <h1 className="text-[22px] font-semibold text-foreground mb-4 mt-6 first:mt-0 tracking-tight">{children}</h1>,
-                    h2: ({ children }) => <h2 className="text-[18px] font-semibold text-foreground mb-3 mt-5 first:mt-0 tracking-tight">{children}</h2>,
-                    h3: ({ children }) => <h3 className="text-[16px] font-medium text-foreground mb-2 mt-4 first:mt-0">{children}</h3>,
-                    h4: ({ children }) => <h4 className="text-[15px] font-medium text-foreground mb-2 mt-3 first:mt-0">{children}</h4>,
-                    blockquote: ({ children }) => <blockquote className="border-l-3 border-primary/40 pl-4 my-4 text-muted-foreground italic">{children}</blockquote>,
-                    hr: () => <hr className="my-6 border-border/50" />,
-                    a: ({ children, href }) => <a href={href} className="text-primary hover:underline underline-offset-2" target="_blank" rel="noopener noreferrer">{children}</a>,
+                    em: ({ children }) => <em className="italic text-foreground/85">{children}</em>,
+                    h1: ({ children }) => <h1 className="text-xl font-semibold text-foreground mb-3 mt-6 first:mt-0">{children}</h1>,
+                    h2: ({ children }) => <h2 className="text-lg font-semibold text-foreground mb-2.5 mt-5 first:mt-0">{children}</h2>,
+                    h3: ({ children }) => <h3 className="text-base font-medium text-foreground mb-2 mt-4 first:mt-0">{children}</h3>,
+                    h4: ({ children }) => <h4 className="text-[15px] font-medium text-foreground mb-1.5 mt-3 first:mt-0">{children}</h4>,
+                    blockquote: ({ children }) => <blockquote className="border-l-2 border-muted-foreground/30 pl-4 my-4 text-muted-foreground">{children}</blockquote>,
+                    hr: () => <hr className="my-5 border-border/40" />,
+                    a: ({ children, href }) => <a href={href} className="text-primary hover:underline underline-offset-2 transition-colors" target="_blank" rel="noopener noreferrer">{children}</a>,
                   }}
                 >
                   {contentString}
