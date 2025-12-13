@@ -179,7 +179,7 @@ export const Message = ({
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="absolute right-2 top-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 hover:bg-background"
+                              className="absolute right-2 top-2 h-7 w-7 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-background/80 hover:bg-background"
                               onClick={() => copyToClipboard(String(children), codeId)}
                             >
                               {copiedCode === codeId ? (
@@ -222,7 +222,7 @@ export const Message = ({
           </div>
           
           {/* Actions row - consolidated with timestamp for user messages */}
-          <div className={`flex items-center gap-1.5 mt-1.5 ${isUser ? 'justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-200' : 'ml-0.5'}`}>
+          <div className={`flex items-center gap-1.5 mt-1.5 ${isUser ? 'justify-end opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200' : 'ml-0.5'}`}>
             {/* User message: timestamp + edit inline */}
             {isUser && !isEditing && (
               <>
@@ -233,7 +233,7 @@ export const Message = ({
                 )}
                 <button
                   onClick={handleStartEdit}
-                  className="w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground/60 hover:bg-accent/60 hover:text-foreground transition-all duration-150"
+                  className="w-6 h-6 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 rounded-md flex items-center justify-center text-muted-foreground/60 hover:bg-accent/60 hover:text-foreground transition-all duration-150"
                   title="Edit message"
                 >
                   <Pencil className="w-3 h-3" />
@@ -246,7 +246,7 @@ export const Message = ({
               <>
                 <button
                   onClick={copyMessage}
-                  className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-all duration-150"
+                  className="w-7 h-7 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 rounded-md flex items-center justify-center text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-all duration-150"
                   title={copied ? 'Copied!' : 'Copy'}
                 >
                   {copied ? <Check className="w-3.5 h-3.5 text-primary" /> : <Copy className="w-3.5 h-3.5" />}
@@ -255,7 +255,7 @@ export const Message = ({
                 {onRegenerate && (
                   <button
                     onClick={onRegenerate}
-                    className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-all duration-150"
+                    className="w-7 h-7 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 rounded-md flex items-center justify-center text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-all duration-150"
                     title="Regenerate"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
@@ -265,7 +265,7 @@ export const Message = ({
                 {message.metadata?.error && onRetry && (
                   <button
                     onClick={onRetry}
-                    className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-all duration-150"
+                    className="w-7 h-7 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 rounded-md flex items-center justify-center text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-all duration-150"
                     title="Retry"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />

@@ -42,12 +42,12 @@ export function TopActions({
 
   return (
     <>
-      <div className="fixed top-5 right-6 z-50 flex items-center gap-3">
+      <div className="fixed top-3 right-3 sm:top-5 sm:right-6 z-50 flex items-center gap-2 sm:gap-3">
         {/* Settings Icon */}
         <TooltipProvider delayDuration={400}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" onClick={handleSettingsClick} className="w-10 h-10 rounded-full bg-transparent hover:bg-accent/80 hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(0,0,0,0.08)] active:scale-[0.92] active:transition-[transform] active:duration-100 transition-all duration-[220ms] ease-[cubic-bezier(0.34,1.56,0.64,1)]" aria-label="Settings">
+              <Button variant="ghost" size="icon" onClick={handleSettingsClick} className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-transparent hover:bg-accent/80 hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(0,0,0,0.08)] active:scale-[0.92] active:transition-[transform] active:duration-100 transition-all duration-[220ms] ease-[cubic-bezier(0.34,1.56,0.64,1)]" aria-label="Settings">
                 
               </Button>
             </TooltipTrigger>
@@ -61,7 +61,7 @@ export function TopActions({
         <TooltipProvider delayDuration={400}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" onClick={handleGroupClick} className="w-10 h-10 rounded-full bg-transparent hover:bg-accent/80 hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(0,0,0,0.08)] active:scale-[0.92] active:transition-[transform] active:duration-100 transition-all duration-[220ms] ease-[cubic-bezier(0.34,1.56,0.64,1)]" aria-label="Group Chat">
+              <Button variant="ghost" size="icon" onClick={handleGroupClick} className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-transparent hover:bg-accent/80 hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(0,0,0,0.08)] active:scale-[0.92] active:transition-[transform] active:duration-100 transition-all duration-[220ms] ease-[cubic-bezier(0.34,1.56,0.64,1)]" aria-label="Group Chat">
                 <Users className="w-5 h-5 text-muted-foreground" />
               </Button>
             </TooltipTrigger>
@@ -75,7 +75,7 @@ export function TopActions({
         <TooltipProvider delayDuration={400}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" onClick={handleTemporaryClick} className={`w-10 h-10 rounded-full transition-all duration-[220ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isTemporaryMode ? 'bg-primary/10 border-[1.5px] border-primary text-primary hover:bg-primary/15' : 'bg-transparent hover:bg-accent/80 border border-transparent'} hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(0,0,0,0.08)] active:scale-[0.92] active:transition-[transform] active:duration-100`} aria-label="Temporary Chat">
+              <Button variant="ghost" size="icon" onClick={handleTemporaryClick} className={`w-11 h-11 min-w-[44px] min-h-[44px] rounded-full transition-all duration-[220ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isTemporaryMode ? 'bg-primary/10 border-[1.5px] border-primary text-primary hover:bg-primary/15' : 'bg-transparent hover:bg-accent/80 border border-transparent'} hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(0,0,0,0.08)] active:scale-[0.92] active:transition-[transform] active:duration-100`} aria-label="Temporary Chat">
                 <Glasses className={`w-5 h-5 ${isTemporaryMode ? 'text-primary' : 'text-muted-foreground'}`} />
               </Button>
             </TooltipTrigger>

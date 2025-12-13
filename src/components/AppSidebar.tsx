@@ -193,11 +193,11 @@ export function AppSidebar() {
       <Sidebar className="w-[60px] border-r border-border/20 canvas-glass flex flex-col h-screen fixed z-50" collapsible="icon">
         <div className="flex-none">
           <SidebarHeader className="px-3 pt-3 pb-2 flex flex-col items-center gap-2">
-            <SidebarTrigger className="w-8 h-8 hover:bg-black/5 dark:hover:bg-white/10 text-[#8E8E93] hover:text-foreground transition-all duration-200 rounded-full" />
+            <SidebarTrigger className="w-8 h-8 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 hover:bg-black/5 dark:hover:bg-white/10 text-[#8E8E93] hover:text-foreground transition-all duration-200 rounded-full" />
             <Button
               variant="ghost"
               size="icon"
-              className="w-8 h-8 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
+              className="w-8 h-8 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
               onClick={handleNewChat}
             >
               <Plus className="w-4 h-4" />
@@ -211,7 +211,7 @@ export function AppSidebar() {
           <Button
             variant="ghost"
             size="icon"
-            className="w-9 h-9 rounded-full bg-[#007AFF] hover:bg-[#0066DD] text-white shadow-sm transition-all duration-200"
+            className="w-9 h-9 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 rounded-full bg-[#007AFF] hover:bg-[#0066DD] text-white shadow-sm transition-all duration-200"
           >
             <User className="w-4 h-4" />
           </Button>
@@ -224,7 +224,7 @@ export function AppSidebar() {
     <Sidebar className="w-full max-w-[280px] border-r border-border/20 canvas-glass flex flex-col h-screen fixed z-50" collapsible="icon">
       <div className="flex-none">
         <SidebarHeader className="px-3 pt-3 pb-2 space-y-2.5">
-          <SidebarTrigger className="w-8 h-8 hover:bg-black/5 dark:hover:bg-white/10 text-[#8E8E93] hover:text-foreground transition-all duration-200 rounded-full" />
+          <SidebarTrigger className="w-8 h-8 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 hover:bg-black/5 dark:hover:bg-white/10 text-[#8E8E93] hover:text-foreground transition-all duration-200 rounded-full" />
 
           {/* New Chat */}
           <Button
@@ -311,7 +311,7 @@ export function AppSidebar() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="w-6 h-6 flex-shrink-0 hover:bg-black/[0.06] dark:hover:bg-white/10 rounded-md transition-colors"
+                            className="w-8 h-8 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex-shrink-0 hover:bg-black/[0.06] dark:hover:bg-white/10 rounded-md transition-colors"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <MoreVertical className="w-3.5 h-3.5 text-[#8E8E93]" />
