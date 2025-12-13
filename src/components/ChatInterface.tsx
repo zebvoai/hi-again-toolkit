@@ -220,13 +220,13 @@ export function ChatInterface() {
 
       {/* Messages Area - with bottom padding for fixed input */}
       {isLoadingConversation ? (
-        <div className="flex-1 overflow-y-auto overflow-x-hidden py-6 pb-[200px]">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden py-6 pb-[240px]">
           <div className="w-full px-4 sm:px-6 lg:px-8">
             <MessageSkeleton />
           </div>
         </div>
       ) : messages.length > 0 ? (
-        <div className="flex-1 overflow-y-auto overflow-x-hidden py-4 sm:py-6 pb-[200px]">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden py-4 sm:py-6 pb-[240px]">
           <div className="space-y-4">
             {messages.map((message, index) => {
               const isMultiModelResponse = message.role === 'assistant' && 
@@ -290,11 +290,11 @@ export function ChatInterface() {
               </div>
             )}
           </div>
-          <div ref={messagesEndRef} className="h-24" />
+          <div ref={messagesEndRef} className="h-[136px]" />
         </div>
       ) : (
         /* Empty State */
-        <div className="flex-1 flex items-center justify-center px-4 pb-[200px]">
+        <div className="flex-1 flex items-center justify-center px-4 pb-[240px]">
           <div className="text-center">
             <h1 className="text-6xl font-bold text-blue-500 mb-3 animate-logo-entrance animate-float-gentle hover:scale-[1.02] transition-transform duration-300 cursor-default">
               Zebvo AI
