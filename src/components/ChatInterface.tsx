@@ -378,7 +378,7 @@ export function ChatInterface() {
                 onChange={e => setInput(e.target.value)} 
                 placeholder="Ask Zebvo ai" 
                 disabled={isCurrentConversationLoading} 
-                className="flex-1 min-w-0 bg-transparent outline-none text-[17px] font-medium placeholder:text-muted-foreground/70 disabled:opacity-50 px-4 text-foreground"
+                className="flex-1 min-w-0 bg-transparent border-none outline-none text-[17px] font-medium placeholder:text-muted-foreground/70 disabled:opacity-50 px-4 text-foreground"
                 maxLength={4000} 
               />
 
