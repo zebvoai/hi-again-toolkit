@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { ChevronDown, Copy, ThumbsUp, ThumbsDown, Download, Check, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Copy, Check, ChevronLeft, ChevronRight, Download, Columns2, LayoutList } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import type { MultiModelContent, Message } from '@/types';
+import type { MultiModelContent } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { formatModelName } from '@/lib/utils';
 
@@ -14,57 +13,26 @@ interface MultiModelResponseProps {
 }
 
 export const MultiModelResponse = ({ content, models }: MultiModelResponseProps) => {
-  const [viewMode, setViewMode] = useState<'single' | 'sideBySide'>('sideBySide');
+  const [viewMode, setViewMode] = useState<'single' | 'compare'>('compare');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [copiedModel, setCopiedModel] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const getProviderIcon = (model: string) => {
+  const getProviderColor = (model: string): string => {
     const modelLower = model.toLowerCase();
-    
-    if (modelLower.includes('gpt') || modelLower.includes('openai')) {
-      return (
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="w-6 h-6">
-          <path d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z" fill="#10A37F"/>
-          <path d="M12 6V12L16 14" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      );
-    }
-    
-    if (modelLower.includes('gemini') || modelLower.includes('google')) {
-      return (
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="w-6 h-6">
-          <circle cx="12" cy="12" r="10" fill="#4285F4"/>
-          <path d="M12 8L15 12L12 16L9 12L12 8Z" fill="white"/>
-        </svg>
-      );
-    }
-    
-    if (modelLower.includes('claude') || modelLower.includes('anthropic')) {
-      return (
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="w-6 h-6">
-          <rect width="24" height="24" rx="6" fill="#D97757"/>
-          <path d="M8 16L12 8L16 16" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      );
-    }
-    
-    // Default icon
-    return (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="w-6 h-6">
-        <circle cx="12" cy="12" r="10" fill="#6B7280"/>
-        <path d="M12 8V12L15 15" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    );
+    if (modelLower.includes('gpt') || modelLower.includes('openai')) return 'from-emerald-500 to-teal-600';
+    if (modelLower.includes('gemini') || modelLower.includes('google')) return 'from-blue-500 to-indigo-600';
+    if (modelLower.includes('claude') || modelLower.includes('anthropic')) return 'from-orange-400 to-amber-600';
+    if (modelLower.includes('perplexity')) return 'from-purple-500 to-violet-600';
+    if (modelLower.includes('qwen')) return 'from-cyan-500 to-blue-600';
+    if (modelLower.includes('cohere')) return 'from-rose-500 to-pink-600';
+    return 'from-slate-500 to-slate-600';
   };
 
   const handleCopy = (model: string) => {
     navigator.clipboard.writeText(content[model]);
     setCopiedModel(model);
-    toast({
-      description: 'Response copied to clipboard',
-      duration: 2000,
-    });
+    toast({ description: 'Copied to clipboard', duration: 2000 });
     setTimeout(() => setCopiedModel(null), 2000);
   };
 
@@ -78,128 +46,133 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    
-    toast({
-      description: 'Response downloaded',
-      duration: 2000,
-    });
+    toast({ description: 'Response downloaded', duration: 2000 });
+  };
+
+  // Shared markdown components
+  const markdownComponents = {
+    code({ inline, className, children, ...props }: any) {
+      const match = /language-(\w+)/.exec(className || '');
+      return !inline && match ? (
+        <div className="my-2 rounded-lg overflow-hidden">
+          <SyntaxHighlighter style={vscDarkPlus} language={match[1]} PreTag="div" {...props}>
+            {String(children).replace(/\n$/, '')}
+          </SyntaxHighlighter>
+        </div>
+      ) : (
+        <code className="bg-muted/60 px-1.5 py-0.5 rounded text-[12px] font-mono" {...props}>
+          {children}
+        </code>
+      );
+    },
+    p: ({ children }: any) => <p className="mb-2.5 last:mb-0 leading-relaxed">{children}</p>,
+    ul: ({ children }: any) => <ul className="list-disc list-outside ml-4 mb-2.5 space-y-1">{children}</ul>,
+    ol: ({ children }: any) => <ol className="list-decimal list-outside ml-4 mb-2.5 space-y-1">{children}</ol>,
+    li: ({ children }: any) => <li className="leading-relaxed">{children}</li>,
+    strong: ({ children }: any) => <strong className="font-semibold">{children}</strong>,
+    h1: ({ children }: any) => <h1 className="text-base font-bold mb-2 mt-3 first:mt-0">{children}</h1>,
+    h2: ({ children }: any) => <h2 className="text-sm font-bold mb-1.5 mt-2.5 first:mt-0">{children}</h2>,
+    h3: ({ children }: any) => <h3 className="text-sm font-semibold mb-1.5 mt-2 first:mt-0">{children}</h3>,
   };
 
   // Single view (carousel)
   if (viewMode === 'single') {
     const currentModel = models[currentIndex];
-    const currentContent = content[currentModel];
+    const currentContent = content[currentModel] || '';
 
     return (
-      <div className="w-full space-y-3">
-        {/* Toggle Button - LEFT ALIGNED for consistency */}
-        <div className="flex items-center justify-start gap-3 px-6">
-          <div className="flex items-center gap-0.5 p-0.5 bg-muted/30 rounded-lg border border-border/20">
-            <button 
-              onClick={() => setViewMode('single')}
-              className="px-3 py-1.5 rounded-md text-[11px] font-medium bg-card text-foreground shadow-sm"
-            >
-              Single
-            </button>
-            <button 
-              onClick={() => setViewMode('sideBySide')}
-              className="px-3 py-1.5 rounded-md text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Compare
-            </button>
+      <div className="w-full px-4 sm:px-6 animate-fade-in">
+        {/* Header with toggle */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            {/* View Toggle */}
+            <div className="inline-flex items-center p-0.5 bg-muted/40 rounded-lg border border-border/30">
+              <button 
+                onClick={() => setViewMode('single')}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium bg-card text-foreground shadow-sm"
+              >
+                <LayoutList className="w-3.5 h-3.5" />
+                Single
+              </button>
+              <button 
+                onClick={() => setViewMode('compare')}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Columns2 className="w-3.5 h-3.5" />
+                Compare
+              </button>
+            </div>
           </div>
-          <span className="text-[11px] text-muted-foreground/60">
-            {currentIndex + 1} of {models.length} model{models.length > 1 ? 's' : ''}
-          </span>
+          
+          {/* Model navigation */}
+          {models.length > 1 && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">
+                {currentIndex + 1} of {models.length}
+              </span>
+              <div className="flex items-center gap-0.5">
+                <button 
+                  onClick={() => setCurrentIndex((prev) => (prev - 1 + models.length) % models.length)}
+                  className="w-7 h-7 rounded-full bg-muted/50 hover:bg-muted flex items-center justify-center transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4 text-muted-foreground" />
+                </button>
+                <button 
+                  onClick={() => setCurrentIndex((prev) => (prev + 1) % models.length)}
+                  className="w-7 h-7 rounded-full bg-muted/50 hover:bg-muted flex items-center justify-center transition-colors"
+                >
+                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Single Model Response */}
-        <div className="max-w-[75%] lg:max-w-[70%] xl:max-w-[65%]">
+        {/* Response Card */}
+        <div className="max-w-3xl">
           <div className="flex gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center shadow-[0_4px_12px_rgba(77,112,255,0.15)] flex-shrink-0">
-              <span className="text-primary font-semibold text-sm">Z</span>
+            {/* Avatar */}
+            <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${getProviderColor(currentModel)} flex items-center justify-center flex-shrink-0 shadow-sm`}>
+              <span className="text-white font-semibold text-xs">
+                {formatModelName(currentModel).charAt(0)}
+              </span>
             </div>
             
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
+              {/* Model name */}
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-[11px] font-medium text-muted-foreground">
-                  {formatModelName(currentModel)} • {currentIndex + 1}/{models.length}
+                <span className="text-xs font-medium text-foreground/80">
+                  {formatModelName(currentModel)}
                 </span>
-                
-                {models.length > 1 && (
-                  <div className="flex items-center gap-1 ml-auto">
-                    <button 
-                      onClick={() => setCurrentIndex((prev) => (prev - 1 + models.length) % models.length)}
-                      className="w-7 h-7 rounded-full hover:bg-muted flex items-center justify-center panel-button"
-                      aria-label="Previous model"
-                    >
-                      <ChevronLeft className="w-4 h-4 text-muted-foreground" />
-                    </button>
-                    <button 
-                      onClick={() => setCurrentIndex((prev) => (prev + 1) % models.length)}
-                      className="w-7 h-7 rounded-full hover:bg-muted flex items-center justify-center panel-button"
-                      aria-label="Next model"
-                    >
-                      <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                    </button>
-                  </div>
-                )}
               </div>
               
-              <div className="glass-panel px-4 py-3">
-                <div className="prose prose-sm max-w-none text-foreground">
-                  <ReactMarkdown
-                    components={{
-                      code({ inline, className, children, ...props }: any) {
-                        const match = /language-(\w+)/.exec(className || '');
-                        return !inline && match ? (
-                          <div className="my-3 rounded-lg overflow-hidden">
-                            <SyntaxHighlighter
-                              style={vscDarkPlus}
-                              language={match[1]}
-                              PreTag="div"
-                              {...props}
-                            >
-                              {String(children).replace(/\n$/, '')}
-                            </SyntaxHighlighter>
-                          </div>
-                        ) : (
-                          <code className="bg-muted/50 dark:bg-muted px-1.5 py-0.5 rounded text-sm font-mono" {...props}>
-                            {children}
-                          </code>
-                        );
-                      },
-                      p: ({ children }) => <p className="mb-3 last:mb-0 leading-relaxed">{children}</p>,
-                      ul: ({ children }) => <ul className="list-disc list-outside ml-5 mb-3 space-y-1.5">{children}</ul>,
-                      ol: ({ children }) => <ol className="list-decimal list-outside ml-5 mb-3 space-y-1.5">{children}</ol>,
-                      li: ({ children }) => <li className="leading-relaxed">{children}</li>,
-                      strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                      h1: ({ children }) => <h1 className="text-xl font-bold mb-3 mt-4 first:mt-0">{children}</h1>,
-                      h2: ({ children }) => <h2 className="text-lg font-bold mb-2 mt-3 first:mt-0">{children}</h2>,
-                      h3: ({ children }) => <h3 className="text-base font-semibold mb-2 mt-2 first:mt-0">{children}</h3>,
-                    }}
-                  >
+              {/* Content */}
+              <div className="bg-card rounded-xl border border-border/30 p-4 shadow-sm">
+                <div className="prose prose-sm max-w-none text-foreground text-[13px] leading-relaxed">
+                  <ReactMarkdown components={markdownComponents}>
                     {currentContent}
                   </ReactMarkdown>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 mt-3 ml-1">
+              {/* Actions */}
+              <div className="flex items-center gap-1 mt-2">
                 <button
                   onClick={() => handleCopy(currentModel)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-muted-foreground panel-button"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-muted-foreground hover:bg-muted/50 transition-colors"
                 >
                   {copiedModel === currentModel ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-primary" />
-                      <span className="text-primary">Copied!</span>
-                    </>
+                    <><Check className="w-3.5 h-3.5 text-primary" /><span className="text-primary">Copied</span></>
                   ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5" />
-                      <span>Copy</span>
-                    </>
+                    <><Copy className="w-3.5 h-3.5" /><span>Copy</span></>
                   )}
+                </button>
+                <button
+                  onClick={() => handleDownload(currentModel)}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-muted-foreground hover:bg-muted/50 transition-colors"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Download</span>
                 </button>
               </div>
             </div>
@@ -209,147 +182,119 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
     );
   }
 
-  // Side by Side view - unified response container
+  // Compare view - horizontal scroll with equal height cards
   return (
-    <div className="w-full overflow-visible animate-message-in-left">
-      {/* Unified Response Header - Toggle LEFT + Model Count */}
-      <div className="flex items-center justify-between mb-3 px-6">
-        {/* Left side: Toggle + Count */}
+    <div className="w-full animate-fade-in">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3 px-4 sm:px-6">
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-0.5 p-0.5 bg-muted/30 rounded-lg border border-border/20">
+          {/* View Toggle */}
+          <div className="inline-flex items-center p-0.5 bg-muted/40 rounded-lg border border-border/30">
             <button 
               onClick={() => setViewMode('single')}
-              className="px-3 py-1.5 rounded-md text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
+              <LayoutList className="w-3.5 h-3.5" />
               Single
             </button>
             <button 
-              onClick={() => setViewMode('sideBySide')}
-              className="px-3 py-1.5 rounded-md text-[11px] font-medium bg-card text-foreground shadow-sm"
+              onClick={() => setViewMode('compare')}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium bg-card text-foreground shadow-sm"
             >
+              <Columns2 className="w-3.5 h-3.5" />
               Compare
             </button>
           </div>
-          <span className="text-[11px] text-muted-foreground/60">
-            {models.length} model{models.length > 1 ? 's' : ''} responding
+          <span className="text-xs text-muted-foreground">
+            Comparing {models.length} models
           </span>
+        </div>
+        
+        {/* Scroll hint */}
+        <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground/60">
+          <ChevronLeft className="w-3 h-3" />
+          <span>Scroll to compare</span>
+          <ChevronRight className="w-3 h-3" />
         </div>
       </div>
 
-      {/* Horizontal Scroll Container - with scroll indicators */}
+      {/* Scrollable Cards Container */}
       <div className="relative">
-        {/* Left gradient fade */}
-        <div className="absolute left-0 top-0 bottom-2 w-10 bg-gradient-to-r from-background via-background/80 to-transparent z-10 pointer-events-none" />
-        {/* Right gradient fade */}
-        <div className="absolute right-0 top-0 bottom-2 w-10 bg-gradient-to-l from-background via-background/80 to-transparent z-10 pointer-events-none" />
+        {/* Gradient fades */}
+        <div className="absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
         
-        <div className="overflow-x-auto scrollbar-hide pb-3 scroll-smooth snap-x snap-mandatory">
-          <div className="flex gap-3 px-6" style={{ minWidth: 'min-content' }}>
-            {models.map((model) => {
-              const aiResponse = content[model] || '';
-              const isGenerating = !aiResponse || aiResponse.trim() === '';
-              const contentLength = aiResponse.length;
+        <div className="overflow-x-auto scrollbar-hide scroll-smooth pb-2">
+          <div className="flex gap-3 px-4 sm:px-6" style={{ minWidth: 'min-content' }}>
+            {models.map((model, idx) => {
+              const response = content[model] || '';
+              const isGenerating = !response || response.trim() === '';
               
               return (
                 <div
                   key={model}
-                  className="min-w-[280px] max-w-[380px] lg:max-w-[420px] xl:max-w-[480px] flex-1 flex-shrink-0 flex flex-col bg-card rounded-xl border border-border/30 shadow-sm overflow-hidden snap-start hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+                  className="w-[300px] sm:w-[340px] lg:w-[380px] flex-shrink-0 flex flex-col bg-card rounded-xl border border-border/40 shadow-sm overflow-hidden hover:shadow-md hover:border-border/60 transition-all duration-200"
+                  style={{ minHeight: '200px', maxHeight: '400px' }}
                 >
-                  {/* Compact Model Header */}
-                  <div className="flex-shrink-0 h-9 px-3 border-b border-border/20 bg-muted/10">
-                    <div className="flex items-center h-full gap-2">
-                      <div className="w-4 h-4 flex-shrink-0 flex items-center justify-center">
-                        {getProviderIcon(model)}
-                      </div>
-                      <span className="text-[12px] font-medium text-foreground/80 truncate">
+                  {/* Card Header - Fixed height with model indicator */}
+                  <div className="flex-shrink-0 h-11 px-3 border-b border-border/20 bg-muted/20 flex items-center gap-2.5">
+                    {/* Color indicator */}
+                    <div className={`w-2 h-2 rounded-full bg-gradient-to-br ${getProviderColor(model)}`} />
+                    
+                    {/* Model info */}
+                    <div className="flex-1 min-w-0">
+                      <span className="text-[13px] font-medium text-foreground truncate block">
                         {formatModelName(model)}
                       </span>
                     </div>
+                    
+                    {/* Model number badge */}
+                    <span className="text-[10px] font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                      #{idx + 1}
+                    </span>
                   </div>
 
-                  {/* AI Response Content - adaptive height */}
-                  <div className={`flex-1 overflow-y-auto p-3 ${
-                    contentLength < 100 ? 'min-h-[50px]' : 'min-h-[70px]'
-                  } max-h-[280px] lg:max-h-[320px] xl:max-h-[380px]`}>
-                    <div className="text-[13px] leading-[1.55] text-foreground">
+                  {/* Response Content - Scrollable */}
+                  <div className="flex-1 overflow-y-auto p-3 min-h-0">
+                    <div className="text-[13px] leading-[1.6] text-foreground">
                       {isGenerating ? (
-                        <div className="flex items-center gap-2 text-muted-foreground py-1.5">
+                        <div className="flex items-center gap-2 text-muted-foreground py-2">
                           <div className="flex gap-1">
-                            <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce [animation-delay:0ms]"></span>
-                            <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce [animation-delay:150ms]"></span>
-                            <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce [animation-delay:300ms]"></span>
+                            <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce [animation-delay:0ms]" />
+                            <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce [animation-delay:150ms]" />
+                            <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce [animation-delay:300ms]" />
                           </div>
-                          <span className="text-[11px]">Generating...</span>
+                          <span className="text-xs">Generating...</span>
                         </div>
                       ) : (
-                        <ReactMarkdown
-                          components={{
-                            code({ inline, className, children, ...props }: any) {
-                              const match = /language-(\w+)/.exec(className || '');
-                              return !inline && match ? (
-                                <div className="my-2 rounded-lg overflow-hidden">
-                                  <SyntaxHighlighter
-                                    style={vscDarkPlus}
-                                    language={match[1]}
-                                    PreTag="div"
-                                    {...props}
-                                  >
-                                    {String(children).replace(/\n$/, '')}
-                                  </SyntaxHighlighter>
-                                </div>
-                              ) : (
-                                <code className="bg-muted/50 dark:bg-muted px-1 py-0.5 rounded text-[12px] font-mono" {...props}>
-                                  {children}
-                                </code>
-                              );
-                            },
-                            p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>,
-                            ul: ({ children }) => <ul className="list-disc list-outside ml-4 mb-2 space-y-1">{children}</ul>,
-                            ol: ({ children }) => <ol className="list-decimal list-outside ml-4 mb-2 space-y-1">{children}</ol>,
-                            li: ({ children }) => <li className="leading-relaxed">{children}</li>,
-                            strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                            h1: ({ children }) => <h1 className="text-base font-bold mb-2 mt-3 first:mt-0">{children}</h1>,
-                            h2: ({ children }) => <h2 className="text-sm font-bold mb-1.5 mt-2 first:mt-0">{children}</h2>,
-                            h3: ({ children }) => <h3 className="text-sm font-semibold mb-1.5 mt-2 first:mt-0">{children}</h3>,
-                          }}
-                        >
-                          {aiResponse}
+                        <ReactMarkdown components={markdownComponents}>
+                          {response}
                         </ReactMarkdown>
                       )}
                     </div>
                   </div>
 
-                  {/* Compact Action Buttons */}
-                  <div className="flex items-center gap-0.5 h-8 px-2 border-t border-border/15 bg-muted/5 flex-shrink-0">
+                  {/* Card Footer - Actions */}
+                  <div className="flex-shrink-0 h-9 px-2 border-t border-border/15 bg-muted/10 flex items-center gap-1">
                     <button
                       onClick={() => handleCopy(model)}
-                      className="w-6 h-6 rounded-md hover:bg-muted/50 transition-colors flex items-center justify-center"
-                      title="Copy"
+                      className="h-7 px-2 rounded-md hover:bg-muted/60 transition-colors flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+                      title="Copy response"
                     >
                       {copiedModel === model ? (
-                        <Check className="w-3 h-3 text-primary" />
+                        <Check className="w-3.5 h-3.5 text-primary" />
                       ) : (
-                        <Copy className="w-3 h-3 text-muted-foreground" />
+                        <Copy className="w-3.5 h-3.5" />
                       )}
-                    </button>
-                    <button
-                      className="w-6 h-6 rounded-md hover:bg-muted/50 transition-colors flex items-center justify-center"
-                      title="Like"
-                    >
-                      <ThumbsUp className="w-3 h-3 text-muted-foreground" />
-                    </button>
-                    <button
-                      className="w-6 h-6 rounded-md hover:bg-muted/50 transition-colors flex items-center justify-center"
-                      title="Dislike"
-                    >
-                      <ThumbsDown className="w-3 h-3 text-muted-foreground" />
+                      <span className="hidden sm:inline">Copy</span>
                     </button>
                     <button
                       onClick={() => handleDownload(model)}
-                      className="w-6 h-6 rounded-md hover:bg-muted/50 transition-colors flex items-center justify-center ml-auto"
-                      title="Download"
+                      className="h-7 px-2 rounded-md hover:bg-muted/60 transition-colors flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground ml-auto"
+                      title="Download response"
                     >
-                      <Download className="w-3 h-3 text-muted-foreground" />
+                      <Download className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Download</span>
                     </button>
                   </div>
                 </div>
