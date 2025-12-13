@@ -246,24 +246,24 @@ export function AppSidebar() {
 
   return (
     <Sidebar className="hidden md:flex w-full max-w-[280px] border-r border-border/20 canvas-glass flex-col h-screen" collapsible="icon">
-      <div className="flex-none">
+      <div className="flex-none overflow-hidden">
         <SidebarHeader className="px-3 pt-3 pb-2 space-y-2.5">
           <SidebarTrigger className="w-8 h-8 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 hover:bg-black/5 dark:hover:bg-white/10 text-[#8E8E93] hover:text-foreground rounded-full" />
 
           {/* New Chat */}
           <Button
             variant="ghost"
-            className="w-full h-10 justify-start gap-2.5 px-2.5 bg-white/60 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 rounded-xl border border-border/20 shadow-sm hover:shadow-md"
+            className="w-full h-10 justify-start gap-2.5 px-2.5 bg-white/60 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 rounded-xl border border-border/20 shadow-sm hover:shadow-md overflow-hidden whitespace-nowrap"
             onClick={handleNewChat}
           >
             <div className="w-7 h-7 rounded-full bg-[#007AFF] flex items-center justify-center flex-shrink-0 shadow-sm">
               <Plus className="w-3.5 h-3.5 text-white" />
             </div>
-            <span className="text-[13px] font-medium text-foreground">New Chat</span>
+            <span className="text-[13px] font-medium text-foreground truncate">New Chat</span>
           </Button>
 
           {/* Search Chats */}
-          <div className="relative w-full">
+          <div className="relative w-full overflow-hidden">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E8E93] pointer-events-none" />
             <Input
               type="text"
@@ -277,10 +277,10 @@ export function AppSidebar() {
           {/* Library */}
           <Button
             variant="ghost"
-            className="w-full justify-start gap-2.5 px-2.5 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl"
+            className="w-full justify-start gap-2.5 px-2.5 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl overflow-hidden whitespace-nowrap"
           >
-            <Library className="w-4 h-4 text-[#8E8E93]" />
-            <span className="text-[13px] text-foreground/80">Library</span>
+            <Library className="w-4 h-4 text-[#8E8E93] flex-shrink-0" />
+            <span className="text-[13px] text-foreground/80 truncate">Library</span>
           </Button>
         </SidebarHeader>
       </div>
