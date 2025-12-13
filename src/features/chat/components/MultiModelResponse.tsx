@@ -114,7 +114,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
         </div>
 
         {/* Single Model Response */}
-        <div className="max-w-[75%]">
+        <div className="max-w-[75%] lg:max-w-[70%] xl:max-w-[65%]">
           <div className="flex gap-3">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center shadow-[0_4px_12px_rgba(77,112,255,0.15)] flex-shrink-0">
               <span className="text-primary font-semibold text-sm">Z</span>
@@ -253,7 +253,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
               return (
                 <div
                   key={model}
-                  className="min-w-[280px] max-w-[380px] flex-1 flex-shrink-0 flex flex-col bg-card rounded-xl border border-border/30 shadow-sm overflow-hidden snap-start hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+                  className="min-w-[280px] max-w-[380px] lg:max-w-[420px] xl:max-w-[480px] flex-1 flex-shrink-0 flex flex-col bg-card rounded-xl border border-border/30 shadow-sm overflow-hidden snap-start hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
                 >
                   {/* Compact Model Header */}
                   <div className="flex-shrink-0 h-9 px-3 border-b border-border/20 bg-muted/10">
@@ -270,7 +270,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
                   {/* AI Response Content - adaptive height */}
                   <div className={`flex-1 overflow-y-auto p-3 ${
                     contentLength < 100 ? 'min-h-[50px]' : 'min-h-[70px]'
-                  } max-h-[280px]`}>
+                  } max-h-[280px] lg:max-h-[320px] xl:max-h-[380px]`}>
                     <div className="text-[13px] leading-[1.55] text-foreground">
                       {isGenerating ? (
                         <div className="flex items-center gap-2 text-muted-foreground py-1.5">

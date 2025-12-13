@@ -205,7 +205,7 @@ export function ChatInterface() {
       {/* Messages Area */}
       {isLoadingConversation ? (
         <div className="flex-1 overflow-y-auto overflow-x-hidden py-8">
-          <div className="max-w-[800px] mx-auto px-6">
+        <div className="max-w-[800px] lg:max-w-[900px] xl:max-w-[1000px] mx-auto px-6">
             <MessageSkeleton />
           </div>
         </div>
@@ -248,7 +248,7 @@ export function ChatInterface() {
             }
 
             return (
-              <div key={message.id} className="max-w-[800px] mx-auto px-6 mb-3">
+              <div key={message.id} className="max-w-[800px] lg:max-w-[900px] xl:max-w-[1000px] mx-auto px-6 mb-3">
                 <Message 
                   message={message} 
                   onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')}
@@ -259,7 +259,7 @@ export function ChatInterface() {
             );
           })}
           {isCurrentConversationLoading && (
-            <div className="max-w-[800px] mx-auto px-6">
+            <div className="max-w-[800px] lg:max-w-[900px] xl:max-w-[1000px] mx-auto px-6">
               <TypingIndicator models={selectedModels} />
             </div>
           )}
@@ -301,7 +301,7 @@ export function ChatInterface() {
 
       {/* Chat Input Area */}
       <div className="sticky bottom-0 flex-shrink-0 p-3 pb-4 sm:p-4 sm:pb-6 bg-background/80 backdrop-blur-xl border-t border-border/30 z-10">
-        <div key={selectedMode} className="max-w-full sm:max-w-4xl mx-auto animate-scale-in">
+        <div key={selectedMode} className="max-w-full sm:max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto animate-scale-in">
           <form onSubmit={handleSubmit}>
             {/* Dropdowns Row */}
             <div className="flex items-center gap-2.5 mb-3">
