@@ -227,7 +227,7 @@ export function ChatInterface() {
         </div>
       ) : messages.length > 0 ? (
         <div className="flex-1 overflow-y-auto overflow-x-hidden py-4 sm:py-6 pb-[240px]">
-          <div className="space-y-4">
+          <div className="space-y-4 stagger-children">
             {messages.map((message, index) => {
               const isMultiModelResponse = message.role === 'assistant' && 
                 typeof message.content === 'object' && 

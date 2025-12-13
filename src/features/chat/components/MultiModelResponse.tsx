@@ -81,7 +81,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
     const currentContent = content[currentModel] || '';
 
     return (
-      <div className="w-full px-4 sm:px-6 animate-fade-in">
+      <div className="w-full px-4 sm:px-6 appear-smooth">
         {/* Header with toggle */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
@@ -89,14 +89,14 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
             <div className="inline-flex items-center p-0.5 bg-muted/40 rounded-lg border border-border/30">
               <button 
                 onClick={() => setViewMode('single')}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium bg-card text-foreground shadow-sm"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium bg-card text-foreground shadow-sm transition-all duration-fast ease-gentle"
               >
                 <LayoutList className="w-3.5 h-3.5" />
                 Single
               </button>
               <button 
                 onClick={() => setViewMode('compare')}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground transition-all duration-fast ease-gentle"
               >
                 <Columns2 className="w-3.5 h-3.5" />
                 Compare
@@ -113,13 +113,13 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
               <div className="flex items-center gap-0.5">
                 <button 
                   onClick={() => setCurrentIndex((prev) => (prev - 1 + models.length) % models.length)}
-                  className="w-7 h-7 rounded-full bg-muted/50 hover:bg-muted flex items-center justify-center transition-colors"
+                  className="w-7 h-7 rounded-full bg-muted/50 hover:bg-muted flex items-center justify-center transition-all duration-fast ease-gentle hover:scale-hover active:scale-press"
                 >
                   <ChevronLeft className="w-4 h-4 text-muted-foreground" />
                 </button>
                 <button 
                   onClick={() => setCurrentIndex((prev) => (prev + 1) % models.length)}
-                  className="w-7 h-7 rounded-full bg-muted/50 hover:bg-muted flex items-center justify-center transition-colors"
+                  className="w-7 h-7 rounded-full bg-muted/50 hover:bg-muted flex items-center justify-center transition-all duration-fast ease-gentle hover:scale-hover active:scale-press"
                 >
                   <ChevronRight className="w-4 h-4 text-muted-foreground" />
                 </button>
@@ -159,7 +159,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
               <div className="flex items-center gap-1 mt-2">
                 <button
                   onClick={() => handleCopy(currentModel)}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-muted-foreground hover:bg-muted/50 transition-colors"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-muted-foreground hover:bg-muted/50 transition-all duration-fast ease-gentle active:scale-press"
                 >
                   {copiedModel === currentModel ? (
                     <><Check className="w-3.5 h-3.5 text-primary" /><span className="text-primary">Copied</span></>
@@ -169,7 +169,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
                 </button>
                 <button
                   onClick={() => handleDownload(currentModel)}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-muted-foreground hover:bg-muted/50 transition-colors"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-muted-foreground hover:bg-muted/50 transition-all duration-fast ease-gentle active:scale-press"
                 >
                   <Download className="w-3.5 h-3.5" />
                   <span>Download</span>
@@ -184,7 +184,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
 
   // Compare view - horizontal scroll with equal height cards
   return (
-    <div className="w-full animate-fade-in">
+    <div className="w-full appear-smooth">
       {/* Header */}
       <div className="flex items-center justify-between mb-3 px-4 sm:px-6">
         <div className="flex items-center gap-3">
@@ -192,14 +192,14 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
           <div className="inline-flex items-center p-0.5 bg-muted/40 rounded-lg border border-border/30">
             <button 
               onClick={() => setViewMode('single')}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground transition-all duration-fast ease-gentle"
             >
               <LayoutList className="w-3.5 h-3.5" />
               Single
             </button>
             <button 
               onClick={() => setViewMode('compare')}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium bg-card text-foreground shadow-sm"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium bg-card text-foreground shadow-sm transition-all duration-fast ease-gentle"
             >
               <Columns2 className="w-3.5 h-3.5" />
               Compare
@@ -233,7 +233,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
               return (
                 <div
                   key={model}
-                  className="w-[300px] sm:w-[340px] lg:w-[380px] flex-shrink-0 flex flex-col bg-card rounded-xl border border-border/40 shadow-sm overflow-hidden hover:shadow-md hover:border-border/60 transition-all duration-200"
+                  className="w-[300px] sm:w-[340px] lg:w-[380px] flex-shrink-0 flex flex-col bg-card rounded-xl border border-border/40 shadow-sm overflow-hidden hover:shadow-md hover:border-border/60 hover:-translate-y-1 transition-all duration-normal ease-spring"
                   style={{ minHeight: '200px', maxHeight: '400px' }}
                 >
                   {/* Card Header - Fixed height with model indicator */}
@@ -278,7 +278,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
                   <div className="flex-shrink-0 h-9 px-2 border-t border-border/15 bg-muted/10 flex items-center gap-1">
                     <button
                       onClick={() => handleCopy(model)}
-                      className="h-7 px-2 rounded-md hover:bg-muted/60 transition-colors flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+                      className="h-7 px-2 rounded-md hover:bg-muted/60 transition-all duration-fast ease-gentle flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground active:scale-press"
                       title="Copy response"
                     >
                       {copiedModel === model ? (
@@ -290,7 +290,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
                     </button>
                     <button
                       onClick={() => handleDownload(model)}
-                      className="h-7 px-2 rounded-md hover:bg-muted/60 transition-colors flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground ml-auto"
+                      className="h-7 px-2 rounded-md hover:bg-muted/60 transition-all duration-fast ease-gentle flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground ml-auto active:scale-press"
                       title="Download response"
                     >
                       <Download className="w-3.5 h-3.5" />
