@@ -133,6 +133,16 @@ export default {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-2px)" },
         },
+        "thinking-dot": {
+          "0%, 60%, 100%": { 
+            opacity: "0.4",
+            transform: "scale(0.85) translateY(0)"
+          },
+          "30%": { 
+            opacity: "1",
+            transform: "scale(1) translateY(-3px)"
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
@@ -147,6 +157,7 @@ export default {
         "slide-in-right": "slide-in-right 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
         "pulse-gentle": "pulse-gentle 2s cubic-bezier(0.4, 0, 0.2, 1) infinite",
         "bounce-subtle": "bounce-subtle 1s cubic-bezier(0.4, 0, 0.2, 1) infinite",
+        "thinking-dot": "thinking-dot 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite",
         "enter": "fade-in 0.18s cubic-bezier(0.16, 1, 0.3, 1), scale-in 0.18s cubic-bezier(0.16, 1, 0.3, 1)",
         "exit": "fade-out 0.15s cubic-bezier(0.16, 1, 0.3, 1), scale-out 0.15s cubic-bezier(0.16, 1, 0.3, 1)",
       },
