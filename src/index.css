@@ -269,169 +269,309 @@ html {
   border: 1px solid hsl(220 30% 95% / 0.5);
 }
 
-/* Apple-style hover system - refined and elegant */
+/* ========================================
+   ZEBVO UNIFIED MOTION SYSTEM
+   Apple-Inspired Interaction Framework
+   ======================================== */
+
+/* ----------------------------------------
+   BASE TRANSITION LAYER
+   Applied globally to all interactive elements
+   ---------------------------------------- */
+   
+/* Global smooth transitions for common properties */
+button, a, input, textarea, select,
+[role="button"], [tabindex="0"],
+.interactive {
+  transition-property: transform, background-color, border-color, color, box-shadow, opacity;
+  transition-duration: var(--duration-normal);
+  transition-timing-function: var(--ease-default);
+}
+
+/* Focus states - accessible and beautiful */
+*:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring) / 0.5);
+  transition: box-shadow var(--duration-fast) var(--ease-snappy);
+}
+
+/* ----------------------------------------
+   STATE CLASSES
+   Consistent states across all components
+   ---------------------------------------- */
+
+/* Default state enhancement */
+.state-default {
+  transition: all var(--duration-normal) var(--ease-default);
+}
+
+/* Hover state - subtle lift */
+.state-hover:hover,
+.hover\:state-hover:hover {
+  transform: translateY(var(--translate-hover));
+  box-shadow: var(--shadow-md);
+}
+
+/* Active/Press state - tactile feedback */
+.state-active:active,
+.active\:state-active:active {
+  transform: scale(var(--scale-press));
+  transition-duration: var(--duration-fast);
+}
+
+/* Focus state - ring highlight */
+.state-focus:focus-visible {
+  box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring) / 0.5);
+}
+
+/* Disabled state - muted appearance */
+.state-disabled,
+:disabled,
+[aria-disabled="true"] {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Loading state - pulsing animation */
+.state-loading {
+  position: relative;
+  pointer-events: none;
+}
+
+.state-loading::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.1), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s var(--ease-gentle) infinite;
+  border-radius: inherit;
+}
+
+/* Paused state - reduced motion hint */
+.state-paused {
+  animation-play-state: paused !important;
+  opacity: 0.7;
+}
+
+/* ----------------------------------------
+   INTERACTION PATTERNS
+   Reusable motion behaviors
+   ---------------------------------------- */
+
+/* Apple-style interactive - primary pattern */
 .apple-interactive {
-  transition: transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1), 
-              box-shadow 220ms cubic-bezier(0.25, 0.1, 0.25, 1),
-              background 180ms ease;
+  transition: transform var(--duration-moderate) var(--ease-spring),
+              box-shadow var(--duration-normal) var(--ease-default),
+              background-color var(--duration-normal) var(--ease-gentle);
 }
 
 .apple-interactive:hover {
-  transform: translateY(-2px) scale(1.015);
-  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.08), 
-              0px 2px 8px rgba(0, 0, 0, 0.04);
+  transform: translateY(var(--translate-hover)) scale(1.01);
+  box-shadow: var(--shadow-lg);
 }
 
 .apple-interactive:active {
-  transform: scale(0.98);
-  transition-duration: 100ms;
-  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.06);
+  transform: scale(var(--scale-press));
+  transition-duration: var(--duration-fast);
+  box-shadow: var(--shadow-sm);
 }
 
-/* Apple button - subtle press effect */
+/* Apple button - clean press effect */
 .apple-button {
-  transition: transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1),
-              background 150ms ease,
-              box-shadow 180ms ease;
+  transition: transform var(--duration-normal) var(--ease-spring),
+              background-color var(--duration-fast) var(--ease-gentle),
+              box-shadow var(--duration-normal) var(--ease-default);
 }
 
 .apple-button:hover {
-  background: hsl(var(--muted) / 0.8);
-  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.04);
+  background-color: hsl(var(--muted) / 0.8);
+  box-shadow: var(--shadow-sm);
 }
 
 .apple-button:active {
   transform: scale(0.96);
-  transition-duration: 80ms;
+  transition-duration: var(--duration-instant);
 }
 
-/* Panel button - no scale to prevent clipping */
+/* Panel button - contained, no overflow */
 .panel-button {
-  transition: background 180ms ease,
-              box-shadow 180ms ease;
+  transition: background-color var(--duration-normal) var(--ease-gentle),
+              box-shadow var(--duration-normal) var(--ease-default);
 }
 
 .panel-button:hover {
-  background: hsl(var(--muted) / 0.6);
+  background-color: hsl(var(--muted) / 0.6);
   box-shadow: inset 0 0 0 1px hsl(var(--border) / 0.5);
 }
 
 .panel-button:active {
-  background: hsl(var(--muted));
-  transition-duration: 80ms;
+  background-color: hsl(var(--muted));
+  transition-duration: var(--duration-fast);
 }
 
-/* Hover utilities - Apple refined */
+/* ----------------------------------------
+   ELEVATION & LIFT PATTERNS
+   ---------------------------------------- */
+
+/* Hover lift - card/surface elevation */
 .hover-lift {
-  transition: transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1),
-              box-shadow 220ms ease;
+  transition: transform var(--duration-moderate) var(--ease-spring),
+              box-shadow var(--duration-normal) var(--ease-default);
 }
 
 .hover-lift:hover {
-  transform: translateY(-3px);
-  box-shadow: 0px 12px 32px rgba(0, 0, 0, 0.1),
-              0px 4px 12px rgba(0, 0, 0, 0.05);
+  transform: translateY(var(--translate-lift));
+  box-shadow: var(--shadow-xl);
 }
 
 .hover-lift:active {
   transform: translateY(-1px);
-  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-md);
 }
 
-/* Icon hover - smooth scale */
+/* Icon hover - scale emphasis */
 .hover-icon {
-  transition: transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1),
-              color 150ms ease,
-              background 150ms ease;
+  transition: transform var(--duration-normal) var(--ease-spring),
+              color var(--duration-fast) var(--ease-gentle),
+              background-color var(--duration-fast) var(--ease-gentle);
 }
 
 .hover-icon:hover {
   color: hsl(var(--primary));
-  transform: scale(1.12);
+  transform: scale(1.1);
 }
 
 .hover-icon:active {
-  transform: scale(0.95);
-  transition-duration: 80ms;
+  transform: scale(0.92);
+  transition-duration: var(--duration-fast);
 }
 
-/* Card hover - elegant elevation */
+/* Card hover - elegant floating */
 .hover-card {
-  transition: transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1),
-              box-shadow 220ms ease,
-              border-color 180ms ease;
+  transition: transform var(--duration-moderate) var(--ease-spring),
+              box-shadow var(--duration-normal) var(--ease-default),
+              border-color var(--duration-normal) var(--ease-gentle);
 }
 
 .hover-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0px 16px 48px rgba(0, 0, 0, 0.08),
-              0px 6px 16px rgba(0, 0, 0, 0.04);
+  transform: translateY(var(--translate-lift));
+  box-shadow: var(--shadow-xl);
   border-color: hsl(var(--border) / 0.8);
 }
 
 .hover-card:active {
-  transform: translateY(-2px);
-  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.06);
+  transform: translateY(var(--translate-hover));
+  box-shadow: var(--shadow-lg);
 }
 
-/* Sidebar item hover */
+/* ----------------------------------------
+   COMPONENT-SPECIFIC PATTERNS
+   ---------------------------------------- */
+
+/* Sidebar item - contextual hover */
 .hover-sidebar {
-  transition: background 180ms ease,
-              transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1),
-              box-shadow 180ms ease;
+  transition: background-color var(--duration-normal) var(--ease-gentle),
+              transform var(--duration-normal) var(--ease-spring),
+              box-shadow var(--duration-normal) var(--ease-default);
 }
 
 .hover-sidebar:hover {
-  background: hsl(var(--sidebar-accent) / 0.8);
+  background-color: hsl(var(--sidebar-accent) / 0.8);
   box-shadow: inset 0 0 0 1px hsl(var(--border) / 0.3);
 }
 
 .hover-sidebar:active {
-  background: hsl(var(--sidebar-accent));
+  background-color: hsl(var(--sidebar-accent));
   transform: scale(0.99);
 }
 
-/* Primary glow on hover */
+/* Primary glow effect */
 .hover-primary-glow {
-  transition: box-shadow 250ms ease,
-              transform 200ms ease;
+  transition: box-shadow var(--duration-moderate) var(--ease-default),
+              transform var(--duration-normal) var(--ease-spring);
 }
 
 .hover-primary-glow:hover {
-  box-shadow: 0 0 24px hsl(var(--primary) / 0.25),
-              0 0 8px hsl(var(--primary) / 0.15);
+  box-shadow: var(--shadow-glow);
 }
 
-/* Subtle background highlight */
+/* Background highlight - subtle */
 .hover-highlight {
-  transition: background 180ms ease;
+  transition: background-color var(--duration-normal) var(--ease-gentle);
 }
 
 .hover-highlight:hover {
-  background: hsl(var(--muted) / 0.5);
+  background-color: hsl(var(--muted) / 0.5);
 }
 
 .hover-highlight:active {
-  background: hsl(var(--muted) / 0.8);
+  background-color: hsl(var(--muted) / 0.8);
 }
 
-/* Menu item hover - Apple style */
+/* Menu item - list interaction */
 .hover-menu-item {
-  transition: background 150ms ease,
-              color 150ms ease,
-              transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: background-color var(--duration-fast) var(--ease-gentle),
+              color var(--duration-fast) var(--ease-gentle),
+              transform var(--duration-normal) var(--ease-spring);
   border-radius: 8px;
 }
 
 .hover-menu-item:hover {
-  background: hsl(var(--accent));
+  background-color: hsl(var(--accent));
   color: hsl(var(--accent-foreground));
 }
 
 .hover-menu-item:active {
   transform: scale(0.98);
-  transition-duration: 80ms;
+  transition-duration: var(--duration-fast);
 }
+
+/* ----------------------------------------
+   UTILITY MOTION CLASSES
+   Quick application helpers
+   ---------------------------------------- */
+
+/* Transition presets */
+.transition-fast { transition-duration: var(--duration-fast); }
+.transition-normal { transition-duration: var(--duration-normal); }
+.transition-moderate { transition-duration: var(--duration-moderate); }
+.transition-slow { transition-duration: var(--duration-slow); }
+
+/* Easing presets */
+.ease-spring { transition-timing-function: var(--ease-spring); }
+.ease-gentle { transition-timing-function: var(--ease-gentle); }
+.ease-snappy { transition-timing-function: var(--ease-snappy); }
+.ease-expo { transition-timing-function: var(--ease-out-expo); }
+
+/* Transform utilities with motion */
+.scale-on-hover:hover { transform: scale(var(--scale-hover)); }
+.scale-on-press:active { transform: scale(var(--scale-press)); }
+.lift-on-hover:hover { transform: translateY(var(--translate-hover)); }
+.pop-on-hover:hover { transform: scale(var(--scale-pop)); }
+
+/* Smooth appearance */
+.appear-smooth {
+  animation: fade-in var(--duration-moderate) var(--ease-out-expo);
+}
+
+.appear-scale {
+  animation: scale-in var(--duration-normal) var(--ease-out-expo);
+}
+
+/* Stagger children animations */
+.stagger-children > * {
+  animation: fade-in var(--duration-moderate) var(--ease-out-expo) both;
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 50ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 100ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 150ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 200ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 250ms; }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
@@ -456,6 +596,40 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
+    /* ========================================
+       ZEBVO MOTION SYSTEM - Apple-Inspired
+       ======================================== */
+    
+    /* Timing Functions - Natural Apple Easing */
+    --ease-default: cubic-bezier(0.25, 0.1, 0.25, 1);      /* Smooth, natural */
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);      /* Bouncy, playful */
+    --ease-gentle: cubic-bezier(0.4, 0, 0.2, 1);           /* Soft, calm */
+    --ease-snappy: cubic-bezier(0.2, 0, 0, 1);             /* Quick, responsive */
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);        /* Dramatic deceleration */
+    
+    /* Duration Scale - Consistent Timing */
+    --duration-instant: 50ms;
+    --duration-fast: 100ms;
+    --duration-normal: 180ms;
+    --duration-moderate: 250ms;
+    --duration-slow: 350ms;
+    --duration-slower: 500ms;
+    
+    /* Transform Scale - Subtle Movements */
+    --scale-press: 0.97;
+    --scale-hover: 1.02;
+    --scale-pop: 1.05;
+    --translate-hover: -2px;
+    --translate-lift: -4px;
+    
+    /* Shadow Elevation System */
+    --shadow-none: 0 0 0 transparent;
+    --shadow-sm: 0 1px 2px hsl(220 20% 20% / 0.04), 0 1px 4px hsl(220 20% 20% / 0.02);
+    --shadow-md: 0 2px 8px hsl(220 20% 20% / 0.06), 0 4px 12px hsl(220 20% 20% / 0.04);
+    --shadow-lg: 0 8px 24px hsl(220 20% 20% / 0.08), 0 4px 12px hsl(220 20% 20% / 0.04);
+    --shadow-xl: 0 16px 48px hsl(220 20% 20% / 0.1), 0 8px 24px hsl(220 20% 20% / 0.06);
+    --shadow-glow: 0 0 20px hsl(var(--primary) / 0.15), 0 0 8px hsl(var(--primary) / 0.1);
+    
     /* Canvas-inspired soft pastel palette */
     --background: 220 30% 97%;
     --foreground: 222 47% 11%;
