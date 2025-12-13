@@ -247,14 +247,24 @@ export function ChatInterface() {
               // If this is a multi-model response that is identical to the previous one,
               // skip rendering to avoid duplicate rows in the UI
               if (isMultiModelResponse && prevIsMultiModel) {
-                const currContent = JSON.stringify(message.content);
-                const prevContent = JSON.stringify(prevMessage!.content);
+                const normalizeModels = (modelsArray: string[] = []) =>
+                  [...modelsArray].sort().join('|');
+
+                const normalizeContent = (content: unknown) => {
+                  if (!content || typeof content !== 'object' || Array.isArray(content)) {
+                    return JSON.stringify(content);
+                  }
+                  const entries = Object.entries(content as Record<string, unknown>)
+                    .sort(([a], [b]) => a.localeCompare(b));
+                  return JSON.stringify(entries);
+                };
+
                 const currModels = message.metadata?.models || [];
                 const prevModels = prevMessage!.metadata?.models || [];
-                const sameModels = currModels.length === prevModels.length &&
-                  currModels.every((m: string, i: number) => m === prevModels[i]);
+                const sameModels = normalizeModels(currModels) === normalizeModels(prevModels);
+                const sameContent = normalizeContent(message.content) === normalizeContent(prevMessage!.content);
 
-                if (sameModels && currContent === prevContent) {
+                if (sameModels && sameContent) {
                   return null;
                 }
               }
