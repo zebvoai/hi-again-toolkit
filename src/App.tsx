@@ -48,7 +48,7 @@ const App = () => (
           {/* Main app with sidebar - protected */}
           <Route path="*" element={
             <ProtectedRoute>
-              <SidebarProvider defaultOpen={false}>
+              <SidebarProvider defaultOpen={true}>
                 <div className="flex min-h-screen w-full overflow-hidden">
                   <AppSidebar />
                   <div className="flex-1 flex flex-col overflow-hidden">
