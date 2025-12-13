@@ -50,7 +50,7 @@ export function ChatInterface() {
   } = useModels();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const prevMessagesLengthRef = useRef(messages.length);
 
   // Enable realtime sync for messages across tabs
@@ -361,35 +361,56 @@ export function ChatInterface() {
             {/* Hidden File Input */}
             <input ref={fileInputRef} type="file" multiple accept="*/*" onChange={handleFileSelect} className="hidden" />
 
-            {/* Glass Input Bar - Full width */}
-            <div className="flex items-center w-full h-[60px] bg-card rounded-[50px] shadow-[0_2px_8px_rgba(0,0,0,0.04)] focus-within:shadow-[0_4px_16px_rgba(0,0,0,0.08)] focus-within:bg-card/95 transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] px-[11px]">
-              {/* Left Plus Button */}
+            {/* Glass Input Bar - Full width, auto-expanding */}
+            <div className="flex items-end w-full min-h-[60px] bg-card rounded-[30px] shadow-[0_2px_8px_rgba(0,0,0,0.04)] focus-within:shadow-[0_4px_16px_rgba(0,0,0,0.08)] focus-within:bg-card/95 transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] px-[11px] py-[9px]">
+              {/* Left Plus Button - Fixed at bottom */}
               <button type="button" onClick={triggerFileInput} className="flex-shrink-0 w-[42px] h-[42px] rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 hover:scale-[1.05] active:scale-[0.95] transition-all duration-[180ms] border border-border/50">
                 <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
                   <path d="M10 4V16M4 10H16" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="round" />
                 </svg>
               </button>
 
-              {/* Input Field */}
-              <input 
-                ref={inputRef}
-                type="text" 
-                value={input} 
-                onChange={e => setInput(e.target.value)} 
-                placeholder="Ask Zebvo ai" 
-                disabled={isCurrentConversationLoading} 
-                className="flex-1 min-w-0 bg-transparent border-none outline-none focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 text-[17px] font-medium placeholder:text-muted-foreground/70 disabled:opacity-50 px-4 text-foreground"
-                maxLength={4000} 
-              />
+              {/* Auto-expanding Textarea */}
+              <div className="flex-1 min-w-0 flex items-center px-4">
+                <textarea 
+                  ref={inputRef}
+                  value={input} 
+                  onChange={e => {
+                    setInput(e.target.value);
+                    // Auto-resize logic
+                    const textarea = e.target;
+                    textarea.style.height = 'auto';
+                    const newHeight = Math.min(textarea.scrollHeight, 200);
+                    textarea.style.height = `${newHeight}px`;
+                  }} 
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      if (input.trim() && selectedModels.length > 0 && !isCurrentConversationLoading) {
+                        handleSubmit(e as unknown as React.FormEvent);
+                      }
+                    }
+                  }}
+                  placeholder="Ask Zebvo ai" 
+                  disabled={isCurrentConversationLoading} 
+                  rows={1}
+                  className="w-full bg-transparent border-none outline-none focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 text-[17px] font-medium placeholder:text-muted-foreground/70 disabled:opacity-50 text-foreground resize-none overflow-y-auto leading-[1.5] py-[6px] scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent transition-[height] duration-200 ease-[cubic-bezier(0.25,0.1,0.25,1)]"
+                  style={{ 
+                    maxHeight: '200px',
+                    minHeight: '30px'
+                  }}
+                  maxLength={4000} 
+                />
+              </div>
 
               {/* Character count */}
               {input.length > 3500 && (
-                <span className={`text-xs mr-2 ${input.length > 3900 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                <span className={`text-xs mr-2 self-center ${input.length > 3900 ? 'text-destructive' : 'text-muted-foreground'}`}>
                   {4000 - input.length}
                 </span>
               )}
 
-              {/* Right Send Button */}
+              {/* Right Send Button - Fixed at bottom */}
               <button type={isCurrentConversationLoading ? "button" : "submit"} onClick={isCurrentConversationLoading ? cancelGeneration : undefined} disabled={!isCurrentConversationLoading && (!input.trim() || selectedModels.length === 0)} className={`flex-shrink-0 w-[42px] h-[42px] rounded-full flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] ${isCurrentConversationLoading ? 'bg-primary text-primary-foreground hover:bg-primary/80 shadow-lg shadow-primary/25' : !input.trim() || selectedModels.length === 0 ? 'bg-muted text-muted-foreground cursor-not-allowed border border-border/50' : 'bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-110 hover:shadow-lg hover:shadow-primary/25 animate-scale-in'}`}>
                 {isCurrentConversationLoading ? <Square className="w-4 h-4 fill-current animate-pulse" /> : (
                   <svg width="18" height="18" viewBox="0 0 20 20" fill="none" className="transition-all duration-300">
