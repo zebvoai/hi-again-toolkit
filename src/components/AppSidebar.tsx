@@ -35,7 +35,7 @@ import { useAuth } from "@/hooks/useAuth";
 import type { Message } from "@/types";
 
 export function AppSidebar() {
-  const { state, isMobile } = useSidebar();
+  const { state, isMobile, setOpenMobile } = useSidebar();
   // On mobile, always show expanded content in the Sheet drawer
   const isCollapsed = !isMobile && state === "collapsed";
   const { clearMessages, setCurrentConversationId, currentConversationId, setMessages } =
@@ -73,12 +73,20 @@ export function AppSidebar() {
   const handleNewChat = () => {
     clearMessages();
     setCurrentConversationId(null);
+    // Auto-close sidebar on mobile
+    if (isMobile) {
+      setOpenMobile(false);
+    }
   };
 
   const handleLoadConversation = async (conversationId: string) => {
     const messages = await loadConversation(conversationId);
     setMessages(messages);
     setCurrentConversationId(conversationId);
+    // Auto-close sidebar on mobile after selecting conversation
+    if (isMobile) {
+      setOpenMobile(false);
+    }
   };
 
   const handleDeleteConversation = async (conversationId: string) => {
