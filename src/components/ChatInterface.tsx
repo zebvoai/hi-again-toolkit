@@ -362,7 +362,7 @@ export function ChatInterface() {
             <input ref={fileInputRef} type="file" multiple accept="*/*" onChange={handleFileSelect} className="hidden" />
 
             {/* Glass Input Bar - Full width */}
-            <div className="flex items-center w-full h-[60px] bg-card rounded-[50px] border border-border shadow-sm focus-within:border-primary/50 focus-within:shadow-[0_0_0_3px_hsl(var(--primary)/0.1)] transition-all duration-[220ms] ease-[cubic-bezier(0.25,0.1,0.25,1)] px-[11px]">
+            <div className="flex items-center w-full h-[60px] bg-card rounded-[50px] border border-border shadow-sm transition-all duration-[220ms] ease-[cubic-bezier(0.25,0.1,0.25,1)] px-[11px]">
               {/* Left Plus Button */}
               <button type="button" onClick={triggerFileInput} className="flex-shrink-0 w-[42px] h-[42px] rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 hover:scale-[1.05] active:scale-[0.95] transition-all duration-[180ms] border border-border/50">
                 <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
