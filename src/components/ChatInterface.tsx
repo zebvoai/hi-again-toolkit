@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Square } from 'lucide-react';
+import { Square, Menu } from 'lucide-react';
 import { toast } from 'sonner';
 import { useChat } from '@/features/chat/hooks/useChat';
 import { useModeStore } from '@/features/modes/store/modeStore';
@@ -14,6 +14,7 @@ import { useModels } from '@/features/chat/hooks/useModels';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useRealtimeMessages } from '@/features/chat/hooks/useRealtimeMessages';
 import { triggerHapticFeedback, triggerConfetti, updatePageTitle, smoothScrollTo } from '@/lib/microInteractions';
+import { useSidebar } from '@/components/ui/sidebar';
 
 export function ChatInterface() {
   const [input, setInput] = useState('');
@@ -54,6 +55,9 @@ export function ChatInterface() {
 
   // Enable realtime sync for messages across tabs
   useRealtimeMessages();
+  
+  // Mobile sidebar control
+  const { setOpenMobile, isMobile } = useSidebar();
 
   // Update page title based on loading state
   useEffect(() => {
@@ -191,6 +195,17 @@ export function ChatInterface() {
 
   return (
     <div className="flex flex-col h-full relative bg-background overflow-hidden">
+      {/* Mobile Menu Button - Only visible on mobile */}
+      {isMobile && (
+        <button 
+          onClick={() => setOpenMobile(true)}
+          className="fixed top-3 left-3 z-50 w-10 h-10 flex items-center justify-center rounded-full bg-card/80 backdrop-blur-sm border border-border/30 shadow-sm md:hidden"
+          aria-label="Open menu"
+        >
+          <Menu className="w-5 h-5 text-foreground" />
+        </button>
+      )}
+      
       {/* Temporary Mode Banner */}
       {isTemporaryMode && (
         <div className="px-4 pt-4">

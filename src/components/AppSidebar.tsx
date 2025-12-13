@@ -188,9 +188,10 @@ export function AppSidebar() {
     {} as Record<string, typeof filteredConversations>,
   );
 
+  // Only show collapsed state on desktop (md+), mobile uses Sheet drawer
   if (isCollapsed) {
     return (
-      <Sidebar className="w-[60px] border-r border-border/20 canvas-glass flex flex-col h-screen fixed z-50" collapsible="icon">
+      <Sidebar className="hidden md:flex w-[60px] border-r border-border/20 canvas-glass flex-col h-screen" collapsible="icon">
         <div className="flex-none">
           <SidebarHeader className="px-3 pt-3 pb-2 flex flex-col items-center gap-2">
             <SidebarTrigger className="w-8 h-8 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 hover:bg-black/5 dark:hover:bg-white/10 text-[#8E8E93] hover:text-foreground transition-all duration-200 rounded-full" />
@@ -221,7 +222,7 @@ export function AppSidebar() {
   }
 
   return (
-    <Sidebar className="w-full max-w-[280px] border-r border-border/20 canvas-glass flex flex-col h-screen fixed z-50" collapsible="icon">
+    <Sidebar className="w-full max-w-[280px] border-r border-border/20 canvas-glass flex flex-col h-screen" collapsible="icon">
       <div className="flex-none">
         <SidebarHeader className="px-3 pt-3 pb-2 space-y-2.5">
           <SidebarTrigger className="w-8 h-8 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 hover:bg-black/5 dark:hover:bg-white/10 text-[#8E8E93] hover:text-foreground transition-all duration-200 rounded-full" />
