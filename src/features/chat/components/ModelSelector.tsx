@@ -613,8 +613,10 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
             variant="ghost"
             disabled={disabled || isLoading}
             className={cn(
-              "w-auto min-w-[140px] border border-white/10 bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl text-sm px-3 py-2 h-9 transition-all duration-150",
-              "hover:border-[#D1D5DB] hover:scale-[1.01] hover:shadow-md",
+              "w-auto min-w-[140px] border border-white/10 bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl text-sm px-3 py-2 h-9",
+              "transition-all duration-normal ease-spring",
+              "hover:border-[#D1D5DB] hover:scale-hover hover:shadow-md hover:-translate-y-[1px]",
+              "active:scale-press active:duration-fast",
               values.length > 0 && "bg-white/80 dark:bg-gray-900/80",
               "justify-between"
             )}
@@ -624,7 +626,7 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
               <span className="font-medium">{isLoading ? 'Loading...' : displayText}</span>
             </div>
             <ChevronDown className={cn(
-              "w-4 h-4 ml-1 opacity-50 transition-transform duration-150",
+              "w-4 h-4 ml-1 opacity-50 transition-transform duration-normal ease-spring",
               open && "rotate-180"
             )} />
           </Button>
@@ -637,7 +639,7 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
             "border border-black/[0.04] dark:border-white/[0.08]",
             "shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25),0_0_0_1px_rgba(0,0,0,0.03)]",
             "rounded-[24px] p-0 z-[100]",
-            "animate-in fade-in-0 zoom-in-[0.98] slide-in-from-bottom-2 duration-300 ease-out"
+            "animate-scale-in"
           )}
           align="start"
           sideOffset={8}
@@ -688,13 +690,13 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
                   "h-9 pl-9 pr-8 bg-[#F5F5F7] dark:bg-[#2C2C2E] border-none",
                   "rounded-lg text-[15px] placeholder:text-[#86868B]",
                   "focus-visible:ring-2 focus-visible:ring-[#0071E3]/30 focus-visible:ring-offset-0",
-                  "transition-all duration-200"
+                  "transition-all duration-normal ease-gentle"
                 )}
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] flex items-center justify-center rounded-full bg-[#86868B]/20 hover:bg-[#86868B]/30 text-[#86868B] transition-colors"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] flex items-center justify-center rounded-full bg-[#86868B]/20 hover:bg-[#86868B]/30 text-[#86868B] transition-colors duration-fast ease-gentle active:scale-press"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -713,7 +715,7 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
                 {values.length > 0 && (
                   <button
                     onClick={() => setShowSavePresetDialog(true)}
-                    className="text-[11px] font-medium text-[#0071E3] dark:text-[#2997FF] hover:opacity-80 transition-opacity"
+                    className="text-[11px] font-medium text-[#0071E3] dark:text-[#2997FF] hover:opacity-80 transition-opacity duration-fast ease-gentle"
                   >
                     Save Custom
                   </button>
@@ -733,12 +735,14 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
                       onClick={() => handlePresetSelect(preset.id)}
                       disabled={availableCount === 0}
                       className={cn(
-                        "relative flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200",
+                        "relative flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-full",
+                        "transition-all duration-normal ease-spring",
                         isActive 
                           ? "bg-[#0071E3] text-white shadow-sm shadow-[#0071E3]/30" 
                           : "bg-[#F5F5F7] dark:bg-[#2C2C2E] text-[#1D1D1F] dark:text-white",
-                        !isActive && "hover:bg-[#E8E8ED] dark:hover:bg-[#3A3A3C]",
-                        availableCount === 0 && "opacity-40 cursor-not-allowed"
+                        !isActive && "hover:bg-[#E8E8ED] dark:hover:bg-[#3A3A3C] hover:-translate-y-[1px]",
+                        availableCount === 0 && "opacity-40 cursor-not-allowed",
+                        "active:scale-press active:duration-fast"
                       )}
                     >
                       {preset.isCustom && !isActive && (
@@ -747,7 +751,7 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
                             e.stopPropagation();
                             handleDeletePreset(preset.id);
                           }}
-                          className="absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center bg-[#FF3B30] text-white rounded-full hover:bg-[#FF453A] transition-colors"
+                          className="absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center bg-[#FF3B30] text-white rounded-full hover:bg-[#FF453A] transition-colors duration-fast ease-gentle active:scale-press"
                         >
                           <X className="w-2.5 h-2.5" />
                         </button>
@@ -867,10 +871,10 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
                   <button
                     key={model}
                     onClick={() => handleToggle(model)}
-                    className="group flex items-center gap-1.5 px-2.5 py-1 bg-[#0071E3]/10 dark:bg-[#2997FF]/15 text-[#0071E3] dark:text-[#2997FF] rounded-full text-[11px] font-medium hover:bg-[#0071E3]/20 transition-all duration-200"
+                    className="group flex items-center gap-1.5 px-2.5 py-1 bg-[#0071E3]/10 dark:bg-[#2997FF]/15 text-[#0071E3] dark:text-[#2997FF] rounded-full text-[11px] font-medium hover:bg-[#0071E3]/20 transition-all duration-fast ease-gentle active:scale-press"
                   >
                     <span className="truncate max-w-[80px]">{model}</span>
-                    <X className="w-3 h-3 opacity-60 group-hover:opacity-100 flex-shrink-0" />
+                    <X className="w-3 h-3 opacity-60 group-hover:opacity-100 flex-shrink-0 transition-opacity duration-fast" />
                   </button>
                 ))}
                 {values.length > 4 && (
@@ -890,9 +894,10 @@ export const ModelSelector = ({ values, onChange, disabled }: ModelSelectorProps
                 }
               }}
               className={cn(
-                "w-full h-11 rounded-xl text-[15px] font-semibold transition-all duration-200",
+                "w-full h-11 rounded-xl text-[15px] font-semibold",
+                "transition-all duration-normal ease-spring",
                 values.length > 0 
-                  ? "bg-[#0071E3] hover:bg-[#0077ED] text-white active:scale-[0.98]" 
+                  ? "bg-[#0071E3] hover:bg-[#0077ED] text-white active:scale-press active:duration-fast" 
                   : "bg-[#E8E8ED] dark:bg-[#3A3A3C] text-[#86868B] cursor-default"
               )}
             >
@@ -992,21 +997,23 @@ const ModelItem = ({ model, isSelected, isDisabled, isFavorite, onToggle, onTogg
         onClick={() => onToggle(model)}
         disabled={isDisabled}
         className={cn(
-          "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200",
+          "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl",
+          "transition-all duration-normal ease-spring",
           isSelected 
             ? "bg-[#0071E3]/10 dark:bg-[#2997FF]/15" 
             : "bg-transparent",
-          !isSelected && "hover:bg-black/[0.03] dark:hover:bg-white/[0.05]",
-          "active:scale-[0.99]",
+          !isSelected && "hover:bg-black/[0.03] dark:hover:bg-white/[0.05] hover:-translate-y-[1px]",
+          "active:scale-press active:duration-fast",
           isDisabled && "opacity-50 cursor-not-allowed"
         )}
       >
         {/* Checkbox - Apple Style */}
         <div className={cn(
-          "flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200",
+          "flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center",
+          "transition-all duration-normal ease-spring",
           isSelected 
-            ? "bg-[#0071E3] border-[#0071E3]" 
-            : "border-[#C7C7CC] dark:border-[#48484A]"
+            ? "bg-[#0071E3] border-[#0071E3] scale-100" 
+            : "border-[#C7C7CC] dark:border-[#48484A] scale-95"
         )}>
           {isSelected && (
             <Check className="w-3 h-3 text-white" strokeWidth={3} />
@@ -1056,10 +1063,12 @@ const ModelItem = ({ model, isSelected, isDisabled, isFavorite, onToggle, onTogg
             onToggleFavorite(model);
           }}
           className={cn(
-            "flex-shrink-0 p-1 rounded-full transition-all duration-200",
+            "flex-shrink-0 p-1 rounded-full",
+            "transition-all duration-normal ease-spring",
             isFavorite 
-              ? "text-[#FF9F0A]" 
-              : "text-[#C7C7CC] dark:text-[#48484A] hover:text-[#FF9F0A]/60"
+              ? "text-[#FF9F0A] scale-110" 
+              : "text-[#C7C7CC] dark:text-[#48484A] hover:text-[#FF9F0A]/60 hover:scale-110",
+            "active:scale-90"
           )}
           aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
         >

@@ -200,10 +200,10 @@ export function AppSidebar() {
   // Only show collapsed state on desktop (md+), mobile uses Sheet drawer
   if (isCollapsed) {
     return (
-      <Sidebar className="hidden md:flex w-[60px] border-r border-border/20 canvas-glass flex-col h-screen transition-all duration-300 ease-out" collapsible="icon">
+      <Sidebar className="hidden md:flex w-[60px] border-r border-border/20 canvas-glass flex-col h-screen transition-all duration-slow ease-expo" collapsible="icon">
         <div className="flex-none">
           <SidebarHeader className="px-3 pt-3 pb-2 flex flex-col items-center gap-2">
-            <SidebarTrigger className="w-8 h-8 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 hover:bg-black/5 dark:hover:bg-white/10 text-[#8E8E93] hover:text-foreground transition-all duration-200 rounded-full" />
+            <SidebarTrigger className="w-8 h-8 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 hover:bg-black/5 dark:hover:bg-white/10 text-[#8E8E93] hover:text-foreground transition-all duration-normal ease-spring rounded-full hover:scale-hover active:scale-press" />
             <Button
               variant="ghost"
               size="icon"
@@ -221,7 +221,7 @@ export function AppSidebar() {
           <Button
             variant="ghost"
             size="icon"
-            className="w-9 h-9 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 rounded-full bg-[#007AFF] hover:bg-[#0066DD] text-white shadow-sm transition-all duration-200"
+            className="w-9 h-9 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 rounded-full bg-[#007AFF] hover:bg-[#0066DD] text-white shadow-sm transition-all duration-normal ease-spring hover:scale-hover active:scale-press"
           >
             <User className="w-4 h-4" />
           </Button>
@@ -231,15 +231,15 @@ export function AppSidebar() {
   }
 
   return (
-    <Sidebar className="hidden md:flex w-full max-w-[280px] border-r border-border/20 canvas-glass flex-col h-screen transition-all duration-300 ease-out" collapsible="icon">
+    <Sidebar className="hidden md:flex w-full max-w-[280px] border-r border-border/20 canvas-glass flex-col h-screen transition-all duration-slow ease-expo" collapsible="icon">
       <div className="flex-none">
         <SidebarHeader className="px-3 pt-3 pb-2 space-y-2.5">
-          <SidebarTrigger className="w-8 h-8 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 hover:bg-black/5 dark:hover:bg-white/10 text-[#8E8E93] hover:text-foreground transition-all duration-200 rounded-full" />
+          <SidebarTrigger className="w-8 h-8 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 hover:bg-black/5 dark:hover:bg-white/10 text-[#8E8E93] hover:text-foreground transition-all duration-normal ease-spring rounded-full hover:scale-hover active:scale-press" />
 
           {/* New Chat */}
           <Button
             variant="ghost"
-            className="w-full h-10 justify-start gap-2.5 px-2.5 bg-white/60 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 active:scale-[0.98] rounded-xl transition-all duration-200 border border-border/20 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+            className="w-full h-10 justify-start gap-2.5 px-2.5 bg-white/60 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-all duration-normal ease-spring border border-border/20 shadow-sm hover:-translate-y-[1px] hover:shadow-md active:scale-press active:duration-fast"
             onClick={handleNewChat}
           >
             <div className="w-7 h-7 rounded-full bg-[#007AFF] flex items-center justify-center flex-shrink-0 shadow-sm">
@@ -256,14 +256,14 @@ export function AppSidebar() {
               placeholder="Search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-8 pr-3 py-2 h-9 text-[13px] rounded-xl bg-black/[0.04] dark:bg-white/[0.08] border-0 placeholder:text-[#8E8E93] focus:bg-white dark:focus:bg-white/10 focus:ring-2 focus:ring-[#007AFF]/30 transition-all duration-200"
+              className="w-full pl-8 pr-3 py-2 h-9 text-[13px] rounded-xl bg-black/[0.04] dark:bg-white/[0.08] border-0 placeholder:text-[#8E8E93] focus:bg-white dark:focus:bg-white/10 focus:ring-2 focus:ring-[#007AFF]/30 transition-all duration-normal ease-gentle"
             />
           </div>
 
           {/* Library */}
           <Button
             variant="ghost"
-            className="w-full justify-start gap-2.5 px-2.5 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl transition-all duration-200"
+            className="w-full justify-start gap-2.5 px-2.5 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl transition-all duration-normal ease-gentle hover:-translate-y-[1px] active:scale-press active:duration-fast"
           >
             <Library className="w-4 h-4 text-[#8E8E93]" />
             <span className="text-[13px] text-foreground/80">Library</span>
@@ -294,7 +294,7 @@ export function AppSidebar() {
                 {/* New Project */}
                 <Button
                   variant="ghost"
-                  className="w-full justify-start gap-2.5 px-2.5 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl transition-all duration-200"
+                  className="w-full justify-start gap-2.5 px-2.5 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl transition-all duration-normal ease-gentle hover:-translate-y-[1px] active:scale-press active:duration-fast"
                   onClick={() => setIsNewProjectDialogOpen(true)}
                 >
                   <Plus className="w-4 h-4 text-[#8E8E93]" />
@@ -305,7 +305,7 @@ export function AppSidebar() {
                 {projects.map((project) => (
                   <div
                     key={project.id}
-                    className="group relative flex items-center gap-2.5 px-2.5 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl transition-all duration-200 cursor-pointer overflow-hidden"
+                    className="group relative flex items-center gap-2.5 px-2.5 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl transition-all duration-normal ease-gentle cursor-pointer overflow-hidden hover:-translate-y-[1px] active:scale-press active:duration-fast"
                     onMouseEnter={() => setHoveredProject(project.id)}
                     onMouseLeave={() => setHoveredProject(null)}
                   >
