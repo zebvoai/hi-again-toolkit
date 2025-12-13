@@ -56,8 +56,9 @@ export function ChatInterface() {
   // Enable realtime sync for messages across tabs
   useRealtimeMessages();
   
-  // Mobile sidebar control
-  const { setOpenMobile, isMobile } = useSidebar();
+  // Sidebar control
+  const { setOpenMobile, isMobile, state } = useSidebar();
+  const isSidebarExpanded = state === 'expanded';
 
   // Update page title based on loading state
   useEffect(() => {
@@ -217,15 +218,15 @@ export function ChatInterface() {
         </div>
       )}
 
-      {/* Messages Area */}
+      {/* Messages Area - with bottom padding for fixed input */}
       {isLoadingConversation ? (
-        <div className="flex-1 overflow-y-auto overflow-x-hidden py-6">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden py-6 pb-40">
           <div className="w-full px-4 sm:px-6 lg:px-8">
             <MessageSkeleton />
           </div>
         </div>
       ) : messages.length > 0 ? (
-        <div className="flex-1 overflow-y-auto overflow-x-hidden py-4 sm:py-6">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden py-4 sm:py-6 pb-40">
           <div className="space-y-4">
             {messages.map((message, index) => {
               const isMultiModelResponse = message.role === 'assistant' && 
@@ -293,7 +294,7 @@ export function ChatInterface() {
         </div>
       ) : (
         /* Empty State */
-        <div className="flex-1 flex items-center justify-center px-4">
+        <div className="flex-1 flex items-center justify-center px-4 pb-40">
           <div className="text-center">
             <h1 className="text-6xl font-bold text-blue-500 mb-3 animate-logo-entrance animate-float-gentle hover:scale-[1.02] transition-transform duration-300 cursor-default">
               Zebvo AI
@@ -326,7 +327,10 @@ export function ChatInterface() {
       )}
 
       {/* Chat Input Area - Fixed at bottom, full width, responsive */}
-      <div className="sticky bottom-0 z-30 w-full bg-background border-t border-border/20">
+      <div 
+        className="fixed bottom-0 right-0 z-30 bg-background border-t border-border/20 transition-[left] duration-300"
+        style={{ left: isMobile ? 0 : (isSidebarExpanded ? 280 : 60) }}
+      >
         <div className="w-full px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
           <form onSubmit={handleSubmit} key={selectedMode} className="animate-scale-in">
             {/* Dropdowns Row */}
