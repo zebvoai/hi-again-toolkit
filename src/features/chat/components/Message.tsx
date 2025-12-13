@@ -77,8 +77,8 @@ export const Message = ({
 
     if (isImageMode) {
       return (
-        <div className="flex justify-start animate-message-in-left">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center shadow-sm mr-3 flex-shrink-0">
+        <div className="flex justify-start appear-smooth">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center shadow-sm mr-3 flex-shrink-0 transition-transform duration-normal ease-spring hover:scale-110">
             <span className="text-primary font-semibold text-xs">Z</span>
           </div>
           <div className="flex-1 max-w-[80%]">
@@ -98,11 +98,11 @@ export const Message = ({
   const isVeryShortMessage = contentString.length < 20;
   
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} ${isUser ? 'animate-message-in-right' : 'animate-message-in-left'}`}>
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} appear-smooth`}>
       <div className={`flex ${isUser ? 'flex-row-reverse' : 'flex-row'} ${isUser ? 'max-w-[70%]' : 'max-w-[75%]'} gap-2.5`}>
         {/* Avatar for AI only */}
         {!isUser && (
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/15 to-primary/35 flex items-center justify-center shadow-sm flex-shrink-0 mt-0.5">
+          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/15 to-primary/35 flex items-center justify-center shadow-sm flex-shrink-0 mt-0.5 transition-transform duration-normal ease-spring hover:scale-110">
             <span className="text-primary font-semibold text-[10px]">Z</span>
           </div>
         )}
@@ -125,7 +125,7 @@ export const Message = ({
           )}
           
           {/* Message bubble */}
-          <div className={`shadow-sm transition-all duration-200 ${
+          <div className={`shadow-sm transition-all duration-normal ease-spring hover:shadow-md ${
             isUser 
               ? `rounded-2xl rounded-br-md bg-gradient-to-br from-primary to-primary/90 text-primary-foreground ${isVeryShortMessage ? 'px-3 py-1.5' : isShortMessage ? 'px-3.5 py-2' : 'px-4 py-2.5'}`
               : 'rounded-2xl rounded-bl-md bg-card border border-border/30 text-foreground px-4 py-3'
@@ -142,14 +142,14 @@ export const Message = ({
                   <div className="flex items-center gap-2 justify-end">
                     <button
                       onClick={handleCancelEdit}
-                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[12px] bg-white/10 hover:bg-white/20 transition-colors"
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[12px] bg-white/10 hover:bg-white/20 transition-all duration-fast ease-gentle active:scale-press"
                     >
                       <X className="w-3.5 h-3.5" />
                       Cancel
                     </button>
                     <button
                       onClick={handleSaveEdit}
-                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[12px] bg-white/20 hover:bg-white/30 transition-colors"
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[12px] bg-white/20 hover:bg-white/30 transition-all duration-fast ease-gentle active:scale-press"
                     >
                       <Save className="w-3.5 h-3.5" />
                       Save
@@ -217,7 +217,7 @@ export const Message = ({
           </div>
           
           {/* Actions row */}
-          <div className={`flex items-center gap-1 mt-1.5 ${isUser ? 'justify-end' : 'ml-0.5'} opacity-0 group-hover:opacity-100 transition-opacity duration-200`}>
+          <div className={`flex items-center gap-1 mt-1.5 ${isUser ? 'justify-end' : 'ml-0.5'} opacity-0 group-hover:opacity-100 transition-opacity duration-fast ease-gentle`}>
             {/* User message: timestamp + edit */}
             {isUser && !isEditing && (
               <>
@@ -228,7 +228,7 @@ export const Message = ({
                 )}
                 <button
                   onClick={handleStartEdit}
-                  className="w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground/60 hover:bg-accent/60 hover:text-foreground transition-all duration-150"
+                  className="w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground/60 hover:bg-accent/60 hover:text-foreground transition-all duration-fast ease-gentle active:scale-press"
                   title="Edit message"
                 >
                   <Pencil className="w-3 h-3" />
@@ -241,7 +241,7 @@ export const Message = ({
               <>
                 <button
                   onClick={copyMessage}
-                  className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-all duration-150"
+                  className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-all duration-fast ease-gentle active:scale-press"
                   title={copied ? 'Copied!' : 'Copy'}
                 >
                   {copied ? <Check className="w-3.5 h-3.5 text-primary" /> : <Copy className="w-3.5 h-3.5" />}
@@ -250,7 +250,7 @@ export const Message = ({
                 {onRegenerate && (
                   <button
                     onClick={onRegenerate}
-                    className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-all duration-150"
+                    className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-all duration-fast ease-gentle active:scale-press hover:rotate-180 transition-transform duration-slow"
                     title="Regenerate"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
@@ -260,7 +260,7 @@ export const Message = ({
                 {message.metadata?.error && onRetry && (
                   <button
                     onClick={onRetry}
-                    className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-all duration-150"
+                    className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-all duration-fast ease-gentle active:scale-press"
                     title="Retry"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
