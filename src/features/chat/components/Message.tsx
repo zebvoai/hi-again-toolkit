@@ -31,7 +31,6 @@ export const Message = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState('');
 
-  // Format timestamp
   const timeAgo = message.timestamp 
     ? formatDistanceToNow(new Date(message.timestamp), { addSuffix: true })
     : null;
@@ -47,7 +46,7 @@ export const Message = ({
     const textToCopy = typeof message.content === 'string' ? message.content : JSON.stringify(message.content);
     navigator.clipboard.writeText(textToCopy);
     setCopied(true);
-    toast.success('Message copied to clipboard');
+    toast.success('Copied to clipboard');
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -70,7 +69,7 @@ export const Message = ({
     setEditContent('');
   };
 
-  // Handle multi-model responses
+  // Handle multi-model responses - render full width
   if (isMultiModel) {
     const multiContent = message.content as MultiModelContent;
     const models = message.metadata?.models || Object.keys(multiContent);
@@ -78,66 +77,62 @@ export const Message = ({
 
     if (isImageMode) {
       return (
-        <div className="flex justify-start mb-4 animate-message-in-left">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-200 to-blue-300 flex items-center justify-center shadow-[0_2px_4px_rgba(0,0,0,0.08)] mr-2 flex-shrink-0">
-            <span className="text-blue-700 font-semibold text-sm">Z</span>
+        <div className="flex justify-start animate-message-in-left">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center shadow-sm mr-3 flex-shrink-0">
+            <span className="text-primary font-semibold text-xs">Z</span>
           </div>
-          <div className="flex-1 max-w-[75%]">
+          <div className="flex-1 max-w-[80%]">
             <MultiModelImageResponse content={multiContent} models={models} />
           </div>
         </div>
       );
     }
-    return (
-      <div className="w-full">
-        <MultiModelResponse content={multiContent} models={models} />
-      </div>
-    );
+    
+    // Text multi-model - render without wrapper for full width
+    return <MultiModelResponse content={multiContent} models={models} />;
   }
 
   // Get content as string for user and single AI messages
   const contentString = typeof message.content === 'string' ? message.content : '';
-  
-  // Calculate dynamic sizing for user messages
   const isShortMessage = contentString.length < 50;
   const isVeryShortMessage = contentString.length < 20;
   
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} ${isUser ? 'animate-message-in-right' : 'animate-message-in-left'}`}>
-      <div className={`flex ${isUser ? 'flex-row-reverse' : 'flex-row'} ${isUser ? 'max-w-[65%]' : 'max-w-[75%]'} gap-2`}>
+      <div className={`flex ${isUser ? 'flex-row-reverse' : 'flex-row'} ${isUser ? 'max-w-[70%]' : 'max-w-[75%]'} gap-2.5`}>
         {/* Avatar for AI only */}
         {!isUser && (
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/15 to-primary/30 flex items-center justify-center shadow-sm flex-shrink-0 mt-0.5">
+          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/15 to-primary/35 flex items-center justify-center shadow-sm flex-shrink-0 mt-0.5">
             <span className="text-primary font-semibold text-[10px]">Z</span>
           </div>
         )}
         
-        <div className="flex flex-col group">
+        <div className="flex flex-col group min-w-0">
           {/* Model name and timestamp for AI messages */}
           {!isUser && (
             <div className="flex items-center gap-1.5 mb-1 ml-0.5">
               {message.metadata?.model && (
-                <span className="text-[10px] font-medium text-muted-foreground/60">
+                <span className="text-[10px] font-medium text-muted-foreground/70">
                   {formatModelName(message.metadata.model)}
                 </span>
               )}
               {timeAgo && (
-                <span className="text-[9px] text-muted-foreground/35">
+                <span className="text-[9px] text-muted-foreground/40">
                   {timeAgo}
                 </span>
               )}
             </div>
           )}
           
-          {/* Message bubble - dynamic sizing */}
+          {/* Message bubble */}
           <div className={`shadow-sm transition-all duration-200 ${
             isUser 
-              ? `rounded-[14px] rounded-br-[4px] bg-gradient-to-br from-primary to-primary/90 text-primary-foreground ${isVeryShortMessage ? 'px-3 py-1.5' : isShortMessage ? 'px-3.5 py-2' : 'px-4 py-2.5'}`
-              : 'rounded-[14px] rounded-bl-[4px] bg-card border border-border/30 text-foreground px-3.5 py-2.5'
+              ? `rounded-2xl rounded-br-md bg-gradient-to-br from-primary to-primary/90 text-primary-foreground ${isVeryShortMessage ? 'px-3 py-1.5' : isShortMessage ? 'px-3.5 py-2' : 'px-4 py-2.5'}`
+              : 'rounded-2xl rounded-bl-md bg-card border border-border/30 text-foreground px-4 py-3'
           }`}>
             {isUser ? (
               isEditing ? (
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   <textarea
                     value={editContent}
                     onChange={(e) => setEditContent(e.target.value)}
@@ -157,7 +152,7 @@ export const Message = ({
                       className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[12px] bg-white/20 hover:bg-white/30 transition-colors"
                     >
                       <Save className="w-3.5 h-3.5" />
-                      Save & Regenerate
+                      Save
                     </button>
                   </div>
                 </div>
@@ -179,7 +174,7 @@ export const Message = ({
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="absolute right-2 top-2 h-7 w-7 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-background/80 hover:bg-background"
+                              className="absolute right-2 top-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 hover:bg-background"
                               onClick={() => copyToClipboard(String(children), codeId)}
                             >
                               {copiedCode === codeId ? (
@@ -221,19 +216,19 @@ export const Message = ({
             )}
           </div>
           
-          {/* Actions row - consolidated with timestamp for user messages */}
-          <div className={`flex items-center gap-1.5 mt-1.5 ${isUser ? 'justify-end opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200' : 'ml-0.5'}`}>
-            {/* User message: timestamp + edit inline */}
+          {/* Actions row */}
+          <div className={`flex items-center gap-1 mt-1.5 ${isUser ? 'justify-end' : 'ml-0.5'} opacity-0 group-hover:opacity-100 transition-opacity duration-200`}>
+            {/* User message: timestamp + edit */}
             {isUser && !isEditing && (
               <>
                 {timeAgo && (
-                  <span className="text-[10px] text-muted-foreground/40 mr-1">
+                  <span className="text-[10px] text-muted-foreground/50 mr-1">
                     {timeAgo}
                   </span>
                 )}
                 <button
                   onClick={handleStartEdit}
-                  className="w-6 h-6 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 rounded-md flex items-center justify-center text-muted-foreground/60 hover:bg-accent/60 hover:text-foreground transition-all duration-150"
+                  className="w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground/60 hover:bg-accent/60 hover:text-foreground transition-all duration-150"
                   title="Edit message"
                 >
                   <Pencil className="w-3 h-3" />
@@ -241,12 +236,12 @@ export const Message = ({
               </>
             )}
             
-            {/* AI message actions - icon only with tooltips */}
+            {/* AI message actions */}
             {!isUser && (
               <>
                 <button
                   onClick={copyMessage}
-                  className="w-7 h-7 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 rounded-md flex items-center justify-center text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-all duration-150"
+                  className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-all duration-150"
                   title={copied ? 'Copied!' : 'Copy'}
                 >
                   {copied ? <Check className="w-3.5 h-3.5 text-primary" /> : <Copy className="w-3.5 h-3.5" />}
@@ -255,7 +250,7 @@ export const Message = ({
                 {onRegenerate && (
                   <button
                     onClick={onRegenerate}
-                    className="w-7 h-7 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 rounded-md flex items-center justify-center text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-all duration-150"
+                    className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-all duration-150"
                     title="Regenerate"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
@@ -265,7 +260,7 @@ export const Message = ({
                 {message.metadata?.error && onRetry && (
                   <button
                     onClick={onRetry}
-                    className="w-7 h-7 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 rounded-md flex items-center justify-center text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-all duration-150"
+                    className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-all duration-150"
                     title="Retry"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />

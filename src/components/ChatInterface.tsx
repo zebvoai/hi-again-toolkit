@@ -219,25 +219,30 @@ export function ChatInterface() {
 
       {/* Messages Area */}
       {isLoadingConversation ? (
-        <div className="flex-1 overflow-y-auto overflow-x-hidden py-8">
-        <div className="max-w-[800px] lg:max-w-[900px] xl:max-w-[1000px] mx-auto px-6">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden py-6">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6">
             <MessageSkeleton />
           </div>
         </div>
       ) : messages.length > 0 ? (
-        <div className="flex-1 overflow-y-auto overflow-x-hidden py-6 bg-gradient-to-b from-transparent via-primary/[0.01] to-transparent">
-        {messages.map((message, index) => {
-            const isMultiModelResponse = message.role === 'assistant' && typeof message.content === 'object' && !Array.isArray(message.content) && message.metadata?.models?.length > 1;
-            const prevMessage = messages[index - 1];
-            const isUserMessage = message.role === 'user';
-            const nextMessage = messages[index + 1];
-            const nextIsMultiModel = nextMessage?.role === 'assistant' && typeof nextMessage.content === 'object' && !Array.isArray(nextMessage.content) && nextMessage.metadata?.models?.length > 1;
+        <div className="flex-1 overflow-y-auto overflow-x-hidden py-4 sm:py-6">
+          <div className="space-y-4">
+            {messages.map((message, index) => {
+              const isMultiModelResponse = message.role === 'assistant' && 
+                typeof message.content === 'object' && 
+                !Array.isArray(message.content) && 
+                message.metadata?.models?.length > 1;
+              const isUserMessage = message.role === 'user';
+              const nextMessage = messages[index + 1];
+              const nextIsMultiModel = nextMessage?.role === 'assistant' && 
+                typeof nextMessage.content === 'object' && 
+                !Array.isArray(nextMessage.content) && 
+                nextMessage.metadata?.models?.length > 1;
 
-            // User message followed by multi-model response - align right edge with cards
-            if (isUserMessage && nextIsMultiModel) {
-              return (
-                <div key={message.id} className="w-full px-6 mb-1">
-                  <div className="flex justify-end">
+              // User message before multi-model - constrain width but align right
+              if (isUserMessage && nextIsMultiModel) {
+                return (
+                  <div key={message.id} className="max-w-3xl mx-auto px-4 sm:px-6">
                     <Message 
                       message={message} 
                       onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')}
@@ -245,13 +250,26 @@ export function ChatInterface() {
                       onEdit={(newContent) => editAndRegenerate(message.id, newContent)}
                     />
                   </div>
-                </div>
-              );
-            }
+                );
+              }
 
-            if (isMultiModelResponse) {
+              // Multi-model response - full width for horizontal scroll
+              if (isMultiModelResponse) {
+                return (
+                  <div key={message.id} className="w-full">
+                    <Message 
+                      message={message} 
+                      onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')}
+                      onRegenerate={() => regenerateResponse(message.id)}
+                      onEdit={(newContent) => editAndRegenerate(message.id, newContent)}
+                    />
+                  </div>
+                );
+              }
+
+              // Regular messages - constrained width
               return (
-                <div key={message.id} className="w-full mb-5">
+                <div key={message.id} className="max-w-3xl mx-auto px-4 sm:px-6">
                   <Message 
                     message={message} 
                     onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')}
@@ -260,25 +278,16 @@ export function ChatInterface() {
                   />
                 </div>
               );
-            }
-
-            return (
-              <div key={message.id} className="max-w-[800px] lg:max-w-[900px] xl:max-w-[1000px] mx-auto px-6 mb-3">
-                <Message 
-                  message={message} 
-                  onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')}
-                  onRegenerate={() => regenerateResponse(message.id)}
-                  onEdit={(newContent) => editAndRegenerate(message.id, newContent)}
-                />
+            })}
+            
+            {/* Typing indicator */}
+            {isCurrentConversationLoading && selectedModels.length === 1 && (
+              <div className="max-w-3xl mx-auto px-4 sm:px-6">
+                <TypingIndicator models={selectedModels} />
               </div>
-            );
-          })}
-          {isCurrentConversationLoading && (
-            <div className="max-w-[800px] lg:max-w-[900px] xl:max-w-[1000px] mx-auto px-6">
-              <TypingIndicator models={selectedModels} />
-            </div>
-          )}
-          <div ref={messagesEndRef} />
+            )}
+          </div>
+          <div ref={messagesEndRef} className="h-4" />
         </div>
       ) : (
         /* Empty State */
@@ -314,9 +323,9 @@ export function ChatInterface() {
         </div>
       )}
 
-      {/* Chat Input Area */}
-      <div className="sticky bottom-0 flex-shrink-0 p-3 pb-4 sm:p-4 sm:pb-6 bg-background/80 backdrop-blur-xl border-t border-border/30 z-10">
-        <div key={selectedMode} className="max-w-full sm:max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto animate-scale-in">
+      {/* Chat Input Area - Clean, focused */}
+      <div className="flex-shrink-0 p-3 pb-4 sm:p-4 sm:pb-6 bg-gradient-to-t from-background via-background to-background/95 border-t border-border/20">
+        <div key={selectedMode} className="max-w-3xl mx-auto animate-scale-in">
           <form onSubmit={handleSubmit}>
             {/* Dropdowns Row */}
             <div className="flex items-center gap-2.5 mb-3">
