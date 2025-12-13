@@ -145,7 +145,7 @@ export function ChatInterface() {
 
   const handleSendMessage = () => {
     // Haptic feedback on mobile
-    triggerHapticFeedback(10);
+    triggerHapticFeedback('light');
     
     sendMessage(input, attachedFiles);
     setInput('');

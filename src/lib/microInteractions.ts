@@ -1,9 +1,34 @@
 import confetti from 'canvas-confetti';
 
+// ========================================
+// ZEBVO MICRO-INTERACTIONS LIBRARY
+// Unified motion utilities aligned with design system
+// ========================================
+
+// Motion timing constants (matching CSS custom properties)
+export const MOTION = {
+  duration: {
+    instant: 50,
+    fast: 100,
+    normal: 180,
+    moderate: 250,
+    slow: 350,
+    slower: 500,
+  },
+  easing: {
+    default: 'cubic-bezier(0.25, 0.1, 0.25, 1)',
+    spring: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+    gentle: 'cubic-bezier(0.4, 0, 0.2, 1)',
+    snappy: 'cubic-bezier(0.2, 0, 0, 1)',
+    expo: 'cubic-bezier(0.16, 1, 0.3, 1)',
+  },
+} as const;
+
 // Trigger haptic feedback on mobile devices
-export const triggerHapticFeedback = (duration: number = 10) => {
+export const triggerHapticFeedback = (intensity: 'light' | 'medium' | 'heavy' = 'light') => {
   if ('vibrate' in navigator) {
-    navigator.vibrate(duration);
+    const durations = { light: 10, medium: 25, heavy: 50 };
+    navigator.vibrate(durations[intensity]);
   }
 };
 
@@ -56,17 +81,17 @@ export const triggerConfetti = () => {
   });
 };
 
-// Smooth scroll to element
-export const smoothScrollTo = (element: HTMLElement | null) => {
+// Smooth scroll to element with motion-aware timing
+export const smoothScrollTo = (element: HTMLElement | null, options?: { block?: ScrollLogicalPosition }) => {
   if (element) {
     element.scrollIntoView({
       behavior: 'smooth',
-      block: 'end',
+      block: options?.block ?? 'end',
     });
   }
 };
 
-// Update page title
+// Update page title with status
 export const updatePageTitle = (status: 'idle' | 'generating' | 'error' | 'success') => {
   const titles = {
     idle: 'Zebvo AI',
@@ -75,4 +100,28 @@ export const updatePageTitle = (status: 'idle' | 'generating' | 'error' | 'succe
     success: '✅ Ready | Zebvo AI',
   };
   document.title = titles[status];
+};
+
+// Apply entrance animation class temporarily
+export const animateEntrance = (element: HTMLElement, type: 'fade' | 'scale' | 'slide' = 'fade') => {
+  const animationClass = {
+    fade: 'animate-fade-in',
+    scale: 'animate-scale-in',
+    slide: 'animate-slide-in-bottom',
+  }[type];
+  
+  element.classList.add(animationClass);
+  
+  setTimeout(() => {
+    element.classList.remove(animationClass);
+  }, MOTION.duration.moderate);
+};
+
+// Create staggered animation for children
+export const staggerChildren = (container: HTMLElement, delayMs: number = 50) => {
+  const children = Array.from(container.children) as HTMLElement[];
+  children.forEach((child, index) => {
+    child.style.animationDelay = `${index * delayMs}ms`;
+    child.classList.add('appear-smooth');
+  });
 };
