@@ -66,10 +66,10 @@ export const ConversationItem = ({
         </p>
       </div>
 
-      {/* Three-dots menu - absolutely positioned, fades in on hover */}
+      {/* Three-dots menu - absolutely positioned, always visible on mobile */}
       <div 
         className={`absolute right-2 top-1/2 -translate-y-1/2 transition-opacity duration-200 ease-out ${
-          isOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+          isOpen ? 'opacity-100' : 'opacity-100 sm:opacity-0 sm:group-hover:opacity-100'
         }`}
       >
         <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
@@ -77,7 +77,7 @@ export const ConversationItem = ({
             <Button
               variant="ghost"
               size="icon"
-              className={`h-7 w-7 rounded-lg transition-all duration-150 ease-out
+              className={`h-8 w-8 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 rounded-lg transition-all duration-150 ease-out
                 ${isOpen ? 'bg-muted dark:bg-white/10' : 'hover:bg-muted/80 dark:hover:bg-white/10'}
                 text-muted-foreground hover:text-foreground
                 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/20
