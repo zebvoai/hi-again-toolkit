@@ -325,10 +325,10 @@ export function ChatInterface() {
         </div>
       )}
 
-      {/* Chat Input Area - Clean, focused */}
-      <div className="flex-shrink-0 p-3 pb-4 sm:p-4 sm:pb-6 bg-gradient-to-t from-background via-background to-background/95 border-t border-border/20">
-        <div key={selectedMode} className="w-full px-4 sm:px-6 lg:px-8 animate-scale-in">
-          <form onSubmit={handleSubmit}>
+      {/* Chat Input Area - Fixed at bottom, full width, responsive */}
+      <div className="sticky bottom-0 z-30 w-full bg-background border-t border-border/20">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+          <form onSubmit={handleSubmit} key={selectedMode} className="animate-scale-in">
             {/* Dropdowns Row */}
             <div className="flex items-center gap-2.5 mb-3">
               <ModeDropdown />
@@ -337,7 +337,7 @@ export function ChatInterface() {
 
             {/* File Attachments Preview */}
             {attachedFiles.length > 0 && (
-              <div className="mb-3 p-3 glass-panel rounded-[18px] border border-border/50">
+              <div className="mb-3 p-3 bg-card rounded-[18px] border border-border/50">
                 <div className="flex flex-wrap gap-2">
                   {attachedFiles.map((file, index) => (
                     <div key={index} className="flex items-center gap-2 bg-muted/50 rounded-xl px-3 py-2 text-sm">
@@ -357,7 +357,7 @@ export function ChatInterface() {
             {/* Hidden File Input */}
             <input ref={fileInputRef} type="file" multiple accept="*/*" onChange={handleFileSelect} className="hidden" />
 
-            {/* Glass Input Bar */}
+            {/* Glass Input Bar - Full width */}
             <div className="flex items-center w-full h-[60px] bg-card rounded-[50px] border border-border shadow-sm focus-within:border-primary/50 focus-within:shadow-[0_0_0_3px_hsl(var(--primary)/0.1)] transition-all duration-[220ms] ease-[cubic-bezier(0.25,0.1,0.25,1)] px-[11px]">
               {/* Left Plus Button */}
               <button type="button" onClick={triggerFileInput} className="flex-shrink-0 w-[42px] h-[42px] rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 hover:scale-[1.05] active:scale-[0.95] transition-all duration-[180ms] border border-border/50">
