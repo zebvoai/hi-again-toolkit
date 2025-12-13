@@ -54,7 +54,7 @@ export function AppSidebar() {
     { id: 1, name: "Queries" },
     { id: 2, name: "Zebvo" },
   ]);
-  const [hoveredProject, setHoveredProject] = useState<number | null>(null);
+  
   
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
@@ -97,10 +97,24 @@ export function AppSidebar() {
   };
 
   const handleProjectAction = (projectId: number, action: "rename" | "duplicate" | "archive" | "delete") => {
-    console.log(`Project ${projectId} - ${action}`);
-    // TODO: Implement project actions
+    const project = projects.find((p) => p.id === projectId);
+    if (!project) return;
+    
     if (action === "delete") {
       setProjects(projects.filter((p) => p.id !== projectId));
+      toast({ title: 'Deleted', description: `Project "${project.name}" deleted` });
+    } else if (action === "duplicate") {
+      const newProject = {
+        id: Math.max(...projects.map(p => p.id)) + 1,
+        name: `${project.name} (copy)`
+      };
+      setProjects([...projects, newProject]);
+      toast({ title: 'Duplicated', description: `Project "${project.name}" duplicated` });
+    } else if (action === "archive") {
+      toast({ title: 'Archived', description: `Project "${project.name}" archived` });
+    } else if (action === "rename") {
+      // TODO: Open rename dialog for projects
+      toast({ title: 'Rename', description: 'Project rename dialog coming soon' });
     }
   };
 
@@ -306,86 +320,87 @@ export function AppSidebar() {
                   <div
                     key={project.id}
                     className="group relative flex items-center gap-2.5 px-2.5 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl transition-all duration-normal ease-gentle cursor-pointer overflow-hidden hover:-translate-y-[1px] active:scale-press active:duration-fast"
-                    onMouseEnter={() => setHoveredProject(project.id)}
-                    onMouseLeave={() => setHoveredProject(null)}
                   >
                     <Folder className="w-4 h-4 text-[#8E8E93] flex-shrink-0" />
                     <span className="text-[13px] flex-1 truncate whitespace-nowrap overflow-hidden text-ellipsis text-foreground/80">
                       {project.name}
                     </span>
 
-                    {/* 3-dot menu (visible on hover) */}
-                    {hoveredProject === project.id && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="w-8 h-8 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex-shrink-0 hover:bg-black/[0.06] dark:hover:bg-white/10 rounded-md transition-colors"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <MoreVertical className="w-3.5 h-3.5 text-[#8E8E93]" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48 bg-popover border shadow-lg z-50 rounded-[20px]">
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleProjectAction(project.id, "rename");
-                            }}
-                          >
-                            <Edit className="w-4 h-4 mr-2" />
-                            Rename project
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              console.log("Add new chat to project", project.id);
-                            }}
-                          >
-                            <MessageSquarePlus className="w-4 h-4 mr-2" />
-                            Add new chat to project
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              console.log("Share project", project.id);
-                            }}
-                          >
-                            <Share className="w-4 h-4 mr-2" />
-                            Share project
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              console.log("Export project", project.id);
-                            }}
-                          >
-                            <FileDown className="w-4 h-4 mr-2" />
-                            Export project
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleProjectAction(project.id, "archive");
-                            }}
-                          >
-                            <Archive className="w-4 h-4 mr-2" />
-                            Archive project
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleProjectAction(project.id, "delete");
-                            }}
-                            className="focus:bg-red-50"
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" style={{ color: '#D92D20' }} />
-                            <span style={{ color: '#D92D20' }}>Delete project</span>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
+                    {/* 3-dot menu - always visible on mobile, hover on desktop */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="w-7 h-7 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex-shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 hover:bg-black/[0.06] dark:hover:bg-white/10 rounded-lg transition-all duration-normal ease-gentle"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MoreVertical className="w-3.5 h-3.5 text-[#8E8E93]" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" sideOffset={4} className="w-52 bg-popover/95 backdrop-blur-xl border border-border/50 shadow-lg z-50 rounded-xl p-1">
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleProjectAction(project.id, "rename");
+                          }}
+                          className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer"
+                        >
+                          <Edit className="w-4 h-4 text-[#8E8E93]" />
+                          <span className="text-[13px]">Rename</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleProjectAction(project.id, "duplicate");
+                          }}
+                          className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer"
+                        >
+                          <MessageSquarePlus className="w-4 h-4 text-[#8E8E93]" />
+                          <span className="text-[13px]">Duplicate</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            console.log("Share project", project.id);
+                          }}
+                          className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer"
+                        >
+                          <Share className="w-4 h-4 text-[#8E8E93]" />
+                          <span className="text-[13px]">Share</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            console.log("Export project", project.id);
+                          }}
+                          className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer"
+                        >
+                          <FileDown className="w-4 h-4 text-[#8E8E93]" />
+                          <span className="text-[13px]">Export</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleProjectAction(project.id, "archive");
+                          }}
+                          className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer"
+                        >
+                          <Archive className="w-4 h-4 text-[#8E8E93]" />
+                          <span className="text-[13px]">Archive</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleProjectAction(project.id, "delete");
+                          }}
+                          className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          <span className="text-[13px]">Delete</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 ))}
               </div>
