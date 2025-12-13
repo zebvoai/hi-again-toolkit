@@ -238,6 +238,26 @@ export function ChatInterface() {
                 typeof nextMessage.content === 'object' && 
                 !Array.isArray(nextMessage.content) && 
                 nextMessage.metadata?.models?.length > 1;
+              const prevMessage = messages[index - 1];
+              const prevIsMultiModel = prevMessage?.role === 'assistant' &&
+                typeof prevMessage.content === 'object' &&
+                !Array.isArray(prevMessage.content) &&
+                prevMessage.metadata?.models?.length > 1;
+
+              // If this is a multi-model response that is identical to the previous one,
+              // skip rendering to avoid duplicate rows in the UI
+              if (isMultiModelResponse && prevIsMultiModel) {
+                const currContent = JSON.stringify(message.content);
+                const prevContent = JSON.stringify(prevMessage!.content);
+                const currModels = message.metadata?.models || [];
+                const prevModels = prevMessage!.metadata?.models || [];
+                const sameModels = currModels.length === prevModels.length &&
+                  currModels.every((m: string, i: number) => m === prevModels[i]);
+
+                if (sameModels && currContent === prevContent) {
+                  return null;
+                }
+              }
 
               // User message before multi-model - constrain width but align right
               if (isUserMessage && nextIsMultiModel) {
