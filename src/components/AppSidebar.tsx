@@ -35,8 +35,9 @@ import { useAuth } from "@/hooks/useAuth";
 import type { Message } from "@/types";
 
 export function AppSidebar() {
-  const { state } = useSidebar();
-  const isCollapsed = state === "collapsed";
+  const { state, isMobile } = useSidebar();
+  // On mobile, always show expanded content in the Sheet drawer
+  const isCollapsed = !isMobile && state === "collapsed";
   const { clearMessages, setCurrentConversationId, currentConversationId, setMessages } =
     useChatStore();
   const { conversations, isLoading, loadConversation, deleteConversation, renameConversation, shareConversation, refreshConversations } = useConversations();
