@@ -277,10 +277,14 @@ export function AppSidebar() {
           {/* Library */}
           <Button
             variant="ghost"
-            className="w-full justify-start gap-2.5 px-2.5 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl overflow-hidden whitespace-nowrap"
+            className="w-full justify-between gap-2.5 px-2.5 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl overflow-hidden whitespace-nowrap cursor-default opacity-60"
+            disabled
           >
-            <Library className="w-4 h-4 text-[#8E8E93] flex-shrink-0" />
-            <span className="text-[13px] text-foreground/80 truncate">Library</span>
+            <div className="flex items-center gap-2.5">
+              <Library className="w-4 h-4 text-[#8E8E93] flex-shrink-0" />
+              <span className="text-[13px] text-foreground/80 truncate">Library</span>
+            </div>
+            <span className="text-[10px] text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded-full">Soon</span>
           </Button>
         </SidebarHeader>
       </div>
