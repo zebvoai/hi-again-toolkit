@@ -48,10 +48,9 @@ export const ConversationItem = ({
     <div
       className={cn(
         "group relative flex items-center gap-2.5 px-2.5 py-2 rounded-xl cursor-pointer",
-        "transition-all duration-normal ease-spring",
         isActive 
           ? 'bg-white dark:bg-white/10 shadow-sm' 
-          : 'hover:bg-muted/50 dark:hover:bg-white/[0.06] hover:-translate-y-[1px] active:scale-press active:duration-fast'
+          : 'hover:bg-muted/50 dark:hover:bg-white/[0.06]'
       )}
       onClick={onClick}
     >
@@ -72,7 +71,7 @@ export const ConversationItem = ({
       {/* Three-dots menu - absolutely positioned, always visible on mobile */}
       <div 
         className={cn(
-          "absolute right-2 top-1/2 -translate-y-1/2 transition-opacity duration-fast ease-gentle",
+          "absolute right-2 top-1/2 -translate-y-1/2",
           isOpen ? 'opacity-100' : 'opacity-100 sm:opacity-0 sm:group-hover:opacity-100'
         )}
       >
@@ -83,11 +82,9 @@ export const ConversationItem = ({
               size="icon"
               className={cn(
                 "h-8 w-8 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 rounded-lg",
-                "transition-all duration-fast ease-gentle",
                 isOpen ? 'bg-muted dark:bg-white/10' : 'hover:bg-muted/80 dark:hover:bg-white/10',
                 "text-muted-foreground hover:text-foreground",
-                "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/20",
-                "active:scale-press"
+                "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
               )}
               onClick={(e) => e.stopPropagation()}
               aria-label="More options"
