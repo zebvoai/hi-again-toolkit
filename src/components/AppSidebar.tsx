@@ -263,8 +263,8 @@ export function AppSidebar() {
           </Button>
 
           {/* Search Chats */}
-          <div className="relative w-full overflow-hidden">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E8E93] pointer-events-none" />
+          <div className="relative w-full">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E8E93] pointer-events-none z-10" />
             <Input
               type="text"
               placeholder="Search"
