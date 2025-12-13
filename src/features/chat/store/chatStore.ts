@@ -8,9 +8,20 @@ export const useChatStore = create<ChatState>((set, get) => ({
   error: null,
   selectedModels: ['Perplexity Sonar Pro'],
   currentConversationId: null,
-  addMessage: (message) => set((state) => ({ 
-    messages: [...state.messages, message] 
-  })),
+  addMessage: (message) => set((state) => {
+    // Prevent adding duplicate messages by checking ID and content
+    const exists = state.messages.some(m => 
+      m.id === message.id || 
+      (m.role === message.role && 
+       JSON.stringify(m.content) === JSON.stringify(message.content) &&
+       Math.abs((m.timestamp || 0) - (message.timestamp || 0)) < 10000)
+    );
+    if (exists) {
+      console.log('Skipping duplicate message in store:', message.id);
+      return state;
+    }
+    return { messages: [...state.messages, message] };
+  }),
   updateMessage: (id, updates) => set((state) => ({
     messages: state.messages.map(msg => 
       msg.id === id ? { ...msg, ...updates } : msg
