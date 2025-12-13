@@ -300,8 +300,8 @@ export function ChatInterface() {
       )}
 
       {/* Chat Input Area */}
-      <div className="sticky bottom-0 flex-shrink-0 p-4 pb-6 bg-background/80 backdrop-blur-xl border-t border-border/30 z-10">
-        <div key={selectedMode} className="max-w-4xl mx-auto animate-scale-in">
+      <div className="sticky bottom-0 flex-shrink-0 p-3 pb-4 sm:p-4 sm:pb-6 bg-background/80 backdrop-blur-xl border-t border-border/30 z-10">
+        <div key={selectedMode} className="max-w-full sm:max-w-4xl mx-auto animate-scale-in">
           <form onSubmit={handleSubmit}>
             {/* Dropdowns Row */}
             <div className="flex items-center gap-2.5 mb-3">
@@ -348,7 +348,7 @@ export function ChatInterface() {
                 onChange={e => setInput(e.target.value)} 
                 placeholder="Ask Zebvo ai" 
                 disabled={isCurrentConversationLoading} 
-                className="flex-1 bg-transparent outline-none text-[17px] font-medium placeholder:text-muted-foreground/70 disabled:opacity-50 px-4 text-foreground"
+                className="flex-1 min-w-0 bg-transparent outline-none text-[17px] font-medium placeholder:text-muted-foreground/70 disabled:opacity-50 px-4 text-foreground"
                 maxLength={4000} 
               />
 
