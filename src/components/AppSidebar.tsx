@@ -211,13 +211,21 @@ export function AppSidebar() {
     {} as Record<string, typeof filteredConversations>,
   );
 
-  // Only show collapsed state on desktop (md+), mobile uses Sheet drawer
-  if (isCollapsed) {
-    return (
-      <Sidebar className="hidden md:flex w-[60px] border-r border-border/20 canvas-glass flex-col h-screen" collapsible="icon">
-        <div className="flex-none">
-          <SidebarHeader className="px-3 pt-3 pb-2 flex flex-col items-center gap-2">
-            <SidebarTrigger className="w-8 h-8 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 hover:bg-black/5 dark:hover:bg-white/10 text-[#8E8E93] hover:text-foreground rounded-full" />
+  return (
+    <Sidebar 
+      className={`hidden md:flex border-r border-border/20 canvas-glass flex-col h-screen transition-all duration-300 ease-out ${
+        isCollapsed ? 'w-[60px]' : 'w-[280px]'
+      }`} 
+      collapsible="icon"
+    >
+      <div className="flex-none overflow-hidden">
+        <SidebarHeader className={`pt-3 pb-2 transition-all duration-300 ease-out ${
+          isCollapsed ? 'px-3 flex flex-col items-center gap-2' : 'px-3 space-y-2.5'
+        }`}>
+          <SidebarTrigger className="w-8 h-8 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 hover:bg-black/5 dark:hover:bg-white/10 text-[#8E8E93] hover:text-foreground rounded-full flex-shrink-0" />
+
+          {/* Collapsed: Icon-only New Chat button */}
+          {isCollapsed && (
             <Button
               variant="ghost"
               size="icon"
@@ -226,12 +234,224 @@ export function AppSidebar() {
             >
               <Plus className="w-4 h-4" />
             </Button>
-          </SidebarHeader>
-        </div>
+          )}
 
-        <div className="flex-grow" />
+          {/* Expanded: Full New Chat button and other controls */}
+          {!isCollapsed && (
+            <>
+              {/* New Chat */}
+              <Button
+                variant="ghost"
+                className="w-full h-10 justify-start gap-2.5 px-2.5 bg-white/60 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 rounded-xl border border-border/20 shadow-sm hover:shadow-md overflow-hidden whitespace-nowrap"
+                onClick={handleNewChat}
+              >
+                <div className="w-7 h-7 rounded-full bg-[#007AFF] flex items-center justify-center flex-shrink-0 shadow-sm">
+                  <Plus className="w-3.5 h-3.5 text-white" />
+                </div>
+                <span className="text-[13px] font-medium text-foreground truncate">New Chat</span>
+              </Button>
 
-        <SidebarFooter className="flex-none p-3 w-full max-w-[60px] flex items-center justify-center mb-4 overflow-hidden">
+              {/* Search Chats */}
+              <div className="relative w-full">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E8E93] pointer-events-none z-10" />
+                <Input
+                  type="text"
+                  placeholder="Search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-8 pr-3 py-2 h-9 text-[13px] rounded-xl bg-black/[0.04] dark:bg-white/[0.08] border-0 placeholder:text-[#8E8E93] focus:bg-white dark:focus:bg-white/10 focus:ring-2 focus:ring-[#007AFF]/30"
+                />
+              </div>
+
+              {/* Library */}
+              <Button
+                variant="ghost"
+                className="w-full justify-between gap-2.5 px-2.5 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl overflow-hidden whitespace-nowrap cursor-default opacity-60"
+                disabled
+              >
+                <div className="flex items-center gap-2.5">
+                  <Library className="w-4 h-4 text-[#8E8E93] flex-shrink-0" />
+                  <span className="text-[13px] text-foreground/80 truncate">Library</span>
+                </div>
+                <span className="text-[10px] text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded-full">Soon</span>
+              </Button>
+            </>
+          )}
+        </SidebarHeader>
+      </div>
+
+      {/* Collapsed: Spacer to push footer down */}
+      {isCollapsed && <div className="flex-grow" />}
+
+      {/* Expanded: Scrollable content area */}
+      {!isCollapsed && (
+        <ScrollArea className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3">
+          <SidebarContent className="pb-4 space-y-3">
+            {/* Projects Section */}
+            <div className="space-y-0.5">
+              {/* Projects Header */}
+              <button
+                onClick={() => setIsProjectsOpen(!isProjectsOpen)}
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#8E8E93] hover:text-foreground rounded-lg transition-colors"
+              >
+                {isProjectsOpen ? (
+                  <ChevronDown className="w-3 h-3" />
+                ) : (
+                  <ChevronRight className="w-3 h-3" />
+                )}
+                <span>Projects</span>
+              </button>
+
+              {/* Projects Content */}
+              {isProjectsOpen && (
+                <div className="space-y-0.5 pl-0.5">
+                  {/* New Project */}
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start gap-2.5 px-2.5 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl"
+                    onClick={() => setIsNewProjectDialogOpen(true)}
+                  >
+                    <Plus className="w-4 h-4 text-[#8E8E93]" />
+                    <span className="text-[13px] text-foreground/70">New project</span>
+                  </Button>
+
+                  {/* Project List */}
+                  {projects.map((project) => (
+                    <div
+                      key={project.id}
+                      className="group relative flex items-center gap-2.5 px-2.5 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl cursor-pointer overflow-hidden"
+                    >
+                      <Folder className="w-4 h-4 text-[#8E8E93] flex-shrink-0" />
+                      <span className="text-[13px] flex-1 truncate whitespace-nowrap overflow-hidden text-ellipsis text-foreground/80">
+                        {project.name}
+                      </span>
+
+                      {/* 3-dot menu - always visible on mobile, hover on desktop */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="w-7 h-7 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex-shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 hover:bg-black/[0.06] dark:hover:bg-white/10 rounded-lg"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <MoreVertical className="w-3.5 h-3.5 text-[#8E8E93]" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" sideOffset={4} className="w-52 bg-popover/95 backdrop-blur-xl border border-border/50 shadow-lg z-50 rounded-xl p-1">
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleProjectAction(project.id, "rename");
+                            }}
+                            className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer"
+                          >
+                            <Edit className="w-4 h-4 text-[#8E8E93]" />
+                            <span className="text-[13px]">Rename</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleProjectAction(project.id, "duplicate");
+                            }}
+                            className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer"
+                          >
+                            <MessageSquarePlus className="w-4 h-4 text-[#8E8E93]" />
+                            <span className="text-[13px]">Duplicate</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              console.log("Share project", project.id);
+                            }}
+                            className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer"
+                          >
+                            <Share className="w-4 h-4 text-[#8E8E93]" />
+                            <span className="text-[13px]">Share</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              console.log("Export project", project.id);
+                            }}
+                            className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer"
+                          >
+                            <FileDown className="w-4 h-4 text-[#8E8E93]" />
+                            <span className="text-[13px]">Export</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleProjectAction(project.id, "archive");
+                            }}
+                            className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer"
+                          >
+                            <Archive className="w-4 h-4 text-[#8E8E93]" />
+                            <span className="text-[13px]">Archive</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleProjectAction(project.id, "delete");
+                            }}
+                            className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            <span className="text-[13px]">Delete</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Chat History */}
+            {isLoading ? (
+              <div className="text-[13px] text-[#8E8E93] text-center py-6">Loading...</div>
+            ) : conversations.length === 0 ? (
+              <div className="text-[13px] text-[#8E8E93] text-center py-6">No conversations yet</div>
+            ) : filteredConversations.length === 0 ? (
+              <div className="text-[13px] text-[#8E8E93] text-center py-6">No chats found</div>
+            ) : (
+              <div className="space-y-3">
+                {Object.entries(groupedConversations).map(([label, convs]) => (
+                  <div key={label} className="space-y-0.5">
+                    <div className="flex items-center gap-2 px-2.5 py-1 text-[11px] font-semibold text-[#8E8E93] uppercase tracking-wider">
+                      <span>{label}</span>
+                    </div>
+                    <div className="space-y-0.5 pl-0.5">
+                      {convs.map((conv) => (
+                        <ConversationItem
+                          key={conv.id}
+                          id={conv.id}
+                          title={conv.title}
+                          updatedAt={conv.updated_at}
+                          isActive={currentConversationId === conv.id}
+                          onClick={() => handleLoadConversation(conv.id)}
+                          onDelete={() => handleDeleteConversation(conv.id)}
+                          onShare={() => handleShare(conv.id)}
+                          onRename={() => handleRename(conv.id)}
+                          onArchive={() => handleArchive(conv.id)}
+                          onExportMarkdown={() => handleExportMarkdown(conv.id)}
+                          onExportJSON={() => handleExportJSON(conv.id)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </SidebarContent>
+        </ScrollArea>
+      )}
+
+      {/* Footer - adapts to collapsed/expanded state */}
+      <SidebarFooter className={`flex-none border-t border-border/20 mt-auto mb-4 transition-all duration-300 ease-out ${
+        isCollapsed ? 'p-3 flex items-center justify-center' : 'px-2 py-3'
+      }`}>
+        {isCollapsed ? (
           <Button
             variant="ghost"
             size="icon"
@@ -239,251 +459,41 @@ export function AppSidebar() {
           >
             <User className="w-4 h-4" />
           </Button>
-        </SidebarFooter>
-      </Sidebar>
-    );
-  }
-
-  return (
-    <Sidebar className="hidden md:flex w-full max-w-[280px] border-r border-border/20 canvas-glass flex-col h-screen" collapsible="icon">
-      <div className="flex-none overflow-hidden">
-        <SidebarHeader className="px-3 pt-3 pb-2 space-y-2.5">
-          <SidebarTrigger className="w-8 h-8 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 hover:bg-black/5 dark:hover:bg-white/10 text-[#8E8E93] hover:text-foreground rounded-full" />
-
-          {/* New Chat */}
-          <Button
-            variant="ghost"
-            className="w-full h-10 justify-start gap-2.5 px-2.5 bg-white/60 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 rounded-xl border border-border/20 shadow-sm hover:shadow-md overflow-hidden whitespace-nowrap"
-            onClick={handleNewChat}
-          >
-            <div className="w-7 h-7 rounded-full bg-[#007AFF] flex items-center justify-center flex-shrink-0 shadow-sm">
-              <Plus className="w-3.5 h-3.5 text-white" />
-            </div>
-            <span className="text-[13px] font-medium text-foreground truncate">New Chat</span>
-          </Button>
-
-          {/* Search Chats */}
-          <div className="relative w-full">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E8E93] pointer-events-none z-10" />
-            <Input
-              type="text"
-              placeholder="Search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-8 pr-3 py-2 h-9 text-[13px] rounded-xl bg-black/[0.04] dark:bg-white/[0.08] border-0 placeholder:text-[#8E8E93] focus:bg-white dark:focus:bg-white/10 focus:ring-2 focus:ring-[#007AFF]/30"
-            />
-          </div>
-
-          {/* Library */}
-          <Button
-            variant="ghost"
-            className="w-full justify-between gap-2.5 px-2.5 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl overflow-hidden whitespace-nowrap cursor-default opacity-60"
-            disabled
-          >
-            <div className="flex items-center gap-2.5">
-              <Library className="w-4 h-4 text-[#8E8E93] flex-shrink-0" />
-              <span className="text-[13px] text-foreground/80 truncate">Library</span>
-            </div>
-            <span className="text-[10px] text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded-full">Soon</span>
-          </Button>
-        </SidebarHeader>
-      </div>
-
-      <ScrollArea className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3">
-        <SidebarContent className="pb-4 space-y-3">
-          {/* Projects Section */}
-          <div className="space-y-0.5">
-            {/* Projects Header */}
-            <button
-              onClick={() => setIsProjectsOpen(!isProjectsOpen)}
-              className="w-full flex items-center gap-2 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#8E8E93] hover:text-foreground rounded-lg transition-colors"
-            >
-              {isProjectsOpen ? (
-                <ChevronDown className="w-3 h-3" />
-              ) : (
-                <ChevronRight className="w-3 h-3" />
-              )}
-              <span>Projects</span>
-            </button>
-
-            {/* Projects Content */}
-            {isProjectsOpen && (
-              <div className="space-y-0.5 pl-0.5">
-                {/* New Project */}
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start gap-2.5 px-2.5 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl"
-                  onClick={() => setIsNewProjectDialogOpen(true)}
-                >
-                  <Plus className="w-4 h-4 text-[#8E8E93]" />
-                  <span className="text-[13px] text-foreground/70">New project</span>
-                </Button>
-
-                {/* Project List */}
-                {projects.map((project) => (
-                  <div
-                    key={project.id}
-                    className="group relative flex items-center gap-2.5 px-2.5 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl cursor-pointer overflow-hidden"
-                  >
-                    <Folder className="w-4 h-4 text-[#8E8E93] flex-shrink-0" />
-                    <span className="text-[13px] flex-1 truncate whitespace-nowrap overflow-hidden text-ellipsis text-foreground/80">
-                      {project.name}
-                    </span>
-
-                    {/* 3-dot menu - always visible on mobile, hover on desktop */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="w-7 h-7 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex-shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 hover:bg-black/[0.06] dark:hover:bg-white/10 rounded-lg"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <MoreVertical className="w-3.5 h-3.5 text-[#8E8E93]" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" sideOffset={4} className="w-52 bg-popover/95 backdrop-blur-xl border border-border/50 shadow-lg z-50 rounded-xl p-1">
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleProjectAction(project.id, "rename");
-                          }}
-                          className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer"
-                        >
-                          <Edit className="w-4 h-4 text-[#8E8E93]" />
-                          <span className="text-[13px]">Rename</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleProjectAction(project.id, "duplicate");
-                          }}
-                          className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer"
-                        >
-                          <MessageSquarePlus className="w-4 h-4 text-[#8E8E93]" />
-                          <span className="text-[13px]">Duplicate</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            console.log("Share project", project.id);
-                          }}
-                          className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer"
-                        >
-                          <Share className="w-4 h-4 text-[#8E8E93]" />
-                          <span className="text-[13px]">Share</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            console.log("Export project", project.id);
-                          }}
-                          className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer"
-                        >
-                          <FileDown className="w-4 h-4 text-[#8E8E93]" />
-                          <span className="text-[13px]">Export</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleProjectAction(project.id, "archive");
-                          }}
-                          className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer"
-                        >
-                          <Archive className="w-4 h-4 text-[#8E8E93]" />
-                          <span className="text-[13px]">Archive</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleProjectAction(project.id, "delete");
-                          }}
-                          className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                          <span className="text-[13px]">Delete</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Chat History */}
-          {isLoading ? (
-            <div className="text-[13px] text-[#8E8E93] text-center py-6">Loading...</div>
-          ) : conversations.length === 0 ? (
-            <div className="text-[13px] text-[#8E8E93] text-center py-6">No conversations yet</div>
-          ) : filteredConversations.length === 0 ? (
-            <div className="text-[13px] text-[#8E8E93] text-center py-6">No chats found</div>
-          ) : (
-            <div className="space-y-3">
-              {Object.entries(groupedConversations).map(([label, convs]) => (
-                <div key={label} className="space-y-0.5">
-                  <div className="flex items-center gap-2 px-2.5 py-1 text-[11px] font-semibold text-[#8E8E93] uppercase tracking-wider">
-                    <span>{label}</span>
-                  </div>
-                  <div className="space-y-0.5 pl-0.5">
-                    {convs.map((conv) => (
-                      <ConversationItem
-                        key={conv.id}
-                        id={conv.id}
-                        title={conv.title}
-                        updatedAt={conv.updated_at}
-                        isActive={currentConversationId === conv.id}
-                        onClick={() => handleLoadConversation(conv.id)}
-                        onDelete={() => handleDeleteConversation(conv.id)}
-                        onShare={() => handleShare(conv.id)}
-                        onRename={() => handleRename(conv.id)}
-                        onArchive={() => handleArchive(conv.id)}
-                        onExportMarkdown={() => handleExportMarkdown(conv.id)}
-                        onExportJSON={() => handleExportJSON(conv.id)}
-                      />
-                    ))}
-                  </div>
+        ) : (
+          <DropdownMenu open={isProfileDropdownOpen} onOpenChange={setIsProfileDropdownOpen}>
+            <DropdownMenuTrigger asChild>
+              <div className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-black/[0.04] dark:hover:bg-white/[0.08] cursor-pointer transition-all duration-200 mx-1">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#007AFF] to-[#5856D6] flex items-center justify-center flex-shrink-0 shadow-sm">
+                  <User className="w-4 h-4 text-white" />
                 </div>
-              ))}
-            </div>
-          )}
-        </SidebarContent>
-      </ScrollArea>
-
-      <SidebarFooter className="flex-none px-2 py-3 border-t border-border/20 mt-auto mb-4">
-        <DropdownMenu open={isProfileDropdownOpen} onOpenChange={setIsProfileDropdownOpen}>
-          <DropdownMenuTrigger asChild>
-            <div className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-black/[0.04] dark:hover:bg-white/[0.08] cursor-pointer transition-all duration-200 mx-1">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#007AFF] to-[#5856D6] flex items-center justify-center flex-shrink-0 shadow-sm">
-                <User className="w-4 h-4 text-white" />
+                <span className="text-[13px] font-medium flex-1 text-foreground truncate">{user?.email || 'User'}</span>
+                <ChevronDown className={`w-4 h-4 text-[#8E8E93] transition-transform duration-200 ${isProfileDropdownOpen ? 'rotate-180' : ''}`} />
               </div>
-              <span className="text-[13px] font-medium flex-1 text-foreground truncate">{user?.email || 'User'}</span>
-              <ChevronDown className={`w-4 h-4 text-[#8E8E93] transition-transform duration-200 ${isProfileDropdownOpen ? 'rotate-180' : ''}`} />
-            </div>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" side="top" className="w-52 rounded-2xl bg-white/95 dark:bg-[#2C2C2E]/95 backdrop-blur-xl border-border/20 shadow-lg p-1.5">
-            <DropdownMenuItem className="rounded-xl px-3 py-2.5 text-[13px] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] transition-colors">
-              <UserCircle className="w-4 h-4 mr-2.5 text-[#8E8E93]" />
-              Profile
-            </DropdownMenuItem>
-            <DropdownMenuItem className="rounded-xl px-3 py-2.5 text-[13px] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] transition-colors">
-              <User className="w-4 h-4 mr-2.5 text-[#8E8E93]" />
-              Account
-            </DropdownMenuItem>
-            <DropdownMenuItem className="rounded-xl px-3 py-2.5 text-[13px] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] transition-colors">
-              <Settings className="w-4 h-4 mr-2.5 text-[#8E8E93]" />
-              Settings
-            </DropdownMenuItem>
-            <div className="h-px bg-border/20 my-1" />
-            <DropdownMenuItem 
-              className="rounded-xl px-3 py-2.5 text-[13px] text-[#FF3B30] hover:bg-[#FF3B30]/10 transition-colors"
-              onClick={handleLogout}
-            >
-              <LogOut className="w-4 h-4 mr-2.5" />
-              Logout
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" side="top" className="w-52 rounded-2xl bg-white/95 dark:bg-[#2C2C2E]/95 backdrop-blur-xl border-border/20 shadow-lg p-1.5">
+              <DropdownMenuItem className="rounded-xl px-3 py-2.5 text-[13px] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] transition-colors">
+                <UserCircle className="w-4 h-4 mr-2.5 text-[#8E8E93]" />
+                Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem className="rounded-xl px-3 py-2.5 text-[13px] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] transition-colors">
+                <User className="w-4 h-4 mr-2.5 text-[#8E8E93]" />
+                Account
+              </DropdownMenuItem>
+              <DropdownMenuItem className="rounded-xl px-3 py-2.5 text-[13px] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] transition-colors">
+                <Settings className="w-4 h-4 mr-2.5 text-[#8E8E93]" />
+                Settings
+              </DropdownMenuItem>
+              <div className="h-px bg-border/20 my-1" />
+              <DropdownMenuItem 
+                className="rounded-xl px-3 py-2.5 text-[13px] text-[#FF3B30] hover:bg-[#FF3B30]/10 transition-colors"
+                onClick={handleLogout}
+              >
+                <LogOut className="w-4 h-4 mr-2.5" />
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </SidebarFooter>
       
       {/* New Project Dialog */}
