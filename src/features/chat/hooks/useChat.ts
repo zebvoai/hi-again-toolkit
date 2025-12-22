@@ -248,8 +248,6 @@ export const useChat = () => {
     try {
       // Handle Deep Research mode
       if (selectedMode === 'research') {
-        const selectedModel = selectedModels[0] || 'Sonar Deep Research';
-        
         // Start elapsed time counter
         setResearchElapsedTime(0);
         setResearchStatus('searching');
@@ -260,60 +258,138 @@ export const useChat = () => {
         }, 1000);
         
         try {
-          const response = await researchApi.startResearch(
-            content,
-            selectedModel,
-            messages,
-            (progress) => {
-              setResearchStatus(progress.status);
-              if (progress.sourcesCount) {
-                setResearchSourcesCount(progress.sourcesCount);
-              }
-            },
-            abortControllerRef.current?.signal
-          );
-          
-          // Clear timer
-          if (researchTimerRef.current) {
-            clearInterval(researchTimerRef.current);
-            researchTimerRef.current = null;
-          }
-          
-          const assistantMessage: Message = {
-            id: assistantId,
-            role: 'assistant' as const,
-            content: response.content,
-            timestamp: Date.now(),
-            metadata: {
-              model: selectedModel,
-              provider: 'research',
-              isResearch: true,
-              researchStatus: 'complete',
-              sourcesCount: response.sourcesAnalyzed,
-              citations: response.citations,
-            }
-          };
-          
-          addMessage(assistantMessage);
-          
-          if (convId) {
-            await supabase.from('messages').insert({
-              conversation_id: convId,
-              role: assistantMessage.role,
-              content: assistantMessage.content,
-              metadata: assistantMessage.metadata
-            });
+          // Handle multi-model research
+          if (selectedModels.length > 1) {
+            let multiModelContent: MultiModelContent = {};
             
-            await supabase
-              .from('conversations')
-              .update({ updated_at: new Date().toISOString() })
-              .eq('id', convId);
+            const researchPromises = selectedModels.map(async (model) => {
+              try {
+                const response = await researchApi.startResearch(
+                  content,
+                  model,
+                  messages,
+                  (progress) => {
+                    // Only update progress from the first model to avoid conflicts
+                    if (model === selectedModels[0]) {
+                      setResearchStatus(progress.status);
+                      if (progress.sourcesCount) {
+                        setResearchSourcesCount(progress.sourcesCount);
+                      }
+                    }
+                  },
+                  abortControllerRef.current?.signal
+                );
+                multiModelContent[model] = response.content;
+                return { model, success: true, response };
+              } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : 'Research failed';
+                multiModelContent[model] = `Error: ${errorMessage}`;
+                console.error(`Research error for ${model}:`, error);
+                return { model, success: false, error };
+              }
+            });
+
+            await Promise.all(researchPromises);
+
+            // Clear timer
+            if (researchTimerRef.current) {
+              clearInterval(researchTimerRef.current);
+              researchTimerRef.current = null;
+            }
+
+            const assistantMessage: Message = {
+              id: assistantId,
+              role: 'assistant' as const,
+              content: multiModelContent,
+              timestamp: Date.now(),
+              metadata: {
+                models: selectedModels,
+                provider: 'research',
+                isResearch: true,
+                researchStatus: 'complete',
+              }
+            };
+
+            addMessage(assistantMessage);
+
+            if (convId) {
+              await supabase.from('messages').insert({
+                conversation_id: convId,
+                role: assistantMessage.role,
+                content: assistantMessage.content,
+                metadata: assistantMessage.metadata
+              });
+
+              await supabase
+                .from('conversations')
+                .update({ updated_at: new Date().toISOString() })
+                .eq('id', convId);
+            }
+
+            const successCount = Object.values(multiModelContent).filter(v => !String(v).startsWith('Error:')).length;
+            toast({
+              title: 'Research complete',
+              description: `Completed research with ${successCount}/${selectedModels.length} models`,
+            });
+          } else {
+            // Single model research
+            const selectedModel = selectedModels[0] || 'Sonar Deep Research';
+            
+            const response = await researchApi.startResearch(
+              content,
+              selectedModel,
+              messages,
+              (progress) => {
+                setResearchStatus(progress.status);
+                if (progress.sourcesCount) {
+                  setResearchSourcesCount(progress.sourcesCount);
+                }
+              },
+              abortControllerRef.current?.signal
+            );
+            
+            // Clear timer
+            if (researchTimerRef.current) {
+              clearInterval(researchTimerRef.current);
+              researchTimerRef.current = null;
+            }
+            
+            const assistantMessage: Message = {
+              id: assistantId,
+              role: 'assistant' as const,
+              content: response.content,
+              timestamp: Date.now(),
+              metadata: {
+                model: selectedModel,
+                provider: 'research',
+                isResearch: true,
+                researchStatus: 'complete',
+                sourcesCount: response.sourcesAnalyzed,
+                citations: response.citations,
+              }
+            };
+            
+            addMessage(assistantMessage);
+            
+            if (convId) {
+              await supabase.from('messages').insert({
+                conversation_id: convId,
+                role: assistantMessage.role,
+                content: assistantMessage.content,
+                metadata: assistantMessage.metadata
+              });
+              
+              await supabase
+                .from('conversations')
+                .update({ updated_at: new Date().toISOString() })
+                .eq('id', convId);
+            }
+            
+            toast({
+              title: 'Research complete',
+              description: `Analyzed ${response.sourcesAnalyzed || 0} sources`,
+            });
           }
-          
-          toast({
-            title: 'Research complete',
-            description: `Analyzed ${response.sourcesAnalyzed || 0} sources`,
-          });
         } catch (error) {
           // Clear timer on error
           if (researchTimerRef.current) {

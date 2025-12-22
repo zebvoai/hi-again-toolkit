@@ -173,14 +173,17 @@ export default {
         },
         "research-icon": {
           "0%, 100%": { 
-            transform: "rotate(0deg) scale(1)"
+            transform: "rotate(0deg) scale(1)",
+            opacity: "0.9"
           },
-          "25%": { 
-            transform: "rotate(-5deg) scale(1.05)"
+          "50%": { 
+            transform: "rotate(3deg) scale(1.05)",
+            opacity: "1"
           },
-          "75%": { 
-            transform: "rotate(5deg) scale(1.05)"
-          },
+        },
+        "shimmer": {
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(100%)" },
         },
       },
       animation: {
@@ -204,7 +207,8 @@ export default {
         "research-breathe": "research-breathe 4s cubic-bezier(0.4, 0, 0.2, 1) infinite",
         "research-glow": "research-glow 4s cubic-bezier(0.4, 0, 0.2, 1) infinite",
         "research-progress": "research-progress 3s ease infinite",
-        "research-icon": "research-icon 2s cubic-bezier(0.4, 0, 0.2, 1) infinite",
+        "research-icon": "research-icon 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite",
+        "shimmer": "shimmer 2s ease-in-out infinite",
       },
     },
   },
