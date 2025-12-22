@@ -21,7 +21,7 @@ const RESEARCH_MODEL_MAP: Record<string, string> = {
   'Sonar Pro': 'perplexity/sonar-pro',
   'O3 Deep Research': 'openai/o3',
   'O4 Mini Deep Research': 'openai/o4-mini',
-  'DeepSeek Reasoner': 'deepseek/deepseek-reasoner',
+  'DeepSeek Reasoner': 'deepseek/deepseek-r1',
   'Gemini 2.5 Pro Research': 'google/gemini-2.5-pro',
 };
 
