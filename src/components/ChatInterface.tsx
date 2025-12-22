@@ -7,6 +7,7 @@ import { useChatStore } from '@/features/chat/store/chatStore';
 import { Message } from '@/features/chat/components/Message';
 import { MessageSkeleton } from '@/features/chat/components/MessageSkeleton';
 import { TypingIndicator } from '@/features/chat/components/TypingIndicator';
+import { DeepResearchIndicator } from '@/features/chat/components/DeepResearchIndicator';
 import { ModelSelector } from '@/features/chat/components/ModelSelector';
 import { ModeDropdown } from '@/features/modes/components/ModeDropdown';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -30,6 +31,9 @@ export function ChatInterface() {
     cancelGeneration,
     regenerateResponse,
     editAndRegenerate,
+    researchStatus,
+    researchElapsedTime,
+    researchSourcesCount,
   } = useChat();
   const {
     selectedMode
@@ -117,7 +121,8 @@ export function ChatInterface() {
       text: 'GPT-5',
       image: 'DALL-E 3',
       video: 'Gemini Video 2.0',
-      build: 'GPT-5'
+      build: 'GPT-5',
+      research: 'Sonar Deep Research'
     };
 
     const availableModelsForMode = models[selectedMode] || [];
@@ -187,6 +192,8 @@ export function ChatInterface() {
           return 'Describe the video you want to create...';
         case 'build':
           return 'Describe what you want to build...';
+        case 'research':
+          return 'What would you like me to research in depth?';
         default:
           return 'Ask anything...';
       }
@@ -283,8 +290,16 @@ export function ChatInterface() {
               );
             })}
             
-            {/* Typing indicator */}
-            {isCurrentConversationLoading && selectedModels.length === 1 && (
+            {/* Loading indicators based on mode */}
+            {isCurrentConversationLoading && selectedMode === 'research' && (
+              <DeepResearchIndicator 
+                status={researchStatus}
+                elapsedTime={researchElapsedTime}
+                sourcesCount={researchSourcesCount}
+              />
+            )}
+            
+            {isCurrentConversationLoading && selectedMode !== 'research' && selectedModels.length === 1 && (
               <div className="w-full px-4 sm:px-6 lg:px-8">
                 <TypingIndicator models={selectedModels} />
               </div>

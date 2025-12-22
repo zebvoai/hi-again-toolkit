@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import { useModeStore } from '../store/modeStore';
 import type { Mode } from '@/types';
-import { MessageSquare, Image, Code } from 'lucide-react';
+import { MessageSquare, Image, Code, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ImagePasswordDialog } from './ImagePasswordDialog';
 
 const modes: { id: Mode; label: string; icon: any; description: string; comingSoon?: boolean }[] = [
   { id: 'text', label: 'Text', icon: MessageSquare, description: 'Chat with AI' },
+  { id: 'research', label: 'Deep Research', icon: Search, description: 'Multi-source research' },
   { id: 'image', label: 'Image', icon: Image, description: 'Generate images' },
   { id: 'build', label: 'Build', icon: Code, description: 'Build apps', comingSoon: true }
 ];

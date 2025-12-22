@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.video]
 verify_jwt = false
+
+[functions.research]
+verify_jwt = false

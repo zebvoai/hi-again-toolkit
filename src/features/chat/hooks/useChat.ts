@@ -1,6 +1,7 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { api } from '@/lib/api';
 import { multiModelApi } from '@/lib/multiModelApi';
+import { researchApi, type ResearchProgress } from '@/lib/researchApi';
 import { useChatStore } from '../store/chatStore';
 import { useModeStore } from '@/features/modes/store/modeStore';
 import { useToast } from '@/hooks/use-toast';
@@ -27,6 +28,21 @@ export const useChat = () => {
   const [lastRequestTime, setLastRequestTime] = useState(0);
   const cooldownMs = 2000;
   const abortControllerRef = useRef<AbortController | null>(null);
+  
+  // Research-specific state
+  const [researchStatus, setResearchStatus] = useState<ResearchProgress['status']>('searching');
+  const [researchElapsedTime, setResearchElapsedTime] = useState(0);
+  const [researchSourcesCount, setResearchSourcesCount] = useState(0);
+  const researchTimerRef = useRef<number | null>(null);
+  
+  // Cleanup research timer on unmount
+  useEffect(() => {
+    return () => {
+      if (researchTimerRef.current) {
+        clearInterval(researchTimerRef.current);
+      }
+    };
+  }, []);
   
   const cancelGeneration = () => {
     if (abortControllerRef.current) {
@@ -230,7 +246,83 @@ export const useChat = () => {
     const assistantId = (Date.now() + 1).toString();
     
     try {
-      if (selectedMode === 'image') {
+      // Handle Deep Research mode
+      if (selectedMode === 'research') {
+        const selectedModel = selectedModels[0] || 'Sonar Deep Research';
+        
+        // Start elapsed time counter
+        setResearchElapsedTime(0);
+        setResearchStatus('searching');
+        setResearchSourcesCount(0);
+        
+        researchTimerRef.current = window.setInterval(() => {
+          setResearchElapsedTime(prev => prev + 1);
+        }, 1000);
+        
+        try {
+          const response = await researchApi.startResearch(
+            content,
+            selectedModel,
+            messages,
+            (progress) => {
+              setResearchStatus(progress.status);
+              if (progress.sourcesCount) {
+                setResearchSourcesCount(progress.sourcesCount);
+              }
+            },
+            abortControllerRef.current?.signal
+          );
+          
+          // Clear timer
+          if (researchTimerRef.current) {
+            clearInterval(researchTimerRef.current);
+            researchTimerRef.current = null;
+          }
+          
+          const assistantMessage: Message = {
+            id: assistantId,
+            role: 'assistant' as const,
+            content: response.content,
+            timestamp: Date.now(),
+            metadata: {
+              model: selectedModel,
+              provider: 'research',
+              isResearch: true,
+              researchStatus: 'complete',
+              sourcesCount: response.sourcesAnalyzed,
+              citations: response.citations,
+            }
+          };
+          
+          addMessage(assistantMessage);
+          
+          if (convId) {
+            await supabase.from('messages').insert({
+              conversation_id: convId,
+              role: assistantMessage.role,
+              content: assistantMessage.content,
+              metadata: assistantMessage.metadata
+            });
+            
+            await supabase
+              .from('conversations')
+              .update({ updated_at: new Date().toISOString() })
+              .eq('id', convId);
+          }
+          
+          toast({
+            title: 'Research complete',
+            description: `Analyzed ${response.sourcesAnalyzed || 0} sources`,
+          });
+        } catch (error) {
+          // Clear timer on error
+          if (researchTimerRef.current) {
+            clearInterval(researchTimerRef.current);
+            researchTimerRef.current = null;
+          }
+          throw error;
+        }
+      } else if (selectedMode === 'image') {
         // Handle multi-model image generation
         if (selectedModels.length > 1) {
           let multiModelContent: MultiModelContent = {};
@@ -587,5 +679,8 @@ export const useChat = () => {
     cancelGeneration,
     regenerateResponse,
     editAndRegenerate,
+    researchStatus,
+    researchElapsedTime,
+    researchSourcesCount,
   };
 };
