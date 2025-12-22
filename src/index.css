@@ -791,3 +791,8 @@ All colors MUST be HSL.
     0 0 60px hsl(260 40% 92% / 0.4),
     0 0 100px hsl(220 50% 94% / 0.3);
 }
+
+/* Deep Research status text animation */
+.animate-research-status-text {
+  animation: fade-in 0.5s ease-out;
+}

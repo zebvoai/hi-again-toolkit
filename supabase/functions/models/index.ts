@@ -219,6 +219,14 @@ serve(async (req) => {
       build: [
         'GPT-5',
         'Claude Sonnet 4.5'
+      ],
+      research: [
+        'Sonar Deep Research',
+        'Sonar Pro',
+        'Gemini 2.5 Pro Research',
+        'O3 Deep Research',
+        'O4 Mini Deep Research',
+        'DeepSeek Reasoner'
       ]
     };
     

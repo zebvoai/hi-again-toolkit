@@ -1,4 +1,4 @@
-export type Mode = 'text' | 'image' | 'video' | 'build';
+export type Mode = 'text' | 'image' | 'video' | 'build' | 'research';
 export type Provider = 'openai' | 'anthropic' | 'google';
 
 export interface MultiModelContent {
@@ -19,6 +19,11 @@ export interface Message {
     error?: string;
     isImage?: boolean;
     attachments?: string[];
+    // Deep Research specific metadata
+    researchStatus?: 'searching' | 'reading' | 'reasoning' | 'synthesizing' | 'writing' | 'complete';
+    sourcesCount?: number;
+    citations?: Array<{ url: string; title: string; snippet?: string }>;
+    isResearch?: boolean;
   };
 }
 
@@ -55,4 +60,5 @@ export interface AvailableModels {
   image: string[];
   video: string[];
   build: string[];
+  research: string[];
 }

@@ -143,6 +143,45 @@ export default {
             transform: "scale(1) translateY(-3px)"
           },
         },
+        // Deep Research animations - slow, calming, intentional
+        "research-pulse": {
+          "0%, 100%": { 
+            opacity: "0.7",
+            transform: "scale(1)"
+          },
+          "50%": { 
+            opacity: "1",
+            transform: "scale(1.02)"
+          },
+        },
+        "research-breathe": {
+          "0%, 100%": { opacity: "0.5" },
+          "50%": { opacity: "0.9" },
+        },
+        "research-glow": {
+          "0%, 100%": { 
+            boxShadow: "0 0 20px hsla(239, 84%, 67%, 0.1)"
+          },
+          "50%": { 
+            boxShadow: "0 0 40px hsla(239, 84%, 67%, 0.25)"
+          },
+        },
+        "research-progress": {
+          "0%": { backgroundPosition: "0% 50%" },
+          "50%": { backgroundPosition: "100% 50%" },
+          "100%": { backgroundPosition: "0% 50%" },
+        },
+        "research-icon": {
+          "0%, 100%": { 
+            transform: "rotate(0deg) scale(1)"
+          },
+          "25%": { 
+            transform: "rotate(-5deg) scale(1.05)"
+          },
+          "75%": { 
+            transform: "rotate(5deg) scale(1.05)"
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
@@ -160,6 +199,12 @@ export default {
         "thinking-dot": "thinking-dot 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite",
         "enter": "fade-in 0.18s cubic-bezier(0.16, 1, 0.3, 1), scale-in 0.18s cubic-bezier(0.16, 1, 0.3, 1)",
         "exit": "fade-out 0.15s cubic-bezier(0.16, 1, 0.3, 1), scale-out 0.15s cubic-bezier(0.16, 1, 0.3, 1)",
+        // Deep Research animations - intentionally slow for long-running tasks
+        "research-pulse": "research-pulse 3s cubic-bezier(0.4, 0, 0.2, 1) infinite",
+        "research-breathe": "research-breathe 4s cubic-bezier(0.4, 0, 0.2, 1) infinite",
+        "research-glow": "research-glow 4s cubic-bezier(0.4, 0, 0.2, 1) infinite",
+        "research-progress": "research-progress 3s ease infinite",
+        "research-icon": "research-icon 2s cubic-bezier(0.4, 0, 0.2, 1) infinite",
       },
     },
   },
