@@ -118,8 +118,28 @@ serve(async (req) => {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('[Research] Lovable AI error:', errorText);
+        
+        // Parse error to provide specific feedback
+        try {
+          const errorData = JSON.parse(errorText);
+          if (errorData.type === 'payment_required' || response.status === 402) {
+            return new Response(
+              JSON.stringify({ error: 'Not enough Lovable AI credits. Please add credits in Settings → Workspace → Usage.' }),
+              { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+          if (response.status === 429) {
+            return new Response(
+              JSON.stringify({ error: 'Rate limit exceeded. Please wait a moment and try again.' }),
+              { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+        } catch {
+          // Not JSON, continue with generic error
+        }
+        
         return new Response(
-          JSON.stringify({ error: 'Research request failed' }),
+          JSON.stringify({ error: 'Research request failed. Please try again.' }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
