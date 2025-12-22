@@ -31,6 +31,13 @@ const RESEARCH_MODELS: Record<string, {
     endpoint: 'https://api.openai.com/v1/chat/completions',
     envKey: 'OPENAI_API_KEY',
   },
+  // OpenRouter-hosted DeepSeek models
+  'deepseek/deepseek-r1': {
+    provider: 'deepseek',
+    endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+    envKey: 'OPENROUTER_API_KEY',
+  },
+  // Backwards-compat alias (older UI mapping)
   'deepseek/deepseek-reasoner': {
     provider: 'deepseek',
     endpoint: 'https://openrouter.ai/api/v1/chat/completions',
@@ -194,10 +201,14 @@ serve(async (req) => {
         };
         break;
         
-      case 'deepseek':
+      case 'deepseek': {
         headers['Authorization'] = `Bearer ${apiKey}`;
+
+        // UI previously sent deepseek/deepseek-reasoner, but OpenRouter expects deepseek/deepseek-r1 (and other valid IDs)
+        const resolvedDeepseekModel = model === 'deepseek/deepseek-reasoner' ? 'deepseek/deepseek-r1' : model;
+
         requestBody = {
-          model: 'deepseek/deepseek-reasoner',
+          model: resolvedDeepseekModel,
           messages: [
             { role: 'system', content: RESEARCH_SYSTEM_PROMPT },
             ...conversationHistory,
@@ -206,6 +217,7 @@ serve(async (req) => {
           max_tokens: 16000,
         };
         break;
+      }
         
       case 'lovable':
       default:
@@ -233,24 +245,34 @@ serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`[Research] API error (${response.status}):`, errorText);
-      
+
+      let errorMessage = 'Research request failed';
+      try {
+        const parsed = JSON.parse(errorText);
+        errorMessage = parsed?.error?.message || parsed?.error || parsed?.message || errorMessage;
+      } catch {
+        // keep fallback message
+      }
+
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      
+
       if (response.status === 402) {
         return new Response(
           JSON.stringify({ error: 'Payment required. Please check your API credits.' }),
           { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      
+
+      // Preserve upstream status for actionable client errors (e.g. invalid model id)
+      const status = response.status >= 400 && response.status < 500 ? response.status : 500;
       return new Response(
-        JSON.stringify({ error: 'Research request failed' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: errorMessage }),
+        { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
     
