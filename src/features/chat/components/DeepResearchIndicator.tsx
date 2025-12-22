@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Search, FileText, Brain, Sparkles, PenTool, CheckCircle } from 'lucide-react';
 
 interface DeepResearchIndicatorProps {
@@ -8,12 +8,12 @@ interface DeepResearchIndicatorProps {
 }
 
 const stages = [
-  { id: 'searching', label: 'Searching sources...', icon: Search, description: 'Finding relevant information across the web' },
-  { id: 'reading', label: 'Reading documents...', icon: FileText, description: 'Analyzing and extracting key information' },
-  { id: 'reasoning', label: 'Reasoning...', icon: Brain, description: 'Connecting insights and forming conclusions' },
-  { id: 'synthesizing', label: 'Synthesizing...', icon: Sparkles, description: 'Combining findings into a coherent analysis' },
-  { id: 'writing', label: 'Writing final output...', icon: PenTool, description: 'Composing the research report' },
-  { id: 'complete', label: 'Research complete', icon: CheckCircle, description: 'Your research is ready' },
+  { id: 'searching', label: 'Searching...', shortLabel: 'Search', icon: Search, description: 'Finding relevant sources across the web' },
+  { id: 'reading', label: 'Reading...', shortLabel: 'Read', icon: FileText, description: 'Analyzing and extracting key information' },
+  { id: 'reasoning', label: 'Reasoning...', shortLabel: 'Think', icon: Brain, description: 'Connecting insights and forming conclusions' },
+  { id: 'synthesizing', label: 'Synthesizing...', shortLabel: 'Synth', icon: Sparkles, description: 'Combining findings into a coherent analysis' },
+  { id: 'writing', label: 'Writing...', shortLabel: 'Write', icon: PenTool, description: 'Composing the research report' },
+  { id: 'complete', label: 'Complete', shortLabel: 'Done', icon: CheckCircle, description: 'Your research is ready' },
 ];
 
 export const DeepResearchIndicator = ({ 
@@ -22,16 +22,33 @@ export const DeepResearchIndicator = ({
   sourcesCount = 0 
 }: DeepResearchIndicatorProps) => {
   const [currentStageIndex, setCurrentStageIndex] = useState(0);
+  const [displayedSources, setDisplayedSources] = useState(0);
+  const prevStatusRef = useRef(status);
   
+  // Update stage index when status changes
   useEffect(() => {
     const stageIndex = stages.findIndex(s => s.id === status);
     if (stageIndex !== -1) {
       setCurrentStageIndex(stageIndex);
     }
+    prevStatusRef.current = status;
   }, [status]);
+  
+  // Smoothly animate sources count
+  useEffect(() => {
+    if (sourcesCount > displayedSources) {
+      const timer = setTimeout(() => {
+        setDisplayedSources(prev => Math.min(prev + 1, sourcesCount));
+      }, 150);
+      return () => clearTimeout(timer);
+    } else if (sourcesCount < displayedSources) {
+      setDisplayedSources(sourcesCount);
+    }
+  }, [sourcesCount, displayedSources]);
   
   const currentStage = stages[currentStageIndex];
   const IconComponent = currentStage.icon;
+  const progressPercent = ((currentStageIndex + 1) / stages.length) * 100;
   
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -59,22 +76,22 @@ export const DeepResearchIndicator = ({
             </div>
           </div>
           
-          {/* Current status */}
-          <div className="relative flex items-center gap-3 mb-4 p-3 bg-white/60 dark:bg-gray-900/40 rounded-xl border border-indigo-100/50 dark:border-indigo-800/30">
-            <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center">
+          {/* Current status - fixed height to prevent jumping */}
+          <div className="relative flex items-center gap-3 mb-4 p-3 bg-white/60 dark:bg-gray-900/40 rounded-xl border border-indigo-100/50 dark:border-indigo-800/30 min-h-[72px]">
+            <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center flex-shrink-0">
               <IconComponent className="w-4 h-4 text-indigo-600 dark:text-indigo-400 animate-research-icon" />
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-indigo-900 dark:text-indigo-100 animate-research-status-text">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-indigo-900 dark:text-indigo-100 transition-opacity duration-300">
                 {currentStage.label}
               </p>
-              <p className="text-xs text-indigo-600/60 dark:text-indigo-400/60">
+              <p className="text-xs text-indigo-600/60 dark:text-indigo-400/60 truncate">
                 {currentStage.description}
               </p>
             </div>
           </div>
           
-          {/* Progress stages */}
+          {/* Progress stages - fixed width labels */}
           <div className="relative flex items-center justify-between mb-4">
             {stages.slice(0, 5).map((stage, index) => {
               const StageIcon = stage.icon;
@@ -82,7 +99,7 @@ export const DeepResearchIndicator = ({
               const isComplete = index < currentStageIndex;
               
               return (
-                <div key={stage.id} className="flex flex-col items-center gap-1.5">
+                <div key={stage.id} className="flex flex-col items-center gap-1.5 w-12">
                   <div 
                     className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-500 ${
                       isComplete 
@@ -94,38 +111,36 @@ export const DeepResearchIndicator = ({
                   >
                     <StageIcon className="w-3.5 h-3.5" />
                   </div>
-                  <span className={`text-[10px] font-medium transition-colors duration-300 ${
+                  <span className={`text-[10px] font-medium transition-colors duration-300 text-center whitespace-nowrap ${
                     isComplete || isActive 
                       ? 'text-indigo-600 dark:text-indigo-400' 
                       : 'text-gray-400 dark:text-gray-600'
                   }`}>
-                    {stage.id.charAt(0).toUpperCase() + stage.id.slice(1, 4)}
+                    {stage.shortLabel}
                   </span>
                 </div>
               );
             })}
           </div>
           
-          {/* Progress bar */}
+          {/* Progress bar - stable width */}
           <div className="relative h-1.5 bg-indigo-100/80 dark:bg-indigo-900/30 rounded-full overflow-hidden mb-4">
             <div 
-              className="absolute inset-y-0 left-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 rounded-full transition-all duration-1000 ease-out animate-research-progress"
-              style={{ width: `${((currentStageIndex + 1) / stages.length) * 100}%` }}
+              className="absolute inset-y-0 left-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 rounded-full transition-[width] duration-1000 ease-out"
+              style={{ width: `${progressPercent}%` }}
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-shimmer" />
           </div>
           
-          {/* Stats row */}
-          <div className="relative flex items-center justify-between text-xs">
+          {/* Stats row - fixed height with always-visible elements */}
+          <div className="relative flex items-center justify-between text-xs min-h-[20px]">
             <div className="flex items-center gap-4">
-              {sourcesCount > 0 && (
-                <span className="flex items-center gap-1.5 text-indigo-600/80 dark:text-indigo-400/80">
-                  <FileText className="w-3.5 h-3.5" />
-                  <span>{sourcesCount} sources</span>
-                </span>
-              )}
+              <span className="flex items-center gap-1.5 text-indigo-600/80 dark:text-indigo-400/80 transition-opacity duration-300">
+                <FileText className="w-3.5 h-3.5" />
+                <span className="tabular-nums">{displayedSources} source{displayedSources !== 1 ? 's' : ''}</span>
+              </span>
             </div>
-            <span className="text-indigo-600/60 dark:text-indigo-400/60 font-mono">
+            <span className="text-indigo-600/60 dark:text-indigo-400/60 font-mono tabular-nums">
               {formatTime(elapsedTime)}
             </span>
           </div>

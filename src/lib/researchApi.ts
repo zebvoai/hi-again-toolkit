@@ -39,24 +39,56 @@ export const researchApi = {
     // Map display name to API ID
     const apiModelId = RESEARCH_MODEL_MAP[model] || 'perplexity/sonar-deep-research';
     
-    // Simulate progress updates for UX (research functions return all at once)
+    // Sequential progress simulation with realistic timing
+    const progressStages: { status: ResearchProgress['status']; duration: number; sourcesRange: [number, number] }[] = [
+      { status: 'searching', duration: 6000, sourcesRange: [3, 8] },
+      { status: 'reading', duration: 8000, sourcesRange: [8, 15] },
+      { status: 'reasoning', duration: 7000, sourcesRange: [15, 20] },
+      { status: 'synthesizing', duration: 5000, sourcesRange: [20, 25] },
+      { status: 'writing', duration: 4000, sourcesRange: [25, 30] },
+    ];
+    
+    let currentStageIndex = 0;
+    let currentSources = 0;
+    let stageStartTime = Date.now();
+    
     const progressInterval = setInterval(() => {
       if (signal?.aborted) {
         clearInterval(progressInterval);
         return;
       }
       
-      // Cycle through statuses to show activity
-      const statuses: ResearchProgress['status'][] = ['searching', 'reading', 'reasoning', 'synthesizing'];
-      const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
-      const sourcesCount = Math.floor(Math.random() * 10) + 5;
+      const currentStage = progressStages[currentStageIndex];
+      if (!currentStage) {
+        clearInterval(progressInterval);
+        return;
+      }
+      
+      const elapsed = Date.now() - stageStartTime;
+      const stageProgress = Math.min(elapsed / currentStage.duration, 1);
+      
+      // Gradually increment sources within the stage's range
+      const [minSources, maxSources] = currentStage.sourcesRange;
+      const targetSources = Math.floor(minSources + (maxSources - minSources) * stageProgress);
+      if (targetSources > currentSources) {
+        currentSources = targetSources;
+      }
+      
+      // Calculate overall progress
+      const overallProgress = (currentStageIndex + stageProgress) / progressStages.length;
       
       onProgress?.({
-        status: randomStatus,
-        sourcesCount,
-        progress: Math.random() * 0.8,
+        status: currentStage.status,
+        sourcesCount: currentSources,
+        progress: overallProgress,
       });
-    }, 3000);
+      
+      // Move to next stage when current is complete
+      if (elapsed >= currentStage.duration && currentStageIndex < progressStages.length - 1) {
+        currentStageIndex++;
+        stageStartTime = Date.now();
+      }
+    }, 500);
     
     try {
       // Make the actual API call
@@ -89,7 +121,7 @@ export const researchApi = {
       // Signal completion
       onProgress?.({
         status: 'complete',
-        sourcesCount: data.sourcesAnalyzed || 0,
+        sourcesCount: data.sourcesAnalyzed || currentSources,
         progress: 1,
       });
       
