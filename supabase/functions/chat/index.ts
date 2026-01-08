@@ -207,7 +207,7 @@ async function handleMultiModelRequest(
                   { role: 'user', content: createUserContent(message, attachments) }
                 ];
                 
-                body = { model: apiModel, messages, stream: true, max_tokens: mode === 'build' ? 4096 : 2048 };
+                body = { model: apiModel, messages, stream: true, max_tokens: mode === 'build' ? 2048 : 1024 };
               } else {
                 throw new Error(`Unsupported provider: ${provider}`);
               }
@@ -468,7 +468,7 @@ serve(async (req) => {
         model,
         messages,
         stream,
-        max_tokens: mode === 'build' ? 4096 : 2048
+        max_tokens: mode === 'build' ? 2048 : 1024
       };
     } else {
       throw new Error(`Unsupported provider: ${selectedProvider}`);
