@@ -13,21 +13,21 @@ interface Message {
 // Model mapping helper - supports OpenAI, Anthropic, Lovable (Gemini), and OpenRouter
 const getModelMapping = (displayName: string): { apiModel: string, provider: string } => {
   const modelMapping: Record<string, { apiModel: string, provider: string }> = {
-    // OpenAI Models (direct API)
-    'GPT-5': { apiModel: 'gpt-5-2025-08-07', provider: 'openai' },
-    'GPT-5 Mini': { apiModel: 'gpt-5-mini-2025-08-07', provider: 'openai' },
-    'GPT-5 Nano': { apiModel: 'gpt-5-nano-2025-08-07', provider: 'openai' },
-    'GPT-4.1': { apiModel: 'gpt-4.1-2025-04-14', provider: 'openai' },
-    'GPT-4.1 Mini': { apiModel: 'gpt-4.1-mini-2025-04-14', provider: 'openai' },
-    'O3': { apiModel: 'o3-2025-04-16', provider: 'openai' },
-    'O4 Mini': { apiModel: 'o4-mini-2025-04-16', provider: 'openai' },
+    // OpenAI Models (via OpenRouter)
+    'GPT-5': { apiModel: 'openai/gpt-5', provider: 'openrouter' },
+    'GPT-5 Mini': { apiModel: 'openai/gpt-5-mini', provider: 'openrouter' },
+    'GPT-5 Nano': { apiModel: 'openai/gpt-5-nano', provider: 'openrouter' },
+    'GPT-4.1': { apiModel: 'openai/gpt-4.1', provider: 'openrouter' },
+    'GPT-4.1 Mini': { apiModel: 'openai/gpt-4.1-mini', provider: 'openrouter' },
+    'O3': { apiModel: 'openai/o3', provider: 'openrouter' },
+    'O4 Mini': { apiModel: 'openai/o4-mini', provider: 'openrouter' },
     
-    // Anthropic Models (direct API) - Current Claude 4.x models per Anthropic docs
-    'Claude Sonnet 4.5': { apiModel: 'claude-sonnet-4-5', provider: 'anthropic' },
-    'Claude Haiku 4.5': { apiModel: 'claude-haiku-4-5', provider: 'anthropic' },
-    'Claude Opus 4.5': { apiModel: 'claude-opus-4-5', provider: 'anthropic' },
-    'Claude Sonnet 4': { apiModel: 'claude-sonnet-4-20250514', provider: 'anthropic' },
-    'Claude Opus 4': { apiModel: 'claude-opus-4-20250514', provider: 'anthropic' },
+    // Anthropic Models (via OpenRouter)
+    'Claude Sonnet 4.5': { apiModel: 'anthropic/claude-sonnet-4.5', provider: 'openrouter' },
+    'Claude Haiku 4.5': { apiModel: 'anthropic/claude-haiku-4.5', provider: 'openrouter' },
+    'Claude Opus 4.5': { apiModel: 'anthropic/claude-opus-4.5', provider: 'openrouter' },
+    'Claude Sonnet 4': { apiModel: 'anthropic/claude-sonnet-4', provider: 'openrouter' },
+    'Claude Opus 4': { apiModel: 'anthropic/claude-opus-4', provider: 'openrouter' },
     
     // Google Models (via Lovable AI Gateway)
     'Gemini 2.5 Pro': { apiModel: 'google/gemini-2.5-pro', provider: 'lovable' },
