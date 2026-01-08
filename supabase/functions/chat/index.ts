@@ -168,61 +168,7 @@ async function handleMultiModelRequest(
               : 'You are a helpful AI assistant.';
             
             try {
-              if (provider === 'openai') {
-                apiKey = Deno.env.get('OPENAI_API_KEY') || '';
-                if (!apiKey) throw new Error('OPENAI_API_KEY not configured');
-                
-                apiUrl = 'https://api.openai.com/v1/chat/completions';
-                headers = {
-                  'Authorization': `Bearer ${apiKey}`,
-                  'Content-Type': 'application/json'
-                };
-                
-                const messages = [
-                  { role: 'system', content: systemPrompt },
-                  ...sanitizedHistory.map(m => ({ role: m.role, content: m.content })),
-                  { role: 'user', content: createUserContent(message, attachments) }
-                ];
-                
-                body = { model: apiModel, messages, stream: true, max_completion_tokens: mode === 'build' ? 8192 : 4096 };
-              } else if (provider === 'anthropic') {
-                apiKey = Deno.env.get('ANTHROPIC_API_KEY') || '';
-                if (!apiKey) throw new Error('ANTHROPIC_API_KEY not configured');
-                
-                apiUrl = 'https://api.anthropic.com/v1/messages';
-                headers = {
-                  'x-api-key': apiKey,
-                  'anthropic-version': '2023-06-01',
-                  'content-type': 'application/json'
-                };
-                
-                // Anthropic uses different format for images
-                const createAnthropicContent = (text: string, fileUrls: string[]): any => {
-                  if (fileUrls.length === 0) return text;
-                  const content: any[] = [{ type: 'text', text }];
-                  for (const url of fileUrls) {
-                    const isImage = /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(url);
-                    if (isImage) {
-                      content.push({ type: 'image', source: { type: 'url', url } });
-                    } else {
-                      content.push({ type: 'text', text: `\n\n[Attached file: ${url}]` });
-                    }
-                  }
-                  return content;
-                };
-                
-                const messages = [
-                  ...sanitizedHistory.filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content })),
-                  { role: 'user', content: createAnthropicContent(message, attachments) }
-                ];
-                
-                body = { 
-                  model: apiModel, 
-                  messages, 
-                  max_tokens: mode === 'build' ? 8192 : 4096,
-                  system: systemPrompt
-                };
-              } else if (provider === 'lovable') {
+              if (provider === 'lovable') {
                 // Lovable AI Gateway for Gemini models
                 apiKey = Deno.env.get('LOVABLE_API_KEY') || '';
                 if (!apiKey) throw new Error('LOVABLE_API_KEY not configured');
@@ -240,39 +186,8 @@ async function handleMultiModelRequest(
                 ];
                 
                 body = { model: apiModel, messages, stream: true };
-              } else if (provider === 'google') {
-                apiKey = Deno.env.get('GOOGLE_API_KEY') || '';
-                if (!apiKey) throw new Error('GOOGLE_API_KEY not configured');
-                
-                apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${apiModel}:streamGenerateContent?alt=sse`;
-                headers = { 
-                  'Content-Type': 'application/json',
-                  'x-goog-api-key': apiKey
-                };
-                
-                const contents = sanitizedHistory.map(m => ({
-                  role: m.role === 'assistant' ? 'model' : 'user',
-                  parts: [{ text: m.content }]
-                }));
-                
-                // Google uses parts array for multimodal content
-                const createGoogleParts = (text: string, fileUrls: string[]): any[] => {
-                  const parts: any[] = [{ text }];
-                  for (const url of fileUrls) {
-                    const isImage = /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(url);
-                    if (isImage) {
-                      parts.push({ inlineData: { mimeType: 'image/jpeg', data: url } });
-                    } else {
-                      parts.push({ text: `\n\n[Attached file: ${url}]` });
-                    }
-                  }
-                  return parts;
-                };
-                
-                contents.push({ role: 'user', parts: createGoogleParts(message, attachments) });
-                
-                body = { contents };
               } else if (provider === 'openrouter') {
+                // All text models (OpenAI, Anthropic, etc.) route through OpenRouter
                 apiKey = Deno.env.get('OPENROUTER_API_KEY') || '';
                 if (!apiKey) throw new Error('OPENROUTER_API_KEY not configured');
                 
@@ -325,14 +240,7 @@ async function handleMultiModelRequest(
                 return;
               }
               
-              // Handle non-streaming Anthropic responses
-              if (provider === 'anthropic') {
-                const data = await response.json();
-                const content = data.content?.[0]?.text || 'No response generated.';
-                const sseData = `data: ${JSON.stringify({ model: modelName, content })}\n\n`;
-                controller.enqueue(encoder.encode(sseData));
-                return;
-              }
+              // All responses use streaming now (both lovable and openrouter)
               
               const reader = response.body?.getReader();
               if (!reader) return;
@@ -356,13 +264,9 @@ async function handleMultiModelRequest(
                     try {
                       let content = '';
                       
-                      if (provider === 'openai' || provider === 'openrouter' || provider === 'lovable') {
-                        const parsed = JSON.parse(data);
-                        content = parsed.choices?.[0]?.delta?.content || '';
-                      } else if (provider === 'google') {
-                        const parsed = JSON.parse(data);
-                        content = parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
-                      }
+                      // Both openrouter and lovable use OpenAI-compatible format
+                      const parsed = JSON.parse(data);
+                      content = parsed.choices?.[0]?.delta?.content || '';
                       
                       if (content) {
                         const sseData = `data: ${JSON.stringify({ model: modelName, content })}\n\n`;
@@ -513,74 +417,7 @@ serve(async (req) => {
       return content;
     };
     
-    if (selectedProvider === 'openai') {
-      apiKey = Deno.env.get('OPENAI_API_KEY');
-      if (!apiKey) {
-        throw new Error('OPENAI_API_KEY not configured');
-      }
-      
-      apiUrl = 'https://api.openai.com/v1/chat/completions';
-      headers = {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      };
-      
-      const messages = [
-        { role: 'system', content: systemPrompt },
-        ...conversationHistory.map(m => ({ role: m.role, content: m.content })),
-        { role: 'user', content: createUserContent(message, attachments) }
-      ];
-      
-      body = {
-        model,
-        messages,
-        max_completion_tokens: mode === 'build' ? 8192 : 4096,
-        stream
-      };
-    } else if (selectedProvider === 'anthropic') {
-      apiKey = Deno.env.get('ANTHROPIC_API_KEY');
-      if (!apiKey) {
-        throw new Error('ANTHROPIC_API_KEY not configured');
-      }
-      
-      apiUrl = 'https://api.anthropic.com/v1/messages';
-      headers = {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json'
-      };
-      
-      // Anthropic uses different format for images
-      const createAnthropicContent = (text: string, fileUrls: string[]): any => {
-        if (fileUrls.length === 0) return text;
-        
-        const content: any[] = [{ type: 'text', text }];
-        for (const url of fileUrls) {
-          const isImage = /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(url);
-          if (isImage) {
-            content.push({
-              type: 'image',
-              source: { type: 'url', url }
-            });
-          } else {
-            content.push({ type: 'text', text: `\n\n[Attached file: ${url}]` });
-          }
-        }
-        return content;
-      };
-      
-      const messages = [
-        ...conversationHistory.filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content })),
-        { role: 'user', content: createAnthropicContent(message, attachments) }
-      ];
-      
-      body = {
-        model,
-        messages,
-        max_tokens: mode === 'build' ? 8192 : 4096,
-        system: systemPrompt
-      };
-    } else if (selectedProvider === 'lovable') {
+    if (selectedProvider === 'lovable') {
       // Lovable AI Gateway for Gemini models
       apiKey = Deno.env.get('LOVABLE_API_KEY');
       if (!apiKey) {
@@ -604,43 +441,8 @@ serve(async (req) => {
         messages,
         stream
       };
-    } else if (selectedProvider === 'google') {
-      apiKey = Deno.env.get('GOOGLE_API_KEY');
-      if (!apiKey) {
-        throw new Error('GOOGLE_API_KEY not configured');
-      }
-      
-      apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
-      headers = {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': apiKey
-      };
-      
-      // Google uses parts array for multimodal content
-      const createGoogleParts = (text: string, fileUrls: string[]): any[] => {
-        const parts: any[] = [{ text }];
-        for (const url of fileUrls) {
-          const isImage = /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(url);
-          if (isImage) {
-            parts.push({ inlineData: { mimeType: 'image/jpeg', data: url } });
-          } else {
-            parts.push({ text: `\n\n[Attached file: ${url}]` });
-          }
-        }
-        return parts;
-      };
-      
-      const contents = conversationHistory.map(m => ({
-        role: m.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: m.content }]
-      }));
-      contents.push({
-        role: 'user',
-        parts: createGoogleParts(message, attachments)
-      });
-      
-      body = { contents };
     } else if (selectedProvider === 'openrouter') {
+      // All text models (OpenAI, Anthropic, etc.) route through OpenRouter
       apiKey = Deno.env.get('OPENROUTER_API_KEY');
       if (!apiKey) {
         throw new Error('OPENROUTER_API_KEY not configured');
@@ -687,7 +489,7 @@ serve(async (req) => {
     }
     
     // Handle streaming response
-    if (stream && (selectedProvider === 'openai' || selectedProvider === 'lovable' || selectedProvider === 'openrouter')) {
+    if (stream && (selectedProvider === 'lovable' || selectedProvider === 'openrouter')) {
       const encoder = new TextEncoder();
       const readable = new ReadableStream({
         async start(controller) {
@@ -752,37 +554,16 @@ serve(async (req) => {
     console.log('AI response received:', JSON.stringify(data).substring(0, 200));
     
     let content: string;
-    if (selectedProvider === 'openai') {
-      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-        console.error('Invalid API response:', data);
-        throw new Error(`Invalid response from ${selectedProvider}`);
-      }
-      content = data.choices[0].message.content;
-    } else if (selectedProvider === 'lovable' || selectedProvider === 'openrouter') {
-      const choice = data.choices?.[0];
-      content =
-        choice?.message?.content ??
-        data.output_text ??
-        choice?.text ??
-        '';
-      if (!content) {
-        console.error('Invalid response:', data);
-        content = 'The model could not generate a response at the moment. Please try again.';
-      }
-    } else if (selectedProvider === 'anthropic') {
-      if (!data.content || !data.content[0]) {
-        console.error('Invalid Anthropic response:', data);
-        throw new Error('Invalid response from Anthropic');
-      }
-      content = data.content[0].text;
-    } else if (selectedProvider === 'google') {
-      if (!data.candidates || !data.candidates[0]) {
-        console.error('Invalid Google response:', data);
-        throw new Error('Invalid response from Google');
-      }
-      content = data.candidates[0].content.parts[0].text;
-    } else {
-      content = 'Response not supported for this provider';
+    // Both lovable and openrouter use OpenAI-compatible response format
+    const choice = data.choices?.[0];
+    content =
+      choice?.message?.content ??
+      data.output_text ??
+      choice?.text ??
+      '';
+    if (!content) {
+      console.error('Invalid response:', data);
+      content = 'The model could not generate a response at the moment. Please try again.';
     }
     
     return new Response(
