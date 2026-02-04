@@ -6,7 +6,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   isLoading: false,
   loadingConversationId: null,
   error: null,
-  selectedModels: ['Perplexity Sonar Pro'],
+  selectedModels: [], // Will be initialized to all models on first load
   currentConversationId: null,
   addMessage: (message) => set((state) => {
     // Prevent adding duplicate messages by checking ID and content

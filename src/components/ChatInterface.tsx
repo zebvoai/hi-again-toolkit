@@ -8,7 +8,7 @@ import { Message } from '@/features/chat/components/Message';
 import { MessageSkeleton } from '@/features/chat/components/MessageSkeleton';
 import { TypingIndicator } from '@/features/chat/components/TypingIndicator';
 import { DeepResearchIndicator } from '@/features/chat/components/DeepResearchIndicator';
-import { ModelSelector } from '@/features/chat/components/ModelSelector';
+import { ModelRail } from '@/features/chat/components/ModelRail';
 import { ModeDropdown } from '@/features/modes/components/ModeDropdown';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useModels } from '@/features/chat/hooks/useModels';
@@ -114,11 +114,27 @@ export function ChatInterface() {
     isLoading,
   });
 
-  // Reset selected models when mode changes
+  // Auto-select ALL text models on first load
+  const [hasInitializedModels, setHasInitializedModels] = useState(false);
+  
+  useEffect(() => {
+    if (!models || hasInitializedModels) return;
+    
+    // Only for text mode, auto-select all models on first load
+    if (selectedMode === 'text' && models.text && models.text.length > 0) {
+      if (selectedModels.length === 0) {
+        setSelectedModels([...models.text]);
+        setHasInitializedModels(true);
+      }
+    }
+  }, [models, selectedMode, hasInitializedModels, selectedModels.length, setSelectedModels]);
+
+  // Reset selected models when mode changes (for non-text modes)
   useEffect(() => {
     if (!models) return;
+    if (selectedMode === 'text') return; // Text mode handles its own logic
+    
     const defaultModels: Record<string, string> = {
-      text: 'GPT-5',
       image: 'DALL-E 3',
       video: 'Gemini Video 2.0',
       build: 'GPT-5',
@@ -135,13 +151,6 @@ export function ChatInterface() {
       setSelectedModels(validModels);
     }
   }, [selectedMode, models, selectedModels, setSelectedModels]);
-
-  // Initialize with default model if none selected
-  useEffect(() => {
-    if (selectedModels.length === 0) {
-      setSelectedModels(['GPT-5']);
-    }
-  }, [selectedModels.length, setSelectedModels]);
 
   // Smooth scroll to new messages
   useEffect(() => {
@@ -201,8 +210,44 @@ export function ChatInterface() {
     return isTemporaryMode ? `${basePlaceholder} (Temporary Mode)` : basePlaceholder;
   };
 
+  // Model toggle handlers
+  const handleToggleModel = (model: string) => {
+    if (selectedModels.includes(model)) {
+      // Don't allow deselecting the last model
+      if (selectedModels.length > 1) {
+        setSelectedModels(selectedModels.filter(m => m !== model));
+      }
+    } else {
+      setSelectedModels([...selectedModels, model]);
+    }
+  };
+
+  const handleSelectAllModels = () => {
+    if (models?.text) {
+      setSelectedModels([...models.text]);
+    }
+  };
+
+  const handleClearAllModels = () => {
+    // Keep at least one model selected
+    if (models?.text && models.text.length > 0) {
+      setSelectedModels([models.text[0]]);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full relative bg-background overflow-hidden">
+      {/* Model Rail - Horizontal scroll at top (text mode only) */}
+      {selectedMode === 'text' && models?.text && (
+        <ModelRail
+          models={models.text}
+          selectedModels={selectedModels}
+          onToggle={handleToggleModel}
+          onSelectAll={handleSelectAllModels}
+          onClearAll={handleClearAllModels}
+        />
+      )}
+
       {/* Mobile Menu Button - Only visible on mobile */}
       {isMobile && (
         <button 
@@ -348,10 +393,9 @@ export function ChatInterface() {
       >
         <div className="w-full px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
           <form onSubmit={handleSubmit} key={selectedMode} className="animate-scale-in">
-            {/* Dropdowns Row */}
+            {/* Mode Dropdown - Compact */}
             <div className="flex items-center gap-2.5 mb-3">
               <ModeDropdown />
-              {selectedMode !== 'video' && <ModelSelector values={selectedModels} onChange={setSelectedModels} />}
             </div>
 
             {/* File Attachments Preview */}
