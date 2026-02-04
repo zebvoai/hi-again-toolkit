@@ -49,31 +49,32 @@ export const ConversationItem = ({
   return (
     <div
       className={cn(
-        // Relative container for absolute-positioned pencil icon
-        "group relative px-2 py-1.5 rounded-xl cursor-pointer overflow-hidden",
-        isActive 
-          ? 'bg-white dark:bg-white/10 shadow-sm' 
-          : 'hover:bg-muted/50 dark:hover:bg-white/[0.06]'
+        // Reserve space on the right for the action button so it never gets clipped.
+        "group relative w-full px-2 py-1.5 pr-9 rounded-xl cursor-pointer",
+        isActive
+          ? "bg-white dark:bg-white/10 shadow-sm"
+          : "hover:bg-muted/50 dark:hover:bg-white/[0.06]",
       )}
       onClick={onClick}
     >
-      {/* Pencil menu - top right corner */}
-      <div className="absolute top-1 right-1 z-10">
+      {/* Pencil menu - pinned to top-right corner (above scrollbars) */}
+      <div className="absolute top-1 right-2 z-40">
         <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
               size="icon"
               className={cn(
-                "h-5 w-5 rounded-md",
-                isOpen ? 'bg-muted dark:bg-white/10' : 'hover:bg-muted/80 dark:hover:bg-white/10',
-                "text-muted-foreground hover:text-foreground",
+                "h-7 w-7 rounded-lg",
+                "border border-border/30 bg-background/70 hover:bg-accent/70",
+                "text-foreground/80 hover:text-foreground",
+                isOpen ? "bg-accent" : "",
                 "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
               )}
               onClick={(e) => e.stopPropagation()}
               aria-label="Edit options"
             >
-              <Pencil className="w-3 h-3" />
+              <Pencil className="w-4 h-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
