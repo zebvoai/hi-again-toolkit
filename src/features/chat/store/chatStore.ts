@@ -8,6 +8,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   error: null,
   selectedModels: [], // Will be initialized to all models on first load
   currentConversationId: null,
+  selectedProjectId: null,
   addMessage: (message) => set((state) => {
     // Prevent adding duplicate messages by checking ID and content
     const exists = state.messages.some(m => 
@@ -36,6 +37,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   setSelectedModels: (models) => set({ selectedModels: models }),
   setMessages: (messages) => set({ messages }),
   setCurrentConversationId: (id) => set({ currentConversationId: id }),
+  setSelectedProjectId: (id) => set({ selectedProjectId: id }),
   
   // New actions for editing and regeneration
   editMessage: (id, newContent) => set((state) => ({

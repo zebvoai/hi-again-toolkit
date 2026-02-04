@@ -10,6 +10,7 @@ export interface Conversation {
   title: string;
   created_at: string;
   updated_at: string;
+  project_id: string | null;
 }
 
 export const useConversations = () => {
@@ -46,7 +47,7 @@ export const useConversations = () => {
     }
   };
 
-  const createConversation = async (firstMessage: string): Promise<string | null> => {
+  const createConversation = async (firstMessage: string, projectId?: string | null): Promise<string | null> => {
     if (!user) {
       toast({
         title: 'Error',
@@ -60,9 +61,18 @@ export const useConversations = () => {
       // Generate a short, meaningful title from first message
       const title = generateConversationTitle(firstMessage);
       
+      const insertData: { title: string; user_id: string; project_id?: string } = { 
+        title, 
+        user_id: user.id 
+      };
+      
+      if (projectId) {
+        insertData.project_id = projectId;
+      }
+      
       const { data, error } = await supabase
         .from('conversations')
-        .insert({ title, user_id: user.id })
+        .insert(insertData)
         .select()
         .single();
 

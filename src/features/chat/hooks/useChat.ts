@@ -19,6 +19,8 @@ export const useChat = () => {
     selectedModels,
     currentConversationId,
     setCurrentConversationId,
+    selectedProjectId,
+    setSelectedProjectId,
     deleteMessage,
     deleteMessagesAfter,
     findUserMessageBefore,
@@ -167,9 +169,18 @@ export const useChat = () => {
       }
       
       const title = content.slice(0, 50) + (content.length > 50 ? '...' : '');
+      const insertData: { title: string; user_id: string; project_id?: string } = { 
+        title, 
+        user_id: user.id 
+      };
+      
+      if (selectedProjectId) {
+        insertData.project_id = selectedProjectId;
+      }
+      
       const { data, error } = await supabase
         .from('conversations')
-        .insert({ title, user_id: user.id })
+        .insert(insertData)
         .select()
         .single();
       
