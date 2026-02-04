@@ -12,6 +12,16 @@ import { ModelRail } from '@/features/chat/components/ModelRail';
 import { ModeDropdown } from '@/features/modes/components/ModeDropdown';
 
 import { RenameDialog } from '@/components/RenameDialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -62,6 +72,7 @@ export function ChatInterface() {
     shareConversation 
   } = useConversations();
   const [showRenameDialog, setShowRenameDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   
   // Get current conversation title
   const currentConversation = conversations.find(c => c.id === currentConversationId);
@@ -125,11 +136,17 @@ export function ChatInterface() {
   };
   
   const handleDelete = () => {
+    setShowDeleteDialog(true);
+  };
+  
+  const confirmDelete = () => {
     if (currentConversationId) {
       deleteConversation(currentConversationId);
       clearMessages();
       setCurrentConversationId(null);
+      toast.success('Conversation deleted');
     }
+    setShowDeleteDialog(false);
   };
 
   // Update page title based on loading state
@@ -364,6 +381,27 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
         currentTitle={currentTitle}
         onRename={handleRenameSubmit}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-[17px] font-semibold">Delete Conversation?</AlertDialogTitle>
+            <AlertDialogDescription className="text-[14px] text-muted-foreground">
+              This action cannot be undone. This will permanently delete the conversation and all its messages.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete}
+              className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       
       {/* Temporary Mode Banner */}
       {isTemporaryMode && (
