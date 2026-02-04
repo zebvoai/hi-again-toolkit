@@ -68,11 +68,11 @@ export const ConversationItem = ({
         </p>
       </div>
 
-      {/* Three-dots menu - absolutely positioned, always visible on mobile */}
+      {/* Three-dots menu - absolutely positioned, visible on hover */}
       <div 
         className={cn(
-          "absolute right-2 top-1/2 -translate-y-1/2",
-          isOpen ? 'opacity-100' : 'opacity-100 sm:opacity-0 sm:group-hover:opacity-100'
+          "absolute right-2 top-1/2 -translate-y-1/2 transition-opacity duration-150",
+          isOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
         )}
       >
         <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
