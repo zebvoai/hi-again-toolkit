@@ -22,7 +22,7 @@ const IMAGE_MODEL_MAPPING: Record<string, string> = {
   'grok-imagine': 'x-ai/grok-imagine-image/text-to-image',
 };
 
-// Model-specific request body configurations
+// Model-specific request body configurations - ALL use 1:1 square aspect ratio
 const getRequestBody = (modelKey: string, prompt: string) => {
   switch (modelKey) {
     case 'vidu-q2':
@@ -37,12 +37,13 @@ const getRequestBody = (modelKey: string, prompt: string) => {
         prompt,
         aspect_ratio: '1:1',
         num_images: 1,
-        enable_sync_mode: true,
+        enable_sync_mode: false,
         enable_base64_output: false,
       };
     case 'nano-banana-pro':
       return {
         prompt,
+        aspect_ratio: '1:1',
         resolution: '1k',
         output_format: 'png',
         enable_sync_mode: true,
@@ -51,7 +52,8 @@ const getRequestBody = (modelKey: string, prompt: string) => {
     case 'gpt-image-1.5':
       return {
         prompt,
-        size: '1024*1024',
+        aspect_ratio: '1:1',
+        size: '1024x1024',
         quality: 'medium',
         output_format: 'jpeg',
         enable_sync_mode: true,
@@ -60,7 +62,8 @@ const getRequestBody = (modelKey: string, prompt: string) => {
     case 'minimax-image-01':
       return {
         prompt,
-        size: '1024*1024',
+        aspect_ratio: '1:1',
+        size: '1024x1024',
         num_images: 1,
         prompt_optimizer: false,
         enable_sync_mode: true,
@@ -69,7 +72,8 @@ const getRequestBody = (modelKey: string, prompt: string) => {
     case 'qwen-image':
       return {
         prompt,
-        size: '1024*1024',
+        aspect_ratio: '1:1',
+        size: '1024x1024',
         seed: -1,
         output_format: 'jpeg',
         enable_sync_mode: true,
@@ -78,7 +82,8 @@ const getRequestBody = (modelKey: string, prompt: string) => {
     case 'wan-2.6':
       return {
         prompt,
-        size: '1024*1024',
+        aspect_ratio: '1:1',
+        size: '1024x1024',
         enable_prompt_expansion: false,
         seed: -1,
         enable_sync_mode: true,
@@ -86,7 +91,8 @@ const getRequestBody = (modelKey: string, prompt: string) => {
     default:
       return {
         prompt,
-        size: '1024*1024',
+        aspect_ratio: '1:1',
+        size: '1024x1024',
         enable_sync_mode: true,
       };
   }
