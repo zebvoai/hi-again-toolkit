@@ -77,7 +77,8 @@ export const ConversationItem = ({
       {/* Three-dots menu - absolutely positioned, visible on hover */}
       <div 
         className={cn(
-          "absolute right-2 top-1/2 -translate-y-1/2 transition-opacity duration-150",
+          // Higher z-index so it can sit above the ScrollArea scrollbar overlay.
+          "absolute right-5 top-1/2 -translate-y-1/2 z-30 pointer-events-auto transition-opacity duration-150",
           showMenuButton ? 'opacity-100' : 'opacity-0'
         )}
       >

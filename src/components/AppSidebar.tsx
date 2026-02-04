@@ -394,7 +394,7 @@ export function AppSidebar() {
                                 variant="ghost"
                                 size="icon"
                                 className={cn(
-                                  "w-7 h-7 flex-shrink-0 transition-opacity duration-150 hover:bg-black/[0.06] dark:hover:bg-white/10 rounded-lg",
+                                  "relative z-30 w-7 h-7 mr-2 flex-shrink-0 transition-opacity duration-150 hover:bg-black/[0.06] dark:hover:bg-white/10 rounded-lg",
                                   hoveredProjectId === project.id ? "opacity-100" : "opacity-0",
                                   "data-[state=open]:opacity-100",
                                 )}
