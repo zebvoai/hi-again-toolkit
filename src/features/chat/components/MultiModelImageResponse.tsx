@@ -1,19 +1,64 @@
-import { useState } from 'react';
-import { ChevronLeft, ChevronRight, Grid3x3, ArrowLeft, Download } from 'lucide-react';
+import { useRef, useEffect } from 'react';
+import { Download, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { MultiModelContent } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { formatModelName } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 
 interface MultiModelImageResponseProps {
   content: MultiModelContent;
   models: string[];
 }
 
+// Model provider colors (matching ModelRail)
+const getModelStyle = (model: string): { bg: string; border: string } => {
+  const lowerModel = model.toLowerCase();
+  
+  if (lowerModel.includes('vidu')) {
+    return { bg: 'bg-fuchsia-500/10', border: 'border-fuchsia-500/30' };
+  }
+  if (lowerModel.includes('wan')) {
+    return { bg: 'bg-amber-500/10', border: 'border-amber-500/30' };
+  }
+  if (lowerModel.includes('nano') || lowerModel.includes('banana')) {
+    return { bg: 'bg-yellow-500/10', border: 'border-yellow-500/30' };
+  }
+  if (lowerModel.includes('gpt') || lowerModel.includes('openai')) {
+    return { bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' };
+  }
+  if (lowerModel.includes('minimax')) {
+    return { bg: 'bg-pink-500/10', border: 'border-pink-500/30' };
+  }
+  if (lowerModel.includes('qwen')) {
+    return { bg: 'bg-purple-500/10', border: 'border-purple-500/30' };
+  }
+  if (lowerModel.includes('grok') || lowerModel.includes('imagine')) {
+    return { bg: 'bg-slate-500/10', border: 'border-slate-500/30' };
+  }
+  
+  return { bg: 'bg-muted', border: 'border-border' };
+};
+
 export const MultiModelImageResponse = ({ content, models }: MultiModelImageResponseProps) => {
-  const [viewMode, setViewMode] = useState<'carousel' | 'compare'>('carousel');
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  // Smooth horizontal scroll with mouse wheel
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    
+    const handleWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaX) < Math.abs(e.deltaY)) {
+        e.preventDefault();
+        el.scrollLeft += e.deltaY;
+      }
+    };
+    
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => el.removeEventListener('wheel', handleWheel);
+  }, []);
 
   const handleDownload = async (url: string, modelName: string) => {
     try {
@@ -41,57 +86,64 @@ export const MultiModelImageResponse = ({ content, models }: MultiModelImageResp
     }
   };
 
-  const handleNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % models.length);
-  };
-
-  const handlePrev = () => {
-    setCurrentIndex((prev) => (prev - 1 + models.length) % models.length);
-  };
-
-  if (viewMode === 'compare') {
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-end">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setViewMode('carousel')}
-            className="text-sm"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Carousel
-          </Button>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {models.map((model) => {
-            const imageUrl = content[model];
-            const isError = typeof imageUrl === 'string' && imageUrl.startsWith('Error:');
-            
-            return (
-              <div key={model} className="bg-white/80 backdrop-blur-sm rounded-lg border border-border/30 p-3 space-y-2 shadow-sm">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-medium text-muted-foreground">{formatModelName(model)}</span>
-                  {!isError && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 hover:bg-muted/50"
-                      onClick={() => handleDownload(imageUrl, model)}
-                    >
-                      <Download className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
-                {isError ? (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700">
-                    {imageUrl}
+  return (
+    <div className="w-full">
+      {/* Horizontal scroll container */}
+      <div 
+        ref={scrollRef}
+        className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide"
+        style={{ scrollBehavior: 'smooth' }}
+      >
+        {models.map((model) => {
+          const imageUrl = content[model];
+          const isError = typeof imageUrl === 'string' && imageUrl.startsWith('Error:');
+          const isLoading = !imageUrl || imageUrl === '';
+          const style = getModelStyle(model);
+          
+          return (
+            <div 
+              key={model} 
+              className={cn(
+                "flex-shrink-0 w-[320px] md:w-[380px] rounded-xl border-2 overflow-hidden",
+                style.bg,
+                style.border
+              )}
+            >
+              {/* Model header */}
+              <div className="flex items-center justify-between px-3 py-2 border-b border-border/30">
+                <span className="text-sm font-medium text-foreground truncate">
+                  {formatModelName(model)}
+                </span>
+                {!isError && !isLoading && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 hover:bg-background/50"
+                    onClick={() => handleDownload(imageUrl, model)}
+                  >
+                    <Download className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+              
+              {/* Image content */}
+              <div className="p-2">
+                {isLoading ? (
+                  <div className="aspect-square bg-background/50 rounded-lg flex items-center justify-center">
+                    <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                      <Loader2 className="w-8 h-8 animate-spin" />
+                      <span className="text-xs">Generating...</span>
+                    </div>
+                  </div>
+                ) : isError ? (
+                  <div className="aspect-square bg-red-50 border border-red-200 rounded-lg flex items-center justify-center p-4">
+                    <p className="text-sm text-red-700 text-center">{imageUrl}</p>
                   </div>
                 ) : (
                   <img 
                     src={imageUrl} 
                     alt={`Generated by ${model}`}
-                    className="rounded-lg w-full shadow-md"
+                    className="w-full rounded-lg shadow-md"
                     onError={(e) => {
                       console.error(`Failed to load image from ${model}:`, imageUrl);
                       const target = e.target as HTMLImageElement;
@@ -101,91 +153,9 @@ export const MultiModelImageResponse = ({ content, models }: MultiModelImageResp
                   />
                 )}
               </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  }
-
-  // Carousel view
-  const currentModel = models[currentIndex];
-  const currentImageUrl = content[currentModel];
-  const isError = typeof currentImageUrl === 'string' && currentImageUrl.startsWith('Error:');
-
-  return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-end">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setViewMode('compare')}
-          className="text-sm"
-        >
-          <Grid3x3 className="w-4 h-4 mr-2" />
-          Compare
-        </Button>
-      </div>
-
-      <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-border/30 p-3 space-y-2 shadow-sm">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-sm font-medium text-muted-foreground">
-            {formatModelName(currentModel)}
-          </span>
-          <div className="flex items-center gap-2">
-            {!isError && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 hover:bg-muted/50"
-                onClick={() => handleDownload(currentImageUrl, currentModel)}
-              >
-                <Download className="w-4 h-4" />
-              </Button>
-            )}
-            <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 hover:bg-muted/50"
-                onClick={handlePrev}
-                disabled={models.length <= 1}
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              <span className="text-xs text-muted-foreground min-w-[3rem] text-center">
-                {currentIndex + 1} of {models.length}
-              </span>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 hover:bg-muted/50"
-                onClick={handleNext}
-                disabled={models.length <= 1}
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
             </div>
-          </div>
-        </div>
-
-        {isError ? (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700">
-            {currentImageUrl}
-          </div>
-        ) : (
-          <img 
-            src={currentImageUrl} 
-            alt={`Generated by ${currentModel}`}
-            className="rounded-lg w-full shadow-md"
-            onError={(e) => {
-              console.error(`Failed to load image from ${currentModel}:`, currentImageUrl);
-              const target = e.target as HTMLImageElement;
-              target.alt = `Failed to load image from ${currentModel}`;
-            }}
-            loading="lazy"
-          />
-        )}
+          );
+        })}
       </div>
     </div>
   );
