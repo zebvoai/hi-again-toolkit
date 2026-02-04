@@ -1,29 +1,44 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, FileText, Brain, Sparkles, PenTool, CheckCircle } from 'lucide-react';
+import { Search, Brain, PenTool, CheckCircle, Sparkles } from 'lucide-react';
 
 interface DeepResearchIndicatorProps {
-  status?: 'searching' | 'reading' | 'reasoning' | 'synthesizing' | 'writing' | 'complete';
+  status?: 'researching' | 'synthesizing' | 'complete';
+  phase?: 'parallel' | 'synthesis' | 'done';
+  progress?: number;
   elapsedTime?: number;
-  sourcesCount?: number;
 }
 
 const stages = [
-  { id: 'searching', label: 'Searching...', shortLabel: 'Search', icon: Search, description: 'Finding relevant sources across the web' },
-  { id: 'reading', label: 'Reading...', shortLabel: 'Read', icon: FileText, description: 'Analyzing and extracting key information' },
-  { id: 'reasoning', label: 'Reasoning...', shortLabel: 'Think', icon: Brain, description: 'Connecting insights and forming conclusions' },
-  { id: 'synthesizing', label: 'Synthesizing...', shortLabel: 'Synth', icon: Sparkles, description: 'Combining findings into a coherent analysis' },
-  { id: 'writing', label: 'Writing...', shortLabel: 'Write', icon: PenTool, description: 'Composing the research report' },
-  { id: 'complete', label: 'Complete', shortLabel: 'Done', icon: CheckCircle, description: 'Your research is ready' },
+  { 
+    id: 'researching', 
+    label: 'Researching...', 
+    shortLabel: 'Research', 
+    icon: Search, 
+    description: 'Claude & Gemini analyzing your question in parallel' 
+  },
+  { 
+    id: 'synthesizing', 
+    label: 'Synthesizing...', 
+    shortLabel: 'Synthesize', 
+    icon: Brain, 
+    description: 'GPT-5 merging insights into a unified answer' 
+  },
+  { 
+    id: 'complete', 
+    label: 'Complete', 
+    shortLabel: 'Done', 
+    icon: CheckCircle, 
+    description: 'Your deep research is ready' 
+  },
 ];
 
 export const DeepResearchIndicator = ({ 
-  status = 'searching', 
+  status = 'researching', 
+  phase = 'parallel',
+  progress = 0,
   elapsedTime = 0,
-  sourcesCount = 0 
 }: DeepResearchIndicatorProps) => {
   const [currentStageIndex, setCurrentStageIndex] = useState(0);
-  const [displayedSources, setDisplayedSources] = useState(0);
-  const prevStatusRef = useRef(status);
   
   // Update stage index when status changes
   useEffect(() => {
@@ -31,30 +46,35 @@ export const DeepResearchIndicator = ({
     if (stageIndex !== -1) {
       setCurrentStageIndex(stageIndex);
     }
-    prevStatusRef.current = status;
   }, [status]);
-  
-  // Smoothly animate sources count
-  useEffect(() => {
-    if (sourcesCount > displayedSources) {
-      const timer = setTimeout(() => {
-        setDisplayedSources(prev => Math.min(prev + 1, sourcesCount));
-      }, 150);
-      return () => clearTimeout(timer);
-    } else if (sourcesCount < displayedSources) {
-      setDisplayedSources(sourcesCount);
-    }
-  }, [sourcesCount, displayedSources]);
   
   const currentStage = stages[currentStageIndex];
   const IconComponent = currentStage.icon;
-  const progressPercent = ((currentStageIndex + 1) / stages.length) * 100;
+  const progressPercent = Math.max(progress * 100, ((currentStageIndex + 0.5) / stages.length) * 100);
   
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
   };
+  
+  // Get phase-specific messaging
+  const getPhaseDetails = () => {
+    if (phase === 'parallel') {
+      return {
+        models: ['Claude Opus 4.5', 'Gemini 3 Pro'],
+        action: 'Analyzing in parallel',
+      };
+    } else if (phase === 'synthesis') {
+      return {
+        models: ['GPT-5'],
+        action: 'Synthesizing research',
+      };
+    }
+    return { models: [], action: 'Complete' };
+  };
+  
+  const phaseDetails = getPhaseDetails();
   
   return (
     <div className="flex justify-start px-4 sm:px-6 lg:px-8 mb-4">
@@ -68,11 +88,11 @@ export const DeepResearchIndicator = ({
           {/* Header */}
           <div className="relative flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 animate-research-pulse">
-              <Search className="w-5 h-5 text-white" />
+              <Sparkles className="w-5 h-5 text-white" />
             </div>
             <div>
               <h3 className="text-sm font-semibold text-indigo-900 dark:text-indigo-100">Deep Research</h3>
-              <p className="text-xs text-indigo-600/70 dark:text-indigo-400/70">Comprehensive multi-source analysis</p>
+              <p className="text-xs text-indigo-600/70 dark:text-indigo-400/70">3-model synthesis pipeline</p>
             </div>
           </div>
           
@@ -91,17 +111,32 @@ export const DeepResearchIndicator = ({
             </div>
           </div>
           
-          {/* Progress stages - fixed width labels */}
+          {/* Active models indicator */}
+          {phaseDetails.models.length > 0 && status !== 'complete' && (
+            <div className="relative flex flex-wrap gap-2 mb-4">
+              {phaseDetails.models.map((model) => (
+                <span 
+                  key={model}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-indigo-100/80 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 rounded-full"
+                >
+                  <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse" />
+                  {model}
+                </span>
+              ))}
+            </div>
+          )}
+          
+          {/* Progress stages */}
           <div className="relative flex items-center justify-between mb-4">
-            {stages.slice(0, 5).map((stage, index) => {
+            {stages.map((stage, index) => {
               const StageIcon = stage.icon;
               const isActive = index === currentStageIndex;
               const isComplete = index < currentStageIndex;
               
               return (
-                <div key={stage.id} className="flex flex-col items-center gap-1.5 w-12">
+                <div key={stage.id} className="flex flex-col items-center gap-1.5 flex-1">
                   <div 
-                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-500 ${
+                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ${
                       isComplete 
                         ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30' 
                         : isActive 
@@ -109,7 +144,7 @@ export const DeepResearchIndicator = ({
                           : 'bg-gray-100 dark:bg-gray-800/50 text-gray-400 dark:text-gray-600'
                     }`}
                   >
-                    <StageIcon className="w-3.5 h-3.5" />
+                    <StageIcon className="w-4 h-4" />
                   </div>
                   <span className={`text-[10px] font-medium transition-colors duration-300 text-center whitespace-nowrap ${
                     isComplete || isActive 
@@ -132,12 +167,12 @@ export const DeepResearchIndicator = ({
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-shimmer" />
           </div>
           
-          {/* Stats row - fixed height with always-visible elements */}
+          {/* Stats row - fixed height */}
           <div className="relative flex items-center justify-between text-xs min-h-[20px]">
             <div className="flex items-center gap-4">
-              <span className="flex items-center gap-1.5 text-indigo-600/80 dark:text-indigo-400/80 transition-opacity duration-300">
-                <FileText className="w-3.5 h-3.5" />
-                <span className="tabular-nums">{displayedSources} source{displayedSources !== 1 ? 's' : ''}</span>
+              <span className="flex items-center gap-1.5 text-indigo-600/80 dark:text-indigo-400/80">
+                <PenTool className="w-3.5 h-3.5" />
+                <span>{phaseDetails.action}</span>
               </span>
             </div>
             <span className="text-indigo-600/60 dark:text-indigo-400/60 font-mono tabular-nums">
@@ -148,7 +183,7 @@ export const DeepResearchIndicator = ({
           {/* Calming message */}
           <div className="relative mt-4 pt-4 border-t border-indigo-100/50 dark:border-indigo-800/30">
             <p className="text-xs text-center text-indigo-600/50 dark:text-indigo-400/50 italic animate-research-breathe">
-              Deep research takes a few minutes for thorough analysis...
+              Deep research takes a moment for thorough analysis...
             </p>
           </div>
         </div>

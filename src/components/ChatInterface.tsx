@@ -32,8 +32,9 @@ export function ChatInterface() {
     regenerateResponse,
     editAndRegenerate,
     researchStatus,
+    researchPhase,
+    researchProgress,
     researchElapsedTime,
-    researchSourcesCount,
   } = useChat();
   const {
     selectedMode
@@ -342,8 +343,9 @@ export function ChatInterface() {
             {isCurrentConversationLoading && selectedMode === 'research' && (
               <DeepResearchIndicator 
                 status={researchStatus}
+                phase={researchPhase}
+                progress={researchProgress}
                 elapsedTime={researchElapsedTime}
-                sourcesCount={researchSourcesCount}
               />
             )}
             
