@@ -137,9 +137,19 @@ export function ChatInterface() {
       return;
     }
     
-    // For non-text modes, set the appropriate default
+    // For image mode, auto-select all image models by default
+if (selectedMode === 'image' && models.image && models.image.length > 0) {
+      const validImageModels = selectedModels.filter(model => models.image!.includes(model));
+      
+      // If no valid image models are selected, select all
+      if (validImageModels.length === 0) {
+        setSelectedModels([...models.image]);
+      }
+      return;
+    }
+    
+    // For non-text/non-image modes, set the appropriate default
     const defaultModels: Record<string, string> = {
-      image: 'DALL-E 3',
       video: 'Gemini Video 2.0',
       build: 'GPT-5',
       research: 'Sonar Deep Research'
@@ -227,24 +237,38 @@ export function ChatInterface() {
   };
 
   const handleSelectAllModels = () => {
-    if (models?.text) {
+    if (selectedMode === 'text' && models?.text) {
       setSelectedModels([...models.text]);
+    } else if (selectedMode === 'image' && models?.image) {
+      setSelectedModels([...models.image]);
     }
   };
 
   const handleClearAllModels = () => {
     // Keep at least one model selected
-    if (models?.text && models.text.length > 0) {
+    if (selectedMode === 'text' && models?.text && models.text.length > 0) {
       setSelectedModels([models.text[0]]);
+    } else if (selectedMode === 'image' && models?.image && models.image.length > 0) {
+      setSelectedModels([models.image[0]]);
     }
   };
 
   return (
     <div className="flex flex-col h-full relative bg-background overflow-hidden">
-      {/* Model Rail - Horizontal scroll at top (text mode only) */}
+      {/* Model Rail - Horizontal scroll at top (text and image modes) */}
       {selectedMode === 'text' && models?.text && (
         <ModelRail
           models={models.text}
+          selectedModels={selectedModels}
+          onToggle={handleToggleModel}
+          onSelectAll={handleSelectAllModels}
+          onClearAll={handleClearAllModels}
+        />
+      )}
+      
+      {selectedMode === 'image' && models?.image && (
+        <ModelRail
+          models={models.image}
           selectedModels={selectedModels}
           onToggle={handleToggleModel}
           onSelectAll={handleSelectAllModels}
@@ -359,7 +383,7 @@ export function ChatInterface() {
         </div>
       ) : (
         /* Empty State */
-        <div className={`flex-1 flex items-center justify-center px-4 pb-[240px] ${selectedMode === 'text' && models?.text ? 'pt-16' : ''}`}>
+        <div className={`flex-1 flex items-center justify-center px-4 pb-[240px] ${(selectedMode === 'text' && models?.text) || (selectedMode === 'image' && models?.image) ? 'pt-16' : ''}`}>
           <div className="text-center">
             <h1 className="text-6xl font-bold text-blue-500 mb-3 animate-logo-entrance animate-float-gentle hover:scale-[1.02] transition-transform duration-300 cursor-default">
               Zebvo AI
