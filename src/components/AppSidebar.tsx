@@ -1,5 +1,6 @@
 import { Plus, User, Search, Library, Folder, ChevronDown, ChevronRight, MoreVertical, Edit, Share, Trash2, LogOut, Settings, UserCircle, Sparkles } from "lucide-react";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -70,6 +71,9 @@ export function AppSidebar() {
   
   // Profile dropdown
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+
+  // Hover helpers (CSS group-hover can be flaky depending on wrappers/overflows)
+  const [hoveredProjectId, setHoveredProjectId] = useState<string | null>(null);
 
   const handleNewChat = (projectId?: string | null) => {
     clearMessages();
@@ -360,6 +364,10 @@ export function AppSidebar() {
                       <div key={project.id} className="space-y-0.5">
                         <div
                           onClick={() => handleProjectClick(project.id)}
+                           onMouseEnter={() => setHoveredProjectId(project.id)}
+                           onMouseLeave={() =>
+                             setHoveredProjectId((prev) => (prev === project.id ? null : prev))
+                           }
                           className={`group relative flex items-center gap-2 px-2.5 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl cursor-pointer overflow-hidden ${
                             selectedProjectId === project.id ? 'bg-primary/10 border-l-2 border-primary' : ''
                           }`}
@@ -385,7 +393,11 @@ export function AppSidebar() {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="w-7 h-7 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150 hover:bg-black/[0.06] dark:hover:bg-white/10 rounded-lg"
+                                className={cn(
+                                  "w-7 h-7 flex-shrink-0 transition-opacity duration-150 hover:bg-black/[0.06] dark:hover:bg-white/10 rounded-lg",
+                                  hoveredProjectId === project.id ? "opacity-100" : "opacity-0",
+                                  "data-[state=open]:opacity-100",
+                                )}
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 <MoreVertical className="w-3.5 h-3.5 text-[#8E8E93]" />
