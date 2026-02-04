@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Square, Menu, Share } from 'lucide-react';
+import { Square, Menu, Share, Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useChat } from '@/features/chat/hooks/useChat';
 import { useModeStore } from '@/features/modes/store/modeStore';
@@ -504,10 +504,30 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
             <div className="flex items-center gap-2 mb-3">
               <ModeDropdown />
               
-              {/* Share - Only when conversation exists */}
+              {/* Chat Actions - Only when conversation exists */}
               {currentConversationId && (
-                <div className="flex items-center ml-auto">
+                <div className="flex items-center gap-1 ml-auto">
                   <TooltipProvider delayDuration={300}>
+                    {/* Rename */}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleRename}
+                          className="h-8 px-2.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/80 transition-all"
+                        >
+                          <Pencil className="w-3.5 h-3.5 mr-1.5" />
+                          <span className="text-xs font-medium">Rename</span>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="text-xs">
+                        Rename conversation
+                      </TooltipContent>
+                    </Tooltip>
+
+                    {/* Share */}
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
@@ -523,6 +543,25 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
                       </TooltipTrigger>
                       <TooltipContent side="top" className="text-xs">
                         Copy share link
+                      </TooltipContent>
+                    </Tooltip>
+
+                    {/* Delete */}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleDelete}
+                          className="h-8 px-2.5 rounded-lg text-destructive/70 hover:text-destructive hover:bg-destructive/10 transition-all"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+                          <span className="text-xs font-medium">Delete</span>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="text-xs">
+                        Delete conversation
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
