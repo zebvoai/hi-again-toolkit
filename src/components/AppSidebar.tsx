@@ -1,4 +1,4 @@
-import { Plus, User, Search, Library, Folder, ChevronDown, ChevronRight, MoreVertical, Edit, MessageSquarePlus, Share, FileDown, Archive, Trash2, LogOut, Settings, UserCircle, Sparkles } from "lucide-react";
+import { Plus, User, Search, Library, Folder, ChevronDown, ChevronRight, MoreVertical, Edit, Share, Trash2, LogOut, Settings, UserCircle, Sparkles } from "lucide-react";
 import { useState } from "react";
 import {
   Dialog,
@@ -246,18 +246,19 @@ export function AppSidebar() {
         <SidebarHeader className={`pt-3 pb-2 transition-all duration-300 ease-out ${
           isCollapsed ? 'px-3 flex flex-col items-center gap-2' : 'px-3 space-y-2.5'
         }`}>
-          {/* Logo and Brand */}
-          <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-2.5'}`}>
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center flex-shrink-0 shadow-sm">
-              <Sparkles className="w-4 h-4 text-primary-foreground" />
+          {/* Logo, Brand, and Toggle in same row when expanded */}
+          <div className={`flex items-center ${isCollapsed ? 'flex-col gap-2' : 'justify-between w-full'}`}>
+            <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-2.5'}`}>
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center flex-shrink-0 shadow-sm">
+                <Sparkles className="w-4 h-4 text-primary-foreground" />
+              </div>
+              {!isCollapsed && (
+                <span className="text-base font-semibold text-foreground tracking-tight">Zebvo Assist</span>
+              )}
             </div>
-            {!isCollapsed && (
-              <span className="text-base font-semibold text-foreground tracking-tight">Zebvo Assist</span>
-            )}
+            {/* Sidebar Toggle */}
+            <SidebarTrigger className="w-8 h-8 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 hover:bg-black/5 dark:hover:bg-white/10 text-[#8E8E93] hover:text-foreground rounded-full flex-shrink-0" />
           </div>
-
-          {/* Sidebar Toggle */}
-          <SidebarTrigger className={`w-8 h-8 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 hover:bg-black/5 dark:hover:bg-white/10 text-[#8E8E93] hover:text-foreground rounded-full flex-shrink-0 ${isCollapsed ? '' : 'self-end -mt-10'}`} />
 
           {/* Collapsed: Icon-only New Chat button */}
           {isCollapsed && (
@@ -390,17 +391,7 @@ export function AppSidebar() {
                                 <MoreVertical className="w-3.5 h-3.5 text-[#8E8E93]" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" sideOffset={4} className="w-52 bg-popover/95 backdrop-blur-xl border border-border/50 shadow-lg z-50 rounded-xl p-1">
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleNewChat(project.id);
-                                }}
-                                className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer"
-                              >
-                                <Plus className="w-4 h-4 text-[#8E8E93]" />
-                                <span className="text-[13px]">New Chat</span>
-                              </DropdownMenuItem>
+                            <DropdownMenuContent align="end" sideOffset={4} className="w-44 bg-popover/95 backdrop-blur-xl border border-border/50 shadow-lg z-50 rounded-xl p-1">
                               <DropdownMenuItem
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -411,46 +402,7 @@ export function AppSidebar() {
                                 <Edit className="w-4 h-4 text-[#8E8E93]" />
                                 <span className="text-[13px]">Rename</span>
                               </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleProjectAction(project.id, "duplicate");
-                                }}
-                                className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer"
-                              >
-                                <MessageSquarePlus className="w-4 h-4 text-[#8E8E93]" />
-                                <span className="text-[13px]">Duplicate</span>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  console.log("Share project", project.id);
-                                }}
-                                className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer"
-                              >
-                                <Share className="w-4 h-4 text-[#8E8E93]" />
-                                <span className="text-[13px]">Share</span>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  console.log("Export project", project.id);
-                                }}
-                                className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer"
-                              >
-                                <FileDown className="w-4 h-4 text-[#8E8E93]" />
-                                <span className="text-[13px]">Export</span>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleProjectAction(project.id, "archive");
-                                }}
-                                className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer"
-                              >
-                                <Archive className="w-4 h-4 text-[#8E8E93]" />
-                                <span className="text-[13px]">Archive</span>
-                              </DropdownMenuItem>
+                              <div className="h-px bg-border/30 my-1 mx-2" />
                               <DropdownMenuItem
                                 onClick={(e) => {
                                   e.stopPropagation();
