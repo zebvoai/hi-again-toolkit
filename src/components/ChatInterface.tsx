@@ -10,7 +10,7 @@ import { TypingIndicator } from '@/features/chat/components/TypingIndicator';
 import { DeepResearchIndicator } from '@/features/chat/components/DeepResearchIndicator';
 import { ModelRail } from '@/features/chat/components/ModelRail';
 import { ModeDropdown } from '@/features/modes/components/ModeDropdown';
-import { ChatActionsMenu } from '@/components/ChatActionsMenu';
+
 import { RenameDialog } from '@/components/RenameDialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -345,20 +345,6 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
         />
       )}
 
-      {/* Top Right Actions - Chat menu + Mobile menu */}
-      <div className="fixed top-3 right-3 z-50 flex items-center gap-2">
-        {/* Chat Actions Menu - Only when a conversation exists */}
-        <ChatActionsMenu
-          onRename={handleRename}
-          onShare={handleShare}
-          onDuplicate={handleDuplicate}
-          onExportMarkdown={handleExportMarkdown}
-          onExportJSON={handleExportJSON}
-          onArchive={handleArchive}
-          onDelete={handleDelete}
-          disabled={!currentConversationId}
-        />
-      </div>
 
       {/* Mobile Menu Button - Only visible on mobile */}
       {isMobile && (
