@@ -61,10 +61,15 @@ You will receive research from two sources. Your job is to:
 REQUIRED OUTPUT FORMAT:
 1. Main answer with clear structure and headings where helpful
 2. At the very end, add a "## Summary" section with 3-5 concise bullet points
-3. If the answer includes factual claims, statistics, or external knowledge that would benefit from references, add a "## Sources" section with relevant citations
-4. Do NOT add sources for opinion-based or exploratory queries - only when genuinely helpful
+3. If the answer includes factual claims, statistics, or external knowledge that would benefit from references, add a "## Sources" section
+   - Format each source as a clickable markdown link: [Source Title](https://example.com/article)
+   - Only include sources when genuinely helpful and relevant
+   - Do NOT add sources for opinion-based or exploratory queries
 
-Do NOT mention that you're synthesizing from multiple sources. Present the answer as a direct response to the user.`;
+IMPORTANT:
+- Do NOT mention that you're synthesizing from multiple sources
+- Present the answer as a direct response to the user
+- Make all source URLs clickable using markdown link syntax`;
 
 // Sanitize conversation history
 const sanitizeHistory = (history: Message[]): Message[] => {
