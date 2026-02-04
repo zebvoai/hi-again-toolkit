@@ -379,13 +379,13 @@ export function AppSidebar() {
                             </span>
                           )}
 
-                          {/* 3-dot menu - always visible on mobile, hover on desktop */}
+                          {/* 3-dot menu - visible on hover */}
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="w-7 h-7 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex-shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 hover:bg-black/[0.06] dark:hover:bg-white/10 rounded-lg"
+                                className="w-7 h-7 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150 hover:bg-black/[0.06] dark:hover:bg-white/10 rounded-lg"
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 <MoreVertical className="w-3.5 h-3.5 text-[#8E8E93]" />
