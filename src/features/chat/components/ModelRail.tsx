@@ -98,7 +98,7 @@ export function ModelRail({ models, selectedModels, onToggle, onSelectAll, onCle
 
   return (
     <div 
-      className="fixed top-0 right-0 bg-background/80 backdrop-blur-sm border-b border-border/30 z-30"
+      className="fixed top-0 right-0 bg-background/80 backdrop-blur-sm border-b border-border/30 z-10"
       style={{ left: sidebarWidth }}
     >
       <div className="flex items-center gap-3 pl-6 pr-4 py-3">
