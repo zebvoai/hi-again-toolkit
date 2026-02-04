@@ -156,6 +156,65 @@ export type Database = {
         }
         Relationships: []
       }
+      user_images: {
+        Row: {
+          conversation_id: string | null
+          created_at: string
+          filename: string | null
+          id: string
+          metadata: Json | null
+          mime_type: string | null
+          model: string | null
+          prompt: string | null
+          size_bytes: number | null
+          source_type: string
+          thumbnail_url: string | null
+          updated_at: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id?: string | null
+          created_at?: string
+          filename?: string | null
+          id?: string
+          metadata?: Json | null
+          mime_type?: string | null
+          model?: string | null
+          prompt?: string | null
+          size_bytes?: number | null
+          source_type: string
+          thumbnail_url?: string | null
+          updated_at?: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string | null
+          created_at?: string
+          filename?: string | null
+          id?: string
+          metadata?: Json | null
+          mime_type?: string | null
+          model?: string | null
+          prompt?: string | null
+          size_bytes?: number | null
+          source_type?: string
+          thumbnail_url?: string | null
+          updated_at?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_images_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
