@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
-import { Search, Brain, PenTool, CheckCircle, Sparkles } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, Brain, CheckCircle, Sparkles, Layers } from 'lucide-react';
 
 interface DeepResearchIndicatorProps {
   status?: 'researching' | 'synthesizing' | 'complete';
@@ -11,17 +11,17 @@ interface DeepResearchIndicatorProps {
 const stages = [
   { 
     id: 'researching', 
-    label: 'Researching...', 
+    label: 'Gathering insights...', 
     shortLabel: 'Research', 
     icon: Search, 
-    description: 'Claude & Gemini analyzing your question in parallel' 
+    description: 'Top AI models are analyzing your question in parallel' 
   },
   { 
     id: 'synthesizing', 
     label: 'Synthesizing...', 
     shortLabel: 'Synthesize', 
     icon: Brain, 
-    description: 'GPT-5 merging insights into a unified answer' 
+    description: 'Our AI moderator is summarizing the findings' 
   },
   { 
     id: 'complete', 
@@ -62,19 +62,20 @@ export const DeepResearchIndicator = ({
   const getPhaseDetails = () => {
     if (phase === 'parallel') {
       return {
-        models: ['Claude Opus 4.5', 'Gemini 3 Pro'],
-        action: 'Analyzing in parallel',
+        label: 'Multiple models analyzing',
+        icon: Layers,
       };
     } else if (phase === 'synthesis') {
       return {
-        models: ['GPT-5'],
-        action: 'Synthesizing research',
+        label: 'AI moderator synthesizing',
+        icon: Brain,
       };
     }
-    return { models: [], action: 'Complete' };
+    return { label: 'Complete', icon: CheckCircle };
   };
   
   const phaseDetails = getPhaseDetails();
+  const PhaseIcon = phaseDetails.icon;
   
   return (
     <div className="flex justify-start px-4 sm:px-6 lg:px-8 mb-4">
@@ -92,7 +93,7 @@ export const DeepResearchIndicator = ({
             </div>
             <div>
               <h3 className="text-sm font-semibold text-indigo-900 dark:text-indigo-100">Deep Research</h3>
-              <p className="text-xs text-indigo-600/70 dark:text-indigo-400/70">3-model synthesis pipeline</p>
+              <p className="text-xs text-indigo-600/70 dark:text-indigo-400/70">Multi-model analysis & synthesis</p>
             </div>
           </div>
           
@@ -111,18 +112,14 @@ export const DeepResearchIndicator = ({
             </div>
           </div>
           
-          {/* Active models indicator */}
-          {phaseDetails.models.length > 0 && status !== 'complete' && (
-            <div className="relative flex flex-wrap gap-2 mb-4">
-              {phaseDetails.models.map((model) => (
-                <span 
-                  key={model}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-indigo-100/80 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 rounded-full"
-                >
-                  <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse" />
-                  {model}
-                </span>
-              ))}
+          {/* Active phase indicator */}
+          {status !== 'complete' && (
+            <div className="relative flex items-center gap-2 mb-4">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-indigo-100/80 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 rounded-full">
+                <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse" />
+                <PhaseIcon className="w-3 h-3" />
+                {phaseDetails.label}
+              </span>
             </div>
           )}
           
@@ -167,14 +164,8 @@ export const DeepResearchIndicator = ({
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-shimmer" />
           </div>
           
-          {/* Stats row - fixed height */}
-          <div className="relative flex items-center justify-between text-xs min-h-[20px]">
-            <div className="flex items-center gap-4">
-              <span className="flex items-center gap-1.5 text-indigo-600/80 dark:text-indigo-400/80">
-                <PenTool className="w-3.5 h-3.5" />
-                <span>{phaseDetails.action}</span>
-              </span>
-            </div>
+          {/* Timer */}
+          <div className="relative flex items-center justify-end text-xs min-h-[20px]">
             <span className="text-indigo-600/60 dark:text-indigo-400/60 font-mono tabular-nums">
               {formatTime(elapsedTime)}
             </span>
