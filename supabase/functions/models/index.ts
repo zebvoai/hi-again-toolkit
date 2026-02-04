@@ -76,14 +76,14 @@ serve(async (req) => {
       _openRouterModelMap: openRouterModelMap,
       text: allTextModels,
       image: [
-        // Fixed list of 7 image models as specified
+        // Fixed list of 7 image models via Wavespeed API
         'Vidu Q2',
         'WAN 2.6',
         'Nano Banana Pro',
         'GPT Image 1.5',
         'MiniMax Image 01',
         'Qwen Image',
-        'Grok Imagine'
+        'Grok 2 Image'
       ],
       video: [
         'Gemini Video 2.0',

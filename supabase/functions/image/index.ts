@@ -11,7 +11,8 @@ interface ImageRequest {
   model?: string;
 }
 
-// Fixed list of 7 image models with their OpenRouter API IDs
+// Fixed list of 7 image models with their Wavespeed API paths
+// Format: display name key -> Wavespeed API model path
 const IMAGE_MODEL_MAPPING: Record<string, string> = {
   'vidu-q2': 'vidu/text-to-image-q2',
   'wan-2.6': 'alibaba/wan-2.6/text-to-image',
@@ -19,7 +20,7 @@ const IMAGE_MODEL_MAPPING: Record<string, string> = {
   'gpt-image-1.5': 'openai/gpt-image-1.5/text-to-image',
   'minimax-image-01': 'minimax/image-01/text-to-image',
   'qwen-image': 'wavespeed-ai/qwen-image/text-to-image',
-  'grok-imagine': 'x-ai/grok-imagine-image/text-to-image',
+  'grok-2-image': 'x-ai/grok-2-image',
 };
 
 serve(async (req) => {
@@ -32,11 +33,11 @@ serve(async (req) => {
     
     console.log('Image generation request:', { prompt, model });
     
-    // Map display name to API model ID
+    // Map display name to API model path
     const modelKey = model?.toLowerCase().replace(/\s+/g, '-') || 'nano-banana-pro';
-    const apiModelId = IMAGE_MODEL_MAPPING[modelKey];
+    const apiModelPath = IMAGE_MODEL_MAPPING[modelKey];
     
-    if (!apiModelId) {
+    if (!apiModelPath) {
       console.error(`Unknown model: ${model} (key: ${modelKey})`);
       return new Response(
         JSON.stringify({ 
@@ -49,40 +50,42 @@ serve(async (req) => {
       );
     }
     
-    console.log('Using OpenRouter model:', apiModelId);
+    console.log('Using Wavespeed model path:', apiModelPath);
     
-    const openRouterApiKey = Deno.env.get('OPENROUTER_API_KEY');
+    const wavespeedApiKey = Deno.env.get('WAVESPEED_API_KEY');
     
-    if (!openRouterApiKey) {
-      throw new Error('OPENROUTER_API_KEY not configured');
+    if (!wavespeedApiKey) {
+      throw new Error('WAVESPEED_API_KEY not configured');
     }
     
-    // Call OpenRouter for image generation
-    const response = await fetch('https://openrouter.ai/api/v1/images/generations', {
+    // Call Wavespeed API for image generation
+    const apiUrl = `https://api.wavespeed.ai/api/v3/${apiModelPath}`;
+    console.log('Calling Wavespeed API:', apiUrl);
+    
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openRouterApiKey}`,
+        'Authorization': `Bearer ${wavespeedApiKey}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://lovable.dev',
-        'X-Title': 'Zebvo AI'
       },
       body: JSON.stringify({
-        model: apiModelId,
         prompt,
-        n: 1,
-        size: '1024x1024'
+        size: '1024*1024',
+        enable_sync_mode: true,
       })
     });
     
+    const responseText = await response.text();
+    console.log('Wavespeed response status:', response.status);
+    console.log('Wavespeed response:', responseText);
+    
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('OpenRouter image error:', response.status, errorText);
+      console.error('Wavespeed image error:', response.status, responseText);
       
-      // Try to parse error for better messaging
       let errorMessage = `Image generation failed (${response.status})`;
       try {
-        const errorJson = JSON.parse(errorText);
-        errorMessage = errorJson.error?.message || errorMessage;
+        const errorJson = JSON.parse(responseText);
+        errorMessage = errorJson.message || errorJson.error || errorMessage;
       } catch {
         // Use default error message
       }
@@ -90,26 +93,65 @@ serve(async (req) => {
       throw new Error(errorMessage);
     }
     
-    const data = await response.json();
-    console.log('Image generated successfully via OpenRouter');
+    const data = JSON.parse(responseText);
+    console.log('Image generation response:', JSON.stringify(data));
     
-    // OpenRouter returns image URL in data array
-    const imageUrl = data.data?.[0]?.url || data.data?.[0]?.b64_json;
+    // Extract image URL from response
+    let imageUrl: string | null = null;
+    
+    // Sync mode: outputs directly in response
+    if (data.data?.outputs && data.data.outputs.length > 0) {
+      imageUrl = data.data.outputs[0];
+    }
+    // Async mode: need to poll for result
+    else if (data.data?.id) {
+      const taskId = data.data.id;
+      console.log('Got task ID, polling for result:', taskId);
+      
+      // Poll for result (max 60 seconds)
+      const maxAttempts = 30;
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        const resultResponse = await fetch(
+          `https://api.wavespeed.ai/api/v3/predictions/${taskId}/result`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${wavespeedApiKey}`,
+            }
+          }
+        );
+        
+        const resultText = await resultResponse.text();
+        console.log(`Poll attempt ${attempt + 1}:`, resultText);
+        
+        if (!resultResponse.ok) {
+          continue;
+        }
+        
+        const resultData = JSON.parse(resultText);
+        
+        if (resultData.data?.status === 'completed' && resultData.data?.outputs?.length > 0) {
+          imageUrl = resultData.data.outputs[0];
+          break;
+        } else if (resultData.data?.status === 'failed') {
+          throw new Error('Image generation failed');
+        }
+      }
+    }
     
     if (!imageUrl) {
       console.error('No image URL in response:', data);
       throw new Error('No image returned from API');
     }
     
-    // If it's base64, convert to data URL
-    const finalUrl = imageUrl.startsWith('data:') || imageUrl.startsWith('http') 
-      ? imageUrl 
-      : `data:image/png;base64,${imageUrl}`;
+    console.log('Final image URL:', imageUrl);
     
     return new Response(
       JSON.stringify({
-        imageUrl: finalUrl,
-        revisedPrompt: data.data?.[0]?.revised_prompt || prompt,
+        imageUrl,
+        revisedPrompt: prompt,
         model: model || 'Nano Banana Pro'
       }),
       { 
