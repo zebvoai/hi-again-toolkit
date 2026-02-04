@@ -68,28 +68,14 @@ serve(async (req) => {
   }
 
   try {
-    // Base models (direct API - always included)
+    // Base models (direct API - flagship only)
     const baseModels = [
-      // OpenAI (direct API)
+      // OpenAI (direct API) - flagship only
       'GPT-5',
-      'GPT-5 Mini',
-      'GPT-5 Nano',
-      'GPT-4.1',
-      'GPT-4.1 Mini',
-      'O3',
-      'O4 Mini',
-      // Anthropic (direct API) - Current Claude 4.x models
-      'Claude Sonnet 4.5',
-      'Claude Haiku 4.5',
+      // Anthropic (direct API) - flagship only
       'Claude Opus 4.5',
-      'Claude Sonnet 4',
-      'Claude Opus 4',
-      // Google (via Lovable AI Gateway)
-      'Gemini 2.5 Pro',
+      // Google (via Lovable AI Gateway) - flagship only
       'Gemini 3 Pro',
-      'Gemini 2.5 Flash',
-      'Gemini 2.5 Flash Lite',
-      'Gemini 2.0 Flash',
     ];
     
     // Build mapping of display name -> API ID for OpenRouter models
