@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useChatStore } from "@/features/chat/store/chatStore";
 import { useConversations } from "@/features/chat/hooks/useConversations";
+import { useProjects } from "@/features/projects/hooks/useProjects";
 import { ConversationItem } from "./ConversationItem";
 import { RenameDialog } from "./RenameDialog";
 import { isToday, isYesterday, format } from "date-fns";
@@ -41,6 +42,7 @@ export function AppSidebar() {
   const { clearMessages, setCurrentConversationId, currentConversationId, setMessages } =
     useChatStore();
   const { conversations, isLoading, loadConversation, deleteConversation, renameConversation, shareConversation, refreshConversations } = useConversations();
+  const { projects, isLoading: projectsLoading, createProject, renameProject, deleteProject, duplicateProject } = useProjects();
   const { toast } = useToast();
   const { user, signOut } = useAuth();
 
@@ -50,10 +52,9 @@ export function AppSidebar() {
 
   // Projects state
   const [isProjectsOpen, setIsProjectsOpen] = useState(true);
-  const [projects, setProjects] = useState([
-    { id: 1, name: "Queries" },
-    { id: 2, name: "Zebvo" },
-  ]);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [projectToRename, setProjectToRename] = useState<{ id: string; name: string } | null>(null);
+  const [isProjectRenameDialogOpen, setIsProjectRenameDialogOpen] = useState(false);
   
   
   // Search state
@@ -96,25 +97,27 @@ export function AppSidebar() {
     }
   };
 
-  const handleProjectAction = (projectId: number, action: "rename" | "duplicate" | "archive" | "delete") => {
+  const handleProjectAction = async (projectId: string, action: "rename" | "duplicate" | "archive" | "delete") => {
     const project = projects.find((p) => p.id === projectId);
     if (!project) return;
     
     if (action === "delete") {
-      setProjects(projects.filter((p) => p.id !== projectId));
-      toast({ title: 'Deleted', description: `Project "${project.name}" deleted` });
+      await deleteProject(projectId);
     } else if (action === "duplicate") {
-      const newProject = {
-        id: Math.max(...projects.map(p => p.id)) + 1,
-        name: `${project.name} (copy)`
-      };
-      setProjects([...projects, newProject]);
-      toast({ title: 'Duplicated', description: `Project "${project.name}" duplicated` });
+      await duplicateProject(projectId);
     } else if (action === "archive") {
       toast({ title: 'Archived', description: `Project "${project.name}" archived` });
     } else if (action === "rename") {
-      // TODO: Open rename dialog for projects
-      toast({ title: 'Rename', description: 'Project rename dialog coming soon' });
+      setProjectToRename({ id: projectId, name: project.name });
+      setIsProjectRenameDialogOpen(true);
+    }
+  };
+
+  const handleProjectRenameSubmit = async (newName: string) => {
+    if (projectToRename) {
+      await renameProject(projectToRename.id, newName);
+      setProjectToRename(null);
+      setIsProjectRenameDialogOpen(false);
     }
   };
 
@@ -170,15 +173,10 @@ export function AppSidebar() {
     toast({ title: 'Exported!', description: 'Conversation exported as JSON' });
   };
   
-  const handleCreateProject = () => {
+  const handleCreateProject = async () => {
     if (!newProjectName.trim()) return;
     
-    const newProject = {
-      id: projects.length > 0 ? Math.max(...projects.map(p => p.id)) + 1 : 1,
-      name: newProjectName.trim()
-    };
-    
-    setProjects([...projects, newProject]);
+    await createProject(newProjectName.trim());
     setNewProjectName("");
     setIsNewProjectDialogOpen(false);
   };
@@ -525,12 +523,20 @@ export function AppSidebar() {
         </DialogContent>
       </Dialog>
 
-      {/* Rename Dialog */}
+      {/* Rename Conversation Dialog */}
       <RenameDialog
         open={renameDialogOpen}
         onOpenChange={setRenameDialogOpen}
         currentTitle={conversationToRename?.title || ''}
         onRename={handleRenameSubmit}
+      />
+
+      {/* Rename Project Dialog */}
+      <RenameDialog
+        open={isProjectRenameDialogOpen}
+        onOpenChange={setIsProjectRenameDialogOpen}
+        currentTitle={projectToRename?.name || ''}
+        onRename={handleProjectRenameSubmit}
       />
     </Sidebar>
   );
