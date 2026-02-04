@@ -13,6 +13,7 @@ interface ModelRailProps {
 const getModelStyle = (model: string): { bg: string; text: string; accent: string } => {
   const lowerModel = model.toLowerCase();
   
+  // Text model styles
   if (lowerModel.includes('gpt')) {
     return { bg: 'bg-emerald-500/10', text: 'text-emerald-600', accent: 'border-emerald-500/30' };
   }
@@ -54,6 +55,20 @@ const getModelStyle = (model: string): { bg: string; text: string; accent: strin
   }
   if (lowerModel.includes('nemotron') || lowerModel.includes('nvidia')) {
     return { bg: 'bg-lime-500/10', text: 'text-lime-600', accent: 'border-lime-500/30' };
+  }
+  
+  // Image model styles
+  if (lowerModel.includes('vidu')) {
+    return { bg: 'bg-fuchsia-500/10', text: 'text-fuchsia-600', accent: 'border-fuchsia-500/30' };
+  }
+  if (lowerModel.includes('wan')) {
+    return { bg: 'bg-amber-500/10', text: 'text-amber-600', accent: 'border-amber-500/30' };
+  }
+  if (lowerModel.includes('nano') || lowerModel.includes('banana')) {
+    return { bg: 'bg-yellow-500/10', text: 'text-yellow-600', accent: 'border-yellow-500/30' };
+  }
+  if (lowerModel.includes('imagine')) {
+    return { bg: 'bg-slate-500/10', text: 'text-slate-600', accent: 'border-slate-500/30' };
   }
   
   return { bg: 'bg-muted', text: 'text-foreground', accent: 'border-border' };
