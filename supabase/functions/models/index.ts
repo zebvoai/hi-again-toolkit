@@ -8,51 +8,34 @@ const corsHeaders = {
 // Curated list of top-quality OpenRouter models with correct API IDs
 // Based on OpenRouter rankings and real usage data
 const OPENROUTER_MODELS: { displayName: string; apiId: string }[] = [
-  // X.AI / Grok - Top ranked models
+  // X.AI / Grok - flagship only
   { displayName: 'Grok 4.1 Fast', apiId: 'x-ai/grok-4.1-fast' },
-  { displayName: 'Grok 4 Fast', apiId: 'x-ai/grok-4-fast' },
-  { displayName: 'Grok Code Fast', apiId: 'x-ai/grok-code-fast-1' },
-  { displayName: 'Grok 3 Beta', apiId: 'x-ai/grok-3-beta' },
   
-  // DeepSeek - Excellent reasoning models
+  // DeepSeek - flagship only
   { displayName: 'DeepSeek R1', apiId: 'deepseek/deepseek-r1' },
-  { displayName: 'DeepSeek V3', apiId: 'deepseek/deepseek-chat' },
-  { displayName: 'DeepSeek R1 Distill Qwen 32B', apiId: 'deepseek/deepseek-r1-distill-qwen-32b' },
   
-  // Qwen - High quality Chinese AI models
+  // Qwen - flagship only
   { displayName: 'Qwen 3 32B', apiId: 'qwen/qwen3-32b' },
-  { displayName: 'Qwen 2.5 72B', apiId: 'qwen/qwen-2.5-72b-instruct' },
   
-  // Mistral - Strong European AI
+  // Mistral - flagship only
   { displayName: 'Mistral Large', apiId: 'mistralai/mistral-large-2411' },
-  { displayName: 'Mistral Medium', apiId: 'mistralai/mistral-medium-3' },
-  { displayName: 'Mistral Nemo', apiId: 'mistralai/mistral-nemo' },
   
-  // Meta Llama - Open source excellence
+  // Meta Llama - flagship only
   { displayName: 'Llama 4 Maverick', apiId: 'meta-llama/llama-4-maverick' },
-  { displayName: 'Llama 4 Scout', apiId: 'meta-llama/llama-4-scout' },
-  { displayName: 'Llama 3.3 70B', apiId: 'meta-llama/llama-3.3-70b-instruct' },
-  { displayName: 'Llama 3.1 405B', apiId: 'meta-llama/llama-3.1-405b-instruct' },
   
-  // MiniMax - High performance
+  // MiniMax
   { displayName: 'MiniMax M2', apiId: 'minimax/minimax-m2' },
   
-  // Cohere - Enterprise focused
-  { displayName: 'Command R+', apiId: 'cohere/command-r-plus-08-2024' },
-  { displayName: 'Command R', apiId: 'cohere/command-r-08-2024' },
+  // Cohere - flagship only
   { displayName: 'Command A', apiId: 'cohere/command-a-03-2025' },
   
-  // Perplexity - Search enhanced
+  // Perplexity - flagship only
   { displayName: 'Perplexity Sonar Pro', apiId: 'perplexity/sonar-pro' },
-  { displayName: 'Perplexity Sonar', apiId: 'perplexity/sonar' },
   
-  // Kimi / Moonshot AI - Advanced vision and reasoning
-  { displayName: 'Kimi VL A3B', apiId: 'moonshotai/kimi-vl-a3b' },
+  // Kimi / Moonshot - flagship only
   { displayName: 'Kimi K2', apiId: 'moonshotai/kimi-k2' },
-  { displayName: 'Kimi K1.5', apiId: 'moonshotai/kimi-k1.5' },
   
-  // Microsoft - Phi models
-  { displayName: 'Phi 4', apiId: 'microsoft/phi-4' },
+  // Microsoft - flagship only
   { displayName: 'Phi 4 Reasoning', apiId: 'microsoft/phi-4-reasoning-plus' },
   
   // NVIDIA
