@@ -1,4 +1,4 @@
-import { Plus, User, Search, Library, Folder, ChevronDown, ChevronRight, MoreVertical, Edit, Share, Trash2, LogOut, Settings, UserCircle, Sparkles } from "lucide-react";
+import { Plus, User, Search, Library, Folder, ChevronDown, ChevronRight, MoreVertical, Edit, Share, Trash2, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import {
@@ -25,16 +25,19 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useChatStore } from "@/features/chat/store/chatStore";
 import { useConversations } from "@/features/chat/hooks/useConversations";
 import { useProjects } from "@/features/projects/hooks/useProjects";
 import { ConversationItem } from "./ConversationItem";
 import { RenameDialog } from "./RenameDialog";
+import { AccountDialog } from "./AccountDialog";
 import { LibraryView } from "@/features/library/components/LibraryView";
 import { isToday, isYesterday, format } from "date-fns";
 import { exportAsMarkdown, exportAsJSON } from "@/lib/exportConversation";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import type { Message } from "@/types";
 
 export function AppSidebar() {
@@ -46,11 +49,8 @@ export function AppSidebar() {
   const { conversations, isLoading, loadConversation, deleteConversation, renameConversation, shareConversation, refreshConversations } = useConversations();
   const { projects, isLoading: projectsLoading, createProject, renameProject, deleteProject, duplicateProject } = useProjects();
   const { toast } = useToast();
-  const { user, signOut } = useAuth();
-
-  const handleLogout = async () => {
-    await signOut();
-  };
+  const { user } = useAuth();
+  const { profile } = useProfile();
 
   // Projects state
   const [isProjectsOpen, setIsProjectsOpen] = useState(true);
@@ -73,8 +73,22 @@ export function AppSidebar() {
   // Profile dropdown
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   
+  // Account dialog
+  const [showAccountDialog, setShowAccountDialog] = useState(false);
+  
   // Library view
   const [showLibrary, setShowLibrary] = useState(false);
+
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (profile?.username) {
+      return profile.username.slice(0, 2).toUpperCase();
+    }
+    if (profile?.email || user?.email) {
+      return (profile?.email || user?.email || 'U').slice(0, 2).toUpperCase();
+    }
+    return 'U';
+  };
 
   const handleNewChat = (projectId?: string | null) => {
     clearMessages();
@@ -516,44 +530,43 @@ export function AppSidebar() {
         isCollapsed ? 'p-3 flex items-center justify-center' : 'px-2 py-3'
       }`}>
         {isCollapsed ? (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="w-9 h-9 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 rounded-full bg-[#007AFF] hover:bg-[#0066DD] text-white shadow-sm"
+          <button
+            onClick={() => setShowAccountDialog(true)}
+            className="w-9 h-9 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 rounded-full overflow-hidden shadow-sm"
           >
-            <User className="w-4 h-4" />
-          </Button>
+            <Avatar className="w-full h-full">
+              <AvatarImage src={profile?.avatar_url || ''} alt={profile?.username || 'User'} />
+              <AvatarFallback className="bg-gradient-to-br from-[#007AFF] to-[#5856D6] text-white text-sm font-medium">
+                {getUserInitials()}
+              </AvatarFallback>
+            </Avatar>
+          </button>
         ) : (
           <DropdownMenu open={isProfileDropdownOpen} onOpenChange={setIsProfileDropdownOpen}>
             <DropdownMenuTrigger asChild>
               <div className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-black/[0.04] dark:hover:bg-white/[0.08] cursor-pointer transition-all duration-200 mx-1">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#007AFF] to-[#5856D6] flex items-center justify-center flex-shrink-0 shadow-sm">
-                  <User className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-[13px] font-medium flex-1 text-foreground truncate">{user?.email || 'User'}</span>
+                <Avatar className="w-8 h-8 flex-shrink-0 shadow-sm">
+                  <AvatarImage src={profile?.avatar_url || ''} alt={profile?.username || 'User'} />
+                  <AvatarFallback className="bg-gradient-to-br from-[#007AFF] to-[#5856D6] text-white text-xs font-medium">
+                    {getUserInitials()}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-[13px] font-medium flex-1 text-foreground truncate">
+                  {profile?.username || user?.email || 'User'}
+                </span>
                 <ChevronDown className={`w-4 h-4 text-[#8E8E93] transition-transform duration-200 ${isProfileDropdownOpen ? 'rotate-180' : ''}`} />
               </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" side="top" className="w-52 rounded-2xl bg-white/95 dark:bg-[#2C2C2E]/95 backdrop-blur-xl border-border/20 shadow-lg p-1.5">
-              <DropdownMenuItem className="rounded-xl px-3 py-2.5 text-[13px] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] transition-colors">
-                <UserCircle className="w-4 h-4 mr-2.5 text-[#8E8E93]" />
-                Profile
-              </DropdownMenuItem>
-              <DropdownMenuItem className="rounded-xl px-3 py-2.5 text-[13px] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] transition-colors">
+              <DropdownMenuItem 
+                className="rounded-xl px-3 py-2.5 text-[13px] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] transition-colors cursor-pointer"
+                onClick={() => {
+                  setIsProfileDropdownOpen(false);
+                  setShowAccountDialog(true);
+                }}
+              >
                 <User className="w-4 h-4 mr-2.5 text-[#8E8E93]" />
                 Account
-              </DropdownMenuItem>
-              <DropdownMenuItem className="rounded-xl px-3 py-2.5 text-[13px] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] transition-colors">
-                <Settings className="w-4 h-4 mr-2.5 text-[#8E8E93]" />
-                Settings
-              </DropdownMenuItem>
-              <div className="h-px bg-border/20 my-1" />
-              <DropdownMenuItem 
-                className="rounded-xl px-3 py-2.5 text-[13px] text-[#FF3B30] hover:bg-[#FF3B30]/10 transition-colors"
-                onClick={handleLogout}
-              >
-                <LogOut className="w-4 h-4 mr-2.5" />
-                Logout
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -611,6 +624,9 @@ export function AppSidebar() {
           <LibraryView onClose={() => setShowLibrary(false)} />
         </DialogContent>
       </Dialog>
+
+      {/* Account Dialog */}
+      <AccountDialog open={showAccountDialog} onOpenChange={setShowAccountDialog} />
     </Sidebar>
   );
 }
