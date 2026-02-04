@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Square, Menu } from 'lucide-react';
+import { Square, Menu, Pencil, Share } from 'lucide-react';
 import { toast } from 'sonner';
 import { useChat } from '@/features/chat/hooks/useChat';
 import { useModeStore } from '@/features/modes/store/modeStore';
@@ -13,6 +13,8 @@ import { ModeDropdown } from '@/features/modes/components/ModeDropdown';
 import { ChatActionsMenu } from '@/components/ChatActionsMenu';
 import { RenameDialog } from '@/components/RenameDialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useModels } from '@/features/chat/hooks/useModels';
 import { useConversations } from '@/features/chat/hooks/useConversations';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
@@ -510,9 +512,54 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
       >
         <div className="w-full px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
           <form onSubmit={handleSubmit} key={selectedMode} className="animate-scale-in">
-            {/* Mode Dropdown - Compact */}
-            <div className="flex items-center gap-2.5 mb-3">
+            {/* Mode Dropdown + Chat Actions */}
+            <div className="flex items-center gap-2 mb-3">
               <ModeDropdown />
+              
+              {/* Rename & Share - Only when conversation exists */}
+              {currentConversationId && (
+                <div className="flex items-center gap-1 ml-auto">
+                  <TooltipProvider delayDuration={300}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleRename}
+                          className="h-8 px-2.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/80 transition-all"
+                        >
+                          <Pencil className="w-3.5 h-3.5 mr-1.5" />
+                          <span className="text-xs font-medium">Rename</span>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="text-xs">
+                        Rename this chat
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  
+                  <TooltipProvider delayDuration={300}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleShare}
+                          className="h-8 px-2.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/80 transition-all"
+                        >
+                          <Share className="w-3.5 h-3.5 mr-1.5" />
+                          <span className="text-xs font-medium">Share</span>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="text-xs">
+                        Copy share link
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              )}
             </div>
 
             {/* File Attachments Preview */}
