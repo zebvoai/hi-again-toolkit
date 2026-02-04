@@ -39,7 +39,7 @@ export function AppSidebar() {
   const { state, isMobile, setOpenMobile } = useSidebar();
   // On mobile, always show expanded content in the Sheet drawer
   const isCollapsed = !isMobile && state === "collapsed";
-  const { clearMessages, setCurrentConversationId, currentConversationId, setMessages } =
+  const { clearMessages, setCurrentConversationId, currentConversationId, setMessages, selectedProjectId, setSelectedProjectId } =
     useChatStore();
   const { conversations, isLoading, loadConversation, deleteConversation, renameConversation, shareConversation, refreshConversations } = useConversations();
   const { projects, isLoading: projectsLoading, createProject, renameProject, deleteProject, duplicateProject } = useProjects();
@@ -52,7 +52,6 @@ export function AppSidebar() {
 
   // Projects state
   const [isProjectsOpen, setIsProjectsOpen] = useState(true);
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [projectToRename, setProjectToRename] = useState<{ id: string; name: string } | null>(null);
   const [isProjectRenameDialogOpen, setIsProjectRenameDialogOpen] = useState(false);
   
@@ -71,9 +70,10 @@ export function AppSidebar() {
   // Profile dropdown
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
 
-  const handleNewChat = () => {
+  const handleNewChat = (projectId?: string | null) => {
     clearMessages();
     setCurrentConversationId(null);
+    setSelectedProjectId(projectId || null);
     // Auto-close sidebar on mobile
     if (isMobile) {
       setOpenMobile(false);
@@ -228,7 +228,7 @@ export function AppSidebar() {
               variant="ghost"
               size="icon"
               className="w-8 h-8 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
-              onClick={handleNewChat}
+              onClick={() => handleNewChat()}
             >
               <Plus className="w-4 h-4" />
             </Button>
@@ -241,7 +241,7 @@ export function AppSidebar() {
               <Button
                 variant="ghost"
                 className="w-full h-10 justify-start gap-2.5 px-2.5 bg-white/60 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 rounded-xl border border-border/20 shadow-sm hover:shadow-md overflow-hidden whitespace-nowrap"
-                onClick={handleNewChat}
+                onClick={() => handleNewChat()}
               >
                 <div className="w-7 h-7 rounded-full bg-[#007AFF] flex items-center justify-center flex-shrink-0 shadow-sm">
                   <Plus className="w-3.5 h-3.5 text-white" />
@@ -317,10 +317,13 @@ export function AppSidebar() {
                   {projects.map((project) => (
                     <div
                       key={project.id}
-                      className="group relative flex items-center gap-2.5 px-2.5 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl cursor-pointer overflow-hidden"
+                      onClick={() => handleNewChat(project.id)}
+                      className={`group relative flex items-center gap-2.5 px-2.5 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl cursor-pointer overflow-hidden ${
+                        selectedProjectId === project.id ? 'bg-primary/10 border-l-2 border-primary' : ''
+                      }`}
                     >
-                      <Folder className="w-4 h-4 text-[#8E8E93] flex-shrink-0" />
-                      <span className="text-[13px] flex-1 truncate whitespace-nowrap overflow-hidden text-ellipsis text-foreground/80">
+                      <Folder className={`w-4 h-4 flex-shrink-0 ${selectedProjectId === project.id ? 'text-primary' : 'text-[#8E8E93]'}`} />
+                      <span className={`text-[13px] flex-1 truncate whitespace-nowrap overflow-hidden text-ellipsis ${selectedProjectId === project.id ? 'text-foreground font-medium' : 'text-foreground/80'}`}>
                         {project.name}
                       </span>
 
