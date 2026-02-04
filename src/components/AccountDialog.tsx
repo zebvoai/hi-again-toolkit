@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { Camera, User, Loader2 } from 'lucide-react';
+import { Camera, Loader2, LogOut } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 import {
   Dialog,
   DialogContent,
@@ -20,9 +21,11 @@ interface AccountDialogProps {
 
 export function AccountDialog({ open, onOpenChange }: AccountDialogProps) {
   const { profile, isLoading, updateProfile, uploadAvatar } = useProfile();
+  const { signOut } = useAuth();
   const [username, setUsername] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Sync local state with profile
@@ -75,6 +78,12 @@ export function AccountDialog({ open, onOpenChange }: AccountDialogProps) {
       return profile.email.slice(0, 2).toUpperCase();
     }
     return 'U';
+  };
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    await signOut();
+    onOpenChange(false);
   };
 
   return (
@@ -145,6 +154,23 @@ export function AccountDialog({ open, onOpenChange }: AccountDialogProps) {
               <div className="h-11 px-3 flex items-center rounded-xl bg-muted/50 text-sm text-muted-foreground">
                 {profile?.email || 'No email'}
               </div>
+            </div>
+
+            {/* Logout */}
+            <div className="pt-2 border-t border-border/50">
+              <Button
+                variant="ghost"
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+                className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10 rounded-xl"
+              >
+                {isLoggingOut ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <LogOut className="w-4 h-4 mr-2" />
+                )}
+                Log out
+              </Button>
             </div>
           </div>
         )}
