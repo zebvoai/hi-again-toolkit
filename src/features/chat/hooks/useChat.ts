@@ -8,6 +8,9 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import type { MultiModelContent, Message } from '@/types';
 
+// Vision-capable models that can process image attachments
+const VISION_CAPABLE_MODELS = ['GPT-5', 'Claude Opus 4.5', 'Gemini 3 Pro'];
+
 export const useChat = () => {
   const { 
     messages, 
@@ -475,10 +478,21 @@ export const useChat = () => {
           description: 'Your video has been created successfully',
         });
       } else if (selectedModels.length > 1) {
+        // Filter to vision-capable models only if images are attached
+        const hasImages = fileUrls.length > 0;
+        const modelsToUse = hasImages 
+          ? selectedModels.filter(m => VISION_CAPABLE_MODELS.includes(m))
+          : selectedModels;
+        
+        // If no vision models are selected but images are attached, use default vision models
+        const effectiveModels = hasImages && modelsToUse.length === 0 
+          ? VISION_CAPABLE_MODELS 
+          : modelsToUse;
+        
         let multiModelContent: MultiModelContent = {};
         let hasCreatedMessage = false;
 
-        selectedModels.forEach(model => {
+        effectiveModels.forEach(model => {
           multiModelContent[model] = '';
         });
 
@@ -486,7 +500,7 @@ export const useChat = () => {
           content,
           selectedMode,
           messages,
-          selectedModels,
+          effectiveModels,
           (modelName: string, chunk: string) => {
             multiModelContent[modelName] += chunk;
 
@@ -497,7 +511,7 @@ export const useChat = () => {
                 content: { ...multiModelContent },
                 timestamp: Date.now(),
                 metadata: {
-                  models: selectedModels
+                  models: effectiveModels
                 }
               };
               addMessage(streamingMessage);
@@ -559,9 +573,17 @@ export const useChat = () => {
           }
         }
       } else {
+        // For single model mode, force vision model if images are attached
+        const hasImages = fileUrls.length > 0;
+        let selectedModel = selectedModels[0];
+        
+        // If image attached but selected model isn't vision-capable, switch to first vision model
+        if (hasImages && !VISION_CAPABLE_MODELS.includes(selectedModel)) {
+          selectedModel = VISION_CAPABLE_MODELS[0]; // GPT-5
+        }
+        
         let streamingContent = '';
         let hasCreatedMessage = false;
-        const selectedModel = selectedModels[0];
         const isOpenAIModel = selectedModel?.startsWith('GPT') || selectedModel?.startsWith('O');
 
         const response = await api.sendMessage(
