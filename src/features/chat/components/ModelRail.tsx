@@ -7,6 +7,7 @@ interface ModelRailProps {
   onToggle: (model: string) => void;
   onSelectAll: () => void;
   onClearAll: () => void;
+  sidebarWidth: number;
 }
 
 // Model provider icons/colors
@@ -74,7 +75,7 @@ const getModelStyle = (model: string): { bg: string; text: string; accent: strin
   return { bg: 'bg-muted', text: 'text-foreground', accent: 'border-border' };
 };
 
-export function ModelRail({ models, selectedModels, onToggle, onSelectAll, onClearAll }: ModelRailProps) {
+export function ModelRail({ models, selectedModels, onToggle, onSelectAll, onClearAll, sidebarWidth }: ModelRailProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const allSelected = models.length > 0 && selectedModels.length === models.length;
   const noneSelected = selectedModels.length === 0;
@@ -96,7 +97,10 @@ export function ModelRail({ models, selectedModels, onToggle, onSelectAll, onCle
   }, []);
 
   return (
-    <div className="w-full bg-background/80 backdrop-blur-sm border-b border-border/30 flex-shrink-0 sticky top-0 z-40">
+    <div 
+      className="fixed top-0 right-0 bg-background/80 backdrop-blur-sm border-b border-border/30 z-40"
+      style={{ left: sidebarWidth }}
+    >
       <div className="flex items-center gap-3 pl-6 pr-4 py-3">
         {/* Quick Actions */}
         <div className="flex-shrink-0 flex items-center gap-1.5">

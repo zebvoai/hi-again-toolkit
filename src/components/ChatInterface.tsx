@@ -322,7 +322,7 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
 
   return (
     <div className="flex flex-col h-full relative bg-background overflow-hidden">
-      {/* Model Rail - Horizontal scroll at top (text and image modes) */}
+      {/* Model Rail - Fixed at top (text and image modes) */}
       {selectedMode === 'text' && models?.text && (
         <ModelRail
           models={models.text}
@@ -330,6 +330,7 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
           onToggle={handleToggleModel}
           onSelectAll={handleSelectAllModels}
           onClearAll={handleClearAllModels}
+          sidebarWidth={isMobile ? 0 : isSidebarExpanded ? 256 : 60}
         />
       )}
       
@@ -340,6 +341,7 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
           onToggle={handleToggleModel}
           onSelectAll={handleSelectAllModels}
           onClearAll={handleClearAllModels}
+          sidebarWidth={isMobile ? 0 : isSidebarExpanded ? 256 : 60}
         />
       )}
 
@@ -388,15 +390,15 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
         </div>
       )}
 
-      {/* Messages Area - with bottom padding for fixed input */}
+      {/* Messages Area - with bottom padding for fixed input and top padding for fixed rail */}
       {isLoadingConversation ? (
-        <div className="flex-1 overflow-y-auto overflow-x-hidden pb-[240px] py-6">
+        <div className={`flex-1 overflow-y-auto overflow-x-hidden pb-[240px] py-6 ${(selectedMode === 'text' && models?.text) || (selectedMode === 'image' && models?.image) ? 'pt-16' : ''}`}>
           <div className="w-full px-4 sm:px-6 lg:px-8">
             <MessageSkeleton />
           </div>
         </div>
       ) : messages.length > 0 ? (
-        <div className="flex-1 overflow-y-auto overflow-x-hidden pb-[240px] py-4 sm:py-6">
+        <div className={`flex-1 overflow-y-auto overflow-x-hidden pb-[240px] py-4 sm:py-6 ${(selectedMode === 'text' && models?.text) || (selectedMode === 'image' && models?.image) ? 'pt-16' : ''}`}>
           <div className="space-y-4 stagger-children">
             {messages.map((message, index) => {
               const isMultiModelResponse = message.role === 'assistant' && 
