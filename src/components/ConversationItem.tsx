@@ -43,10 +43,8 @@ export const ConversationItem = ({
   onExportJSON,
 }: ConversationItemProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
   const isMobile = useIsMobile();
   const timeAgo = formatDistanceToNow(new Date(updatedAt), { addSuffix: true });
-  const showMenuButton = isMobile || isOpen || isHovered;
 
   return (
     <div
@@ -57,8 +55,6 @@ export const ConversationItem = ({
           : 'hover:bg-muted/50 dark:hover:bg-white/[0.06]'
       )}
       onClick={onClick}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
       {/* Content area - uses right padding to reserve space for menu */}
       <div className="flex-1 min-w-0 pr-7">
@@ -74,14 +70,8 @@ export const ConversationItem = ({
         </p>
       </div>
 
-      {/* Three-dots menu - absolutely positioned, visible on hover */}
-      <div 
-        className={cn(
-          // Higher z-index so it can sit above the ScrollArea scrollbar overlay.
-          "absolute right-5 top-1/2 -translate-y-1/2 z-30 pointer-events-auto transition-opacity duration-150",
-          showMenuButton ? 'opacity-100' : 'opacity-0'
-        )}
-      >
+      {/* Three-dots menu - always visible */}
+      <div className="absolute right-2 top-1/2 -translate-y-1/2 z-30">
         <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
           <DropdownMenuTrigger asChild>
             <Button
