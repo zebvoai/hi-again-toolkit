@@ -52,6 +52,7 @@ export function AppSidebar() {
 
   // Projects state
   const [isProjectsOpen, setIsProjectsOpen] = useState(true);
+  const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
   const [projectToRename, setProjectToRename] = useState<{ id: string; name: string } | null>(null);
   const [isProjectRenameDialogOpen, setIsProjectRenameDialogOpen] = useState(false);
   
@@ -79,6 +80,31 @@ export function AppSidebar() {
       setOpenMobile(false);
     }
   };
+
+  const toggleProjectExpanded = (projectId: string) => {
+    setExpandedProjects(prev => {
+      const next = new Set(prev);
+      if (next.has(projectId)) {
+        next.delete(projectId);
+      } else {
+        next.add(projectId);
+      }
+      return next;
+    });
+  };
+
+  const handleProjectClick = (projectId: string) => {
+    toggleProjectExpanded(projectId);
+    setSelectedProjectId(projectId);
+  };
+
+  // Get conversations for a specific project
+  const getProjectConversations = (projectId: string) => {
+    return conversations.filter(conv => conv.project_id === projectId);
+  };
+
+  // Get standalone conversations (not in any project)
+  const standaloneConversations = conversations.filter(conv => !conv.project_id);
 
   const handleLoadConversation = async (conversationId: string) => {
     const messages = await loadConversation(conversationId);
@@ -181,8 +207,8 @@ export function AppSidebar() {
     setIsNewProjectDialogOpen(false);
   };
   
-  // Filter conversations by search query
-  const filteredConversations = conversations.filter(conv => 
+  // Filter standalone conversations by search query
+  const filteredConversations = standaloneConversations.filter(conv => 
     conv.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -314,105 +340,172 @@ export function AppSidebar() {
                   </Button>
 
                   {/* Project List */}
-                  {projects.map((project) => (
-                    <div
-                      key={project.id}
-                      onClick={() => handleNewChat(project.id)}
-                      className={`group relative flex items-center gap-2.5 px-2.5 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl cursor-pointer overflow-hidden ${
-                        selectedProjectId === project.id ? 'bg-primary/10 border-l-2 border-primary' : ''
-                      }`}
-                    >
-                      <Folder className={`w-4 h-4 flex-shrink-0 ${selectedProjectId === project.id ? 'text-primary' : 'text-[#8E8E93]'}`} />
-                      <span className={`text-[13px] flex-1 truncate whitespace-nowrap overflow-hidden text-ellipsis ${selectedProjectId === project.id ? 'text-foreground font-medium' : 'text-foreground/80'}`}>
-                        {project.name}
-                      </span>
+                  {projects.map((project) => {
+                    const projectChats = getProjectConversations(project.id);
+                    const isExpanded = expandedProjects.has(project.id);
+                    
+                    return (
+                      <div key={project.id} className="space-y-0.5">
+                        <div
+                          onClick={() => handleProjectClick(project.id)}
+                          className={`group relative flex items-center gap-2 px-2.5 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl cursor-pointer overflow-hidden ${
+                            selectedProjectId === project.id ? 'bg-primary/10 border-l-2 border-primary' : ''
+                          }`}
+                        >
+                          {isExpanded ? (
+                            <ChevronDown className="w-3 h-3 text-[#8E8E93] flex-shrink-0" />
+                          ) : (
+                            <ChevronRight className="w-3 h-3 text-[#8E8E93] flex-shrink-0" />
+                          )}
+                          <Folder className={`w-4 h-4 flex-shrink-0 ${selectedProjectId === project.id ? 'text-primary' : 'text-[#8E8E93]'}`} />
+                          <span className={`text-[13px] flex-1 truncate whitespace-nowrap overflow-hidden text-ellipsis ${selectedProjectId === project.id ? 'text-foreground font-medium' : 'text-foreground/80'}`}>
+                            {project.name}
+                          </span>
+                          {projectChats.length > 0 && (
+                            <span className="text-[10px] text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded-full mr-1">
+                              {projectChats.length}
+                            </span>
+                          )}
 
-                      {/* 3-dot menu - always visible on mobile, hover on desktop */}
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="w-7 h-7 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex-shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 hover:bg-black/[0.06] dark:hover:bg-white/10 rounded-lg"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <MoreVertical className="w-3.5 h-3.5 text-[#8E8E93]" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" sideOffset={4} className="w-52 bg-popover/95 backdrop-blur-xl border border-border/50 shadow-lg z-50 rounded-xl p-1">
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleProjectAction(project.id, "rename");
-                            }}
-                            className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer"
-                          >
-                            <Edit className="w-4 h-4 text-[#8E8E93]" />
-                            <span className="text-[13px]">Rename</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleProjectAction(project.id, "duplicate");
-                            }}
-                            className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer"
-                          >
-                            <MessageSquarePlus className="w-4 h-4 text-[#8E8E93]" />
-                            <span className="text-[13px]">Duplicate</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              console.log("Share project", project.id);
-                            }}
-                            className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer"
-                          >
-                            <Share className="w-4 h-4 text-[#8E8E93]" />
-                            <span className="text-[13px]">Share</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              console.log("Export project", project.id);
-                            }}
-                            className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer"
-                          >
-                            <FileDown className="w-4 h-4 text-[#8E8E93]" />
-                            <span className="text-[13px]">Export</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleProjectAction(project.id, "archive");
-                            }}
-                            className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer"
-                          >
-                            <Archive className="w-4 h-4 text-[#8E8E93]" />
-                            <span className="text-[13px]">Archive</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleProjectAction(project.id, "delete");
-                            }}
-                            className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                            <span className="text-[13px]">Delete</span>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  ))}
+                          {/* 3-dot menu - always visible on mobile, hover on desktop */}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="w-7 h-7 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex-shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 hover:bg-black/[0.06] dark:hover:bg-white/10 rounded-lg"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <MoreVertical className="w-3.5 h-3.5 text-[#8E8E93]" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" sideOffset={4} className="w-52 bg-popover/95 backdrop-blur-xl border border-border/50 shadow-lg z-50 rounded-xl p-1">
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleNewChat(project.id);
+                                }}
+                                className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer"
+                              >
+                                <Plus className="w-4 h-4 text-[#8E8E93]" />
+                                <span className="text-[13px]">New Chat</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleProjectAction(project.id, "rename");
+                                }}
+                                className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer"
+                              >
+                                <Edit className="w-4 h-4 text-[#8E8E93]" />
+                                <span className="text-[13px]">Rename</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleProjectAction(project.id, "duplicate");
+                                }}
+                                className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer"
+                              >
+                                <MessageSquarePlus className="w-4 h-4 text-[#8E8E93]" />
+                                <span className="text-[13px]">Duplicate</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  console.log("Share project", project.id);
+                                }}
+                                className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer"
+                              >
+                                <Share className="w-4 h-4 text-[#8E8E93]" />
+                                <span className="text-[13px]">Share</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  console.log("Export project", project.id);
+                                }}
+                                className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer"
+                              >
+                                <FileDown className="w-4 h-4 text-[#8E8E93]" />
+                                <span className="text-[13px]">Export</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleProjectAction(project.id, "archive");
+                                }}
+                                className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer"
+                              >
+                                <Archive className="w-4 h-4 text-[#8E8E93]" />
+                                <span className="text-[13px]">Archive</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleProjectAction(project.id, "delete");
+                                }}
+                                className="gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                <span className="text-[13px]">Delete</span>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+
+                        {/* Project Chats - shown when expanded */}
+                        {isExpanded && (
+                          <div className="pl-6 space-y-0.5">
+                            {/* New Chat under project */}
+                            <Button
+                              variant="ghost"
+                              className="w-full justify-start gap-2 px-2.5 h-8 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-lg text-[12px]"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleNewChat(project.id);
+                              }}
+                            >
+                              <Plus className="w-3.5 h-3.5 text-[#8E8E93]" />
+                              <span className="text-foreground/70">New chat</span>
+                            </Button>
+                            
+                            {projectChats.length === 0 ? (
+                              <div className="text-[11px] text-[#8E8E93] px-2.5 py-2">
+                                No chats yet
+                              </div>
+                            ) : (
+                              projectChats.map((conv) => (
+                                <ConversationItem
+                                  key={conv.id}
+                                  id={conv.id}
+                                  title={conv.title}
+                                  updatedAt={conv.updated_at}
+                                  isActive={currentConversationId === conv.id}
+                                  onClick={() => handleLoadConversation(conv.id)}
+                                  onRename={() => handleRename(conv.id)}
+                                  onShare={() => handleShare(conv.id)}
+                                  onExportMarkdown={() => handleExportMarkdown(conv.id)}
+                                  onExportJSON={() => handleExportJSON(conv.id)}
+                                  onArchive={() => handleArchive(conv.id)}
+                                  onDelete={() => handleDeleteConversation(conv.id)}
+                                />
+                              ))
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
 
-            {/* Chat History */}
+            {/* Standalone Chat History (chats not in any project) */}
             {isLoading ? (
               <div className="text-[13px] text-[#8E8E93] text-center py-6">Loading...</div>
-            ) : conversations.length === 0 ? (
-              <div className="text-[13px] text-[#8E8E93] text-center py-6">No conversations yet</div>
+            ) : standaloneConversations.length === 0 ? (
+              <div className="text-[13px] text-[#8E8E93] text-center py-6">No standalone chats</div>
             ) : filteredConversations.length === 0 ? (
               <div className="text-[13px] text-[#8E8E93] text-center py-6">No chats found</div>
             ) : (
