@@ -8,6 +8,37 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import type { MultiModelContent, Message } from '@/types';
 
+// Helper to save image to user library
+const saveImageToLibrary = async (imageData: {
+  url: string;
+  source_type: 'uploaded' | 'generated';
+  filename?: string;
+  mime_type?: string;
+  size_bytes?: number;
+  prompt?: string;
+  model?: string;
+  conversation_id?: string;
+}) => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    await supabase.from('user_images').insert({
+      user_id: user.id,
+      url: imageData.url,
+      source_type: imageData.source_type,
+      filename: imageData.filename || null,
+      mime_type: imageData.mime_type || null,
+      size_bytes: imageData.size_bytes || null,
+      prompt: imageData.prompt || null,
+      model: imageData.model || null,
+      conversation_id: imageData.conversation_id || null,
+    } as any);
+  } catch (error) {
+    console.error('Failed to save image to library:', error);
+  }
+};
+
 // Vision-capable models that can process image attachments
 const VISION_CAPABLE_MODELS = ['GPT-5', 'Claude Opus 4.5', 'Gemini 3 Pro'];
 
@@ -224,6 +255,19 @@ export const useChat = () => {
           
           if (urlData?.publicUrl) {
             fileUrls.push(urlData.publicUrl);
+            
+            // Save images to library
+            const isImage = file.type.startsWith('image/');
+            if (isImage) {
+              await saveImageToLibrary({
+                url: urlData.publicUrl,
+                source_type: 'uploaded',
+                filename: file.name,
+                mime_type: file.type,
+                size_bytes: file.size,
+                conversation_id: convId || undefined,
+              });
+            }
           }
         }
       } catch (err) {
@@ -349,6 +393,16 @@ export const useChat = () => {
                 abortControllerRef.current?.signal
               );
               multiModelContent[model] = response.imageUrl;
+              
+              // Save generated image to library
+              await saveImageToLibrary({
+                url: response.imageUrl,
+                source_type: 'generated',
+                prompt: content,
+                model: model,
+                conversation_id: convId || undefined,
+              });
+              
               return { model, url: response.imageUrl };
             } catch (error) {
               multiModelContent[model] = `Error: ${error instanceof Error ? error.message : 'Unknown error'}`;
@@ -397,6 +451,15 @@ export const useChat = () => {
             selectedModel.toLowerCase().replace(/\s+/g, '-'),
             abortControllerRef.current?.signal
           );
+          
+          // Save generated image to library
+          await saveImageToLibrary({
+            url: response.imageUrl,
+            source_type: 'generated',
+            prompt: content,
+            model: selectedModel,
+            conversation_id: convId || undefined,
+          });
           
           const assistantMessage: Message = {
             id: assistantId,

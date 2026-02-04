@@ -30,6 +30,7 @@ import { useConversations } from "@/features/chat/hooks/useConversations";
 import { useProjects } from "@/features/projects/hooks/useProjects";
 import { ConversationItem } from "./ConversationItem";
 import { RenameDialog } from "./RenameDialog";
+import { LibraryView } from "@/features/library/components/LibraryView";
 import { isToday, isYesterday, format } from "date-fns";
 import { exportAsMarkdown, exportAsJSON } from "@/lib/exportConversation";
 import { useToast } from "@/hooks/use-toast";
@@ -71,8 +72,9 @@ export function AppSidebar() {
   
   // Profile dropdown
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-
-  // Hover helpers (CSS group-hover can be flaky depending on wrappers/overflows)
+  
+  // Library view
+  const [showLibrary, setShowLibrary] = useState(false);
 
   const handleNewChat = (projectId?: string | null) => {
     clearMessages();
@@ -305,14 +307,13 @@ export function AppSidebar() {
               {/* Library */}
               <Button
                 variant="ghost"
-                className="w-full justify-between gap-2.5 px-2.5 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl overflow-hidden whitespace-nowrap cursor-default opacity-60"
-                disabled
+                className="w-full justify-between gap-2.5 px-2.5 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl overflow-hidden whitespace-nowrap"
+                onClick={() => setShowLibrary(true)}
               >
                 <div className="flex items-center gap-2.5">
                   <Library className="w-4 h-4 text-[#8E8E93] flex-shrink-0" />
                   <span className="text-[13px] text-foreground/80 truncate">Library</span>
                 </div>
-                <span className="text-[10px] text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded-full">Soon</span>
               </Button>
             </>
           )}
@@ -603,6 +604,13 @@ export function AppSidebar() {
         currentTitle={projectToRename?.name || ''}
         onRename={handleProjectRenameSubmit}
       />
+
+      {/* Library View */}
+      <Dialog open={showLibrary} onOpenChange={setShowLibrary}>
+        <DialogContent className="max-w-6xl h-[85vh] p-0 overflow-hidden">
+          <LibraryView onClose={() => setShowLibrary(false)} />
+        </DialogContent>
+      </Dialog>
     </Sidebar>
   );
 }
