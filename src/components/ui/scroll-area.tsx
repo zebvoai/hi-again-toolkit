@@ -12,7 +12,7 @@ const ScrollArea = React.forwardRef<
       Radix scrollbars are positioned over the viewport.
       Add padding so content (especially right-aligned action buttons) doesn't get clipped under the scrollbar.
     */}
-    <ScrollAreaPrimitive.Viewport className="h-full w-full rounded-[inherit] pr-6">{children}</ScrollAreaPrimitive.Viewport>
+    <ScrollAreaPrimitive.Viewport className="h-full w-full rounded-[inherit] pr-4">{children}</ScrollAreaPrimitive.Viewport>
     <ScrollBar />
     <ScrollAreaPrimitive.Corner />
   </ScrollAreaPrimitive.Root>
