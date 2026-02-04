@@ -49,19 +49,20 @@ export const ConversationItem = ({
   return (
     <div
       className={cn(
-        "group relative flex items-center gap-2.5 px-2.5 py-2 rounded-xl cursor-pointer",
+        "group relative flex items-center gap-2 px-2 py-2 rounded-xl cursor-pointer overflow-hidden",
         isActive 
           ? 'bg-white dark:bg-white/10 shadow-sm' 
           : 'hover:bg-muted/50 dark:hover:bg-white/[0.06]'
       )}
       onClick={onClick}
     >
-      {/* Content area - uses right padding to reserve space for menu */}
-      <div className="flex-1 min-w-0 pr-7">
+      {/* Content area - truncated with space for menu */}
+      <div className="flex-1 min-w-0 pr-6">
         <p
-          className={`text-[13px] truncate leading-snug ${
+          className={cn(
+            "text-[13px] truncate leading-snug",
             isActive ? 'font-medium text-primary' : 'text-foreground/90 dark:text-foreground/80'
-          }`}
+          )}
         >
           {title}
         </p>
@@ -70,15 +71,15 @@ export const ConversationItem = ({
         </p>
       </div>
 
-      {/* Three-dots menu - always visible */}
-      <div className="absolute right-2 top-1/2 -translate-y-1/2 z-30">
+      {/* Three-dots menu - inline flex, always visible */}
+      <div className="flex-shrink-0">
         <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
               size="icon"
               className={cn(
-                "h-8 w-8 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 rounded-lg",
+                "h-7 w-7 rounded-lg flex-shrink-0",
                 isOpen ? 'bg-muted dark:bg-white/10' : 'hover:bg-muted/80 dark:hover:bg-white/10',
                 "text-muted-foreground hover:text-foreground",
                 "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
