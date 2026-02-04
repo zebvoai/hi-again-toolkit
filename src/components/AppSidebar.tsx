@@ -1,4 +1,4 @@
-import { Plus, User, Search, Library, Folder, ChevronDown, ChevronRight, MoreVertical, Edit, MessageSquarePlus, Share, FileDown, Archive, Trash2, LogOut, Settings, UserCircle } from "lucide-react";
+import { Plus, User, Search, Library, Folder, ChevronDown, ChevronRight, MoreVertical, Edit, MessageSquarePlus, Share, FileDown, Archive, Trash2, LogOut, Settings, UserCircle, Sparkles } from "lucide-react";
 import { useState } from "react";
 import {
   Dialog,
@@ -246,7 +246,18 @@ export function AppSidebar() {
         <SidebarHeader className={`pt-3 pb-2 transition-all duration-300 ease-out ${
           isCollapsed ? 'px-3 flex flex-col items-center gap-2' : 'px-3 space-y-2.5'
         }`}>
-          <SidebarTrigger className="w-8 h-8 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 hover:bg-black/5 dark:hover:bg-white/10 text-[#8E8E93] hover:text-foreground rounded-full flex-shrink-0" />
+          {/* Logo and Brand */}
+          <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-2.5'}`}>
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center flex-shrink-0 shadow-sm">
+              <Sparkles className="w-4 h-4 text-primary-foreground" />
+            </div>
+            {!isCollapsed && (
+              <span className="text-base font-semibold text-foreground tracking-tight">Zebvo Assist</span>
+            )}
+          </div>
+
+          {/* Sidebar Toggle */}
+          <SidebarTrigger className={`w-8 h-8 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 hover:bg-black/5 dark:hover:bg-white/10 text-[#8E8E93] hover:text-foreground rounded-full flex-shrink-0 ${isCollapsed ? '' : 'self-end -mt-10'}`} />
 
           {/* Collapsed: Icon-only New Chat button */}
           {isCollapsed && (
