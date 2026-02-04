@@ -157,9 +157,38 @@ export const Message = ({
                   </div>
                 </div>
               ) : (
-                <p className="text-[15px] leading-[1.5] whitespace-pre-wrap break-words">
-                  {contentString}
-                </p>
+                <div className="space-y-2">
+                  {/* Image previews for attachments */}
+                  {message.metadata?.attachments && message.metadata.attachments.length > 0 && (
+                    <div className={`flex flex-wrap gap-1.5 ${message.metadata.attachments.length === 1 ? '' : 'max-w-[280px]'}`}>
+                      {message.metadata.attachments.map((url, idx) => (
+                        <div 
+                          key={idx} 
+                          className={`relative rounded-lg overflow-hidden ${
+                            message.metadata?.attachments?.length === 1 
+                              ? 'w-full max-w-[200px]' 
+                              : 'w-16 h-16'
+                          }`}
+                        >
+                          <img
+                            src={url}
+                            alt={`Attachment ${idx + 1}`}
+                            className={`object-cover ${
+                              message.metadata?.attachments?.length === 1 
+                                ? 'w-full h-auto max-h-[150px]' 
+                                : 'w-full h-full'
+                            }`}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {contentString && (
+                    <p className="text-[15px] leading-[1.5] whitespace-pre-wrap break-words">
+                      {contentString}
+                    </p>
+                  )}
+                </div>
               )
             ) : (
               <div className="text-[15px] leading-[1.75] text-foreground/90">
