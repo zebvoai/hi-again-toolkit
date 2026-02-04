@@ -76,14 +76,10 @@ export const Message = ({
     const isImageMode = message.metadata?.isImage;
 
     if (isImageMode) {
+      // Image multi-model - render full width like text multi-model
       return (
-        <div className="flex justify-start appear-smooth">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center shadow-sm mr-3 flex-shrink-0 transition-transform duration-normal ease-spring hover:scale-110">
-            <span className="text-primary font-semibold text-xs">Z</span>
-          </div>
-          <div className="flex-1 max-w-[80%]">
-            <MultiModelImageResponse content={multiContent} models={models} />
-          </div>
+        <div className="w-full">
+          <MultiModelImageResponse content={multiContent} models={models} />
         </div>
       );
     }
