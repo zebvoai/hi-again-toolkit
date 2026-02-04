@@ -49,7 +49,8 @@ export const ConversationItem = ({
   return (
     <div
       className={cn(
-        "group relative flex items-center gap-2 px-2 py-2 rounded-xl cursor-pointer overflow-hidden",
+        // More compact row for small screens + prevent clipping
+        "group relative flex items-center gap-1.5 px-2 py-1.5 rounded-xl cursor-pointer overflow-hidden",
         isActive 
           ? 'bg-white dark:bg-white/10 shadow-sm' 
           : 'hover:bg-muted/50 dark:hover:bg-white/[0.06]'
@@ -57,16 +58,16 @@ export const ConversationItem = ({
       onClick={onClick}
     >
       {/* Content area - truncated with space for menu */}
-      <div className="flex-1 min-w-0 pr-6">
+      <div className="flex-1 min-w-0 pr-2">
         <p
           className={cn(
-            "text-[13px] truncate leading-snug",
+            "text-[12.5px] truncate leading-snug",
             isActive ? 'font-medium text-primary' : 'text-foreground/90 dark:text-foreground/80'
           )}
         >
           {title}
         </p>
-        <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
+        <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
           {timeAgo}
         </p>
       </div>
@@ -79,7 +80,7 @@ export const ConversationItem = ({
               variant="ghost"
               size="icon"
               className={cn(
-                "h-7 w-7 rounded-lg flex-shrink-0",
+                "h-6 w-6 rounded-md flex-shrink-0",
                 isOpen ? 'bg-muted dark:bg-white/10' : 'hover:bg-muted/80 dark:hover:bg-white/10',
                 "text-muted-foreground hover:text-foreground",
                 "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
@@ -87,7 +88,7 @@ export const ConversationItem = ({
               onClick={(e) => e.stopPropagation()}
               aria-label="More options"
             >
-              <MoreVertical className="w-4 h-4" />
+              <MoreVertical className="w-3.5 h-3.5" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
