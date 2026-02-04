@@ -53,7 +53,7 @@ const getRequestBody = (modelKey: string, prompt: string) => {
       return {
         prompt,
         aspect_ratio: '1:1',
-        size: '1024x1024',
+        size: '1024*1024',
         quality: 'medium',
         output_format: 'jpeg',
         enable_sync_mode: true,
@@ -63,7 +63,7 @@ const getRequestBody = (modelKey: string, prompt: string) => {
       return {
         prompt,
         aspect_ratio: '1:1',
-        size: '1024x1024',
+        size: '1024*1024',
         num_images: 1,
         prompt_optimizer: false,
         enable_sync_mode: true,
@@ -73,7 +73,7 @@ const getRequestBody = (modelKey: string, prompt: string) => {
       return {
         prompt,
         aspect_ratio: '1:1',
-        size: '1024x1024',
+        size: '1024*1024',
         seed: -1,
         output_format: 'jpeg',
         enable_sync_mode: true,
@@ -83,7 +83,7 @@ const getRequestBody = (modelKey: string, prompt: string) => {
       return {
         prompt,
         aspect_ratio: '1:1',
-        size: '1024x1024',
+        size: '1024*1024',
         enable_prompt_expansion: false,
         seed: -1,
         enable_sync_mode: true,
@@ -92,7 +92,7 @@ const getRequestBody = (modelKey: string, prompt: string) => {
       return {
         prompt,
         aspect_ratio: '1:1',
-        size: '1024x1024',
+        size: '1024*1024',
         enable_sync_mode: true,
       };
   }
