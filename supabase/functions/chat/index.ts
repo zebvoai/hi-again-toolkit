@@ -7,8 +7,62 @@ const corsHeaders = {
 
 interface Message {
   role: string;
-  content: string;
+  content: string | any[];
 }
+
+// Vision-capable models that can analyze images
+const VISION_CAPABLE_MODELS: Record<string, { apiModel: string; provider: string }> = {
+  // OpenAI GPT-5 models (vision capable via OpenRouter)
+  'GPT-5': { apiModel: 'openai/gpt-5', provider: 'openrouter' },
+  'GPT-4.1': { apiModel: 'openai/gpt-4.1', provider: 'openrouter' },
+  'GPT-4.1 Mini': { apiModel: 'openai/gpt-4.1-mini', provider: 'openrouter' },
+  
+  // Google Gemini models (vision capable via Lovable)
+  'Gemini 3 Pro': { apiModel: 'google/gemini-3-pro-preview', provider: 'lovable' },
+  'Gemini 2.5 Pro': { apiModel: 'google/gemini-2.5-pro', provider: 'lovable' },
+  'Gemini 2.5 Flash': { apiModel: 'google/gemini-2.5-flash', provider: 'lovable' },
+  'Gemini 2.5 Flash Lite': { apiModel: 'google/gemini-2.5-flash-lite', provider: 'lovable' },
+  
+  // Claude models (vision capable via OpenRouter)
+  'Claude Opus 4.5': { apiModel: 'anthropic/claude-opus-4.5', provider: 'openrouter' },
+  'Claude Sonnet 4.5': { apiModel: 'anthropic/claude-sonnet-4.5', provider: 'openrouter' },
+  'Claude Sonnet 4': { apiModel: 'anthropic/claude-sonnet-4', provider: 'openrouter' },
+  
+  // Kimi VL (vision capable via OpenRouter)
+  'Kimi VL A3B': { apiModel: 'moonshotai/kimi-vl-a3b', provider: 'openrouter' },
+};
+
+// Default vision models priority order for image analysis
+const DEFAULT_VISION_MODEL_PRIORITY = [
+  'Gemini 3 Pro',  // Best for image understanding and factual grounding
+  'GPT-5',         // Excellent multimodal reasoning
+  'Claude Opus 4.5', // Strong vision capabilities
+  'Gemini 2.5 Pro',
+];
+
+// Check if a model is vision capable
+const isVisionCapable = (modelName: string): boolean => {
+  return Object.keys(VISION_CAPABLE_MODELS).includes(modelName);
+};
+
+// Get best vision model from selected models, or default
+const selectVisionModel = (selectedModels: string[]): string => {
+  // First, try to find a vision-capable model from user's selection
+  for (const model of selectedModels) {
+    if (isVisionCapable(model)) {
+      return model;
+    }
+  }
+  
+  // Fall back to default priority
+  for (const model of DEFAULT_VISION_MODEL_PRIORITY) {
+    if (VISION_CAPABLE_MODELS[model]) {
+      return model;
+    }
+  }
+  
+  return 'Gemini 3 Pro'; // Ultimate fallback
+};
 
 // Model mapping helper - supports OpenAI, Anthropic, Lovable (Gemini), and OpenRouter
 const getModelMapping = (displayName: string): { apiModel: string, provider: string } => {
@@ -101,13 +155,72 @@ const getModelMapping = (displayName: string): { apiModel: string, provider: str
   return { apiModel: displayName.toLowerCase().replace(/ /g, '-'), provider: 'openrouter' };
 };
 
-// Multi-model request handler
+// Check if URL is an image based on extension
+const isImageUrl = (url: string): boolean => {
+  return /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(url) || 
+         url.includes('/chat-attachments/') && /\.(jpg|jpeg|png|gif|webp|bmp|svg)/i.test(url);
+};
+
+// Create multimodal content for vision models
+const createVisionContent = (text: string, imageUrls: string[]): any[] => {
+  const content: any[] = [];
+  
+  // Add text first
+  if (text.trim()) {
+    content.push({ type: 'text', text });
+  } else {
+    // If no text provided with images, add a default analysis prompt
+    content.push({ 
+      type: 'text', 
+      text: 'Please analyze this image in detail. Describe what you see, identify any text, objects, or important elements, and provide any relevant insights.' 
+    });
+  }
+  
+  // Add images
+  for (const url of imageUrls) {
+    content.push({
+      type: 'image_url',
+      image_url: { url }
+    });
+  }
+  
+  return content;
+};
+
+// Generate vision-specific system prompt
+const getVisionSystemPrompt = (hasMultipleImages: boolean): string => {
+  const basePrompt = `You are a highly capable AI assistant with advanced vision capabilities. When analyzing images:
+
+1. **Visual Analysis**: Carefully examine all visual elements including objects, text, colors, layouts, and compositions.
+2. **Text Extraction**: If the image contains text (screenshots, documents, code, etc.), extract and reference it accurately.
+3. **Context Understanding**: Understand the context and purpose of the image (UI screenshots, diagrams, photos, charts, etc.).
+4. **Detailed Observations**: Provide specific, detailed observations rather than vague descriptions.
+5. **User Intent**: Address the user's specific question or instructions about the image.
+
+For different image types:
+- **Screenshots/UI**: Describe the interface, identify issues, explain what's happening.
+- **Code/Documents**: Read and interpret the content, offer explanations or debugging help.
+- **Charts/Diagrams**: Explain the data, trends, or concepts being illustrated.
+- **Photos**: Describe subjects, settings, and any notable details.`;
+
+  if (hasMultipleImages) {
+    return basePrompt + `
+
+When multiple images are provided:
+- Analyze each image individually first.
+- Then compare and contrast them if relevant.
+- Note any relationships or connections between the images.`;
+  }
+
+  return basePrompt;
+};
+
 // Sanitize conversation history - ensure content is always a string (handles multi-model object responses)
 const sanitizeHistory = (history: Message[]): Message[] => {
   return history.map(m => {
     let content = m.content;
     
-    if (typeof content === 'object' && content !== null) {
+    if (typeof content === 'object' && content !== null && !Array.isArray(content)) {
       // Multi-model object - pick first model's response
       const values = Object.values(content);
       content = typeof values[0] === 'string' ? values[0] : '';
@@ -120,6 +233,7 @@ const sanitizeHistory = (history: Message[]): Message[] => {
   });
 };
 
+// Multi-model request handler with vision support
 async function handleMultiModelRequest(
   message: string,
   models: string[],
@@ -133,39 +247,78 @@ async function handleMultiModelRequest(
   // Sanitize history before processing
   const sanitizedHistory = sanitizeHistory(conversationHistory);
   
+  // Check for image attachments
+  const imageUrls = attachments.filter(isImageUrl);
+  const hasImages = imageUrls.length > 0;
+  
+  // If images are attached, filter to only vision-capable models
+  let effectiveModels = models;
+  if (hasImages) {
+    const visionModels = models.filter(isVisionCapable);
+    if (visionModels.length === 0) {
+      // No vision-capable models selected - use default vision model
+      const defaultVisionModel = selectVisionModel(models);
+      effectiveModels = [defaultVisionModel];
+      console.log(`[Vision] No vision-capable models selected. Using ${defaultVisionModel} for image analysis.`);
+    } else {
+      effectiveModels = visionModels;
+      console.log(`[Vision] Using vision-capable models: ${visionModels.join(', ')}`);
+    }
+  }
+  
   // Helper to create user message content with attachments for vision models
-  const createUserContent = (text: string, fileUrls: string[]): any => {
-    if (fileUrls.length === 0) return text;
+  const createUserContent = (text: string, fileUrls: string[], isVisionModel: boolean): any => {
+    const images = fileUrls.filter(isImageUrl);
+    const otherFiles = fileUrls.filter(url => !isImageUrl(url));
     
-    const content: any[] = [{ type: 'text', text }];
-    for (const url of fileUrls) {
-      const isImage = /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(url);
-      if (isImage) {
-        content.push({ type: 'image_url', image_url: { url } });
-      } else {
+    // For vision models with images, use multimodal format
+    if (isVisionModel && images.length > 0) {
+      const content = createVisionContent(text, images);
+      
+      // Append non-image files as text references
+      for (const url of otherFiles) {
         content.push({ type: 'text', text: `\n\n[Attached file: ${url}]` });
       }
+      
+      return content;
     }
-    return content;
+    
+    // For text-only or non-vision models, use simple string
+    if (fileUrls.length === 0) return text;
+    
+    let textContent = text;
+    for (const url of otherFiles) {
+      textContent += `\n\n[Attached file: ${url}]`;
+    }
+    
+    // Note about images if present but model can't process them
+    if (images.length > 0 && !isVisionModel) {
+      textContent += `\n\n[Note: ${images.length} image(s) attached but this model cannot process images]`;
+    }
+    
+    return textContent;
   };
   
   if (stream) {
     const streamBody = new ReadableStream({
       async start(controller) {
         try {
-          await Promise.all(models.map(async (modelName) => {
+          await Promise.all(effectiveModels.map(async (modelName) => {
             const mapping = getModelMapping(modelName);
             const { apiModel, provider } = mapping;
+            const modelIsVisionCapable = isVisionCapable(modelName);
             
             let apiUrl = '';
             let apiKey = '';
             let headers: Record<string, string> = {};
             let body: any = {};
             
-            // Build mode gets a code-generation system prompt
-            const systemPrompt = mode === 'build' 
-              ? 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags.'
-              : 'You are a helpful AI assistant.';
+            // Use vision-specific system prompt if images are present
+            const systemPrompt = hasImages && modelIsVisionCapable
+              ? getVisionSystemPrompt(imageUrls.length > 1)
+              : mode === 'build' 
+                ? 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags.'
+                : 'You are a helpful AI assistant.';
             
             try {
               if (provider === 'lovable') {
@@ -182,7 +335,7 @@ async function handleMultiModelRequest(
                 const messages = [
                   { role: 'system', content: systemPrompt },
                   ...sanitizedHistory.map(m => ({ role: m.role, content: m.content })),
-                  { role: 'user', content: createUserContent(message, attachments) }
+                  { role: 'user', content: createUserContent(message, attachments, modelIsVisionCapable) }
                 ];
                 
                 body = { model: apiModel, messages, stream: true };
@@ -204,7 +357,7 @@ async function handleMultiModelRequest(
                 const messages = [
                   { role: 'system', content: systemPrompt },
                   ...sanitizedHistory.map(m => ({ role: m.role, content: m.content })),
-                  { role: 'user', content: createUserContent(message, attachments) }
+                  { role: 'user', content: createUserContent(message, attachments, modelIsVisionCapable) }
                 ];
                 
                 body = { model: apiModel, messages, stream: true, max_tokens: mode === 'build' ? 2048 : 1024 };
@@ -212,7 +365,7 @@ async function handleMultiModelRequest(
                 throw new Error(`Unsupported provider: ${provider}`);
               }
               
-              console.log(`[${modelName}] Calling ${provider} with model ${apiModel}`);
+              console.log(`[${modelName}] Calling ${provider} with model ${apiModel}, vision: ${hasImages && modelIsVisionCapable}`);
               
               const response = await fetch(apiUrl, {
                 method: 'POST',
@@ -234,13 +387,16 @@ async function handleMultiModelRequest(
                   error: errorDetails
                 }));
 
-                const fallbackContent = 'The model could not generate a response at the moment. Please try again.';
+                // Provide more helpful error for vision failures
+                let fallbackContent = 'The model could not generate a response at the moment. Please try again.';
+                if (hasImages && response.status === 400) {
+                  fallbackContent = 'Unable to process the image. The image may be too large or in an unsupported format. Please try a different image.';
+                }
+                
                 const sseData = `data: ${JSON.stringify({ model: modelName, content: fallbackContent, error: true })}\n\n`;
                 controller.enqueue(encoder.encode(sseData));
                 return;
               }
-              
-              // All responses use streaming now (both lovable and openrouter)
               
               const reader = response.body?.getReader();
               if (!reader) return;
@@ -326,14 +482,27 @@ serve(async (req) => {
   try {
     const { message, mode, conversationHistory = [], provider, model: requestedModel, models, stream = false, attachments = [] }: ChatRequest = await req.json();
     
-    console.log('Chat request:', { message, mode, provider, requestedModel, models, historyLength: conversationHistory.length, attachmentsCount: attachments.length });
+    // Check for image attachments
+    const imageUrls = attachments.filter(isImageUrl);
+    const hasImages = imageUrls.length > 0;
+    
+    console.log('Chat request:', { 
+      message: message.substring(0, 100), 
+      mode, 
+      provider, 
+      requestedModel, 
+      models, 
+      historyLength: conversationHistory.length, 
+      attachmentsCount: attachments.length,
+      imageCount: imageUrls.length,
+      hasImages
+    });
 
     // VIDEO MODE: Only process video models, ignore text models
     if (mode === 'video') {
       const videoModels = ['Runway Gen-2', 'Pika 1.0'];
       let selectedVideoModels = models?.filter(m => videoModels.includes(m)) || [];
       
-      // If user selected a video model, use only that
       if (selectedVideoModels.length === 0 && requestedModel && videoModels.includes(requestedModel)) {
         selectedVideoModels = [requestedModel];
       }
@@ -347,8 +516,6 @@ serve(async (req) => {
       
       console.log('Video generation request with models:', selectedVideoModels);
       
-      // For now, return a message that video generation is not yet fully implemented
-      // In production, this would call Runway or Pika APIs
       return new Response(
         JSON.stringify({ 
           error: 'Video generation API integration is not yet implemented. This feature requires Runway Gen-2 or Pika API keys and endpoints.' 
@@ -359,22 +526,33 @@ serve(async (req) => {
 
     // Handle multi-model requests (text mode only) - includes single model in array
     if (models && Array.isArray(models) && models.length >= 1) {
-      console.log('Multi-model request:', models, 'attachments:', attachments.length);
+      console.log('Multi-model request:', models, 'attachments:', attachments.length, 'images:', imageUrls.length);
       return await handleMultiModelRequest(message, models, conversationHistory, stream, mode, attachments);
     }
     
-    // Determine actual model and provider using the unified getModelMapping function
+    // Single model request handling
     let model: string;
     let selectedProvider: string;
     
-    if (requestedModel) {
+    // If images are attached but no vision-capable model selected, auto-select one
+    if (hasImages) {
+      const effectiveModel = requestedModel && isVisionCapable(requestedModel) 
+        ? requestedModel 
+        : selectVisionModel([requestedModel || '']);
+      
+      const mapping = getModelMapping(effectiveModel);
+      model = mapping.apiModel;
+      selectedProvider = mapping.provider;
+      
+      console.log(`[Vision] Single model with images. Using ${effectiveModel} (${model})`);
+    } else if (requestedModel) {
       const mapping = getModelMapping(requestedModel);
       model = mapping.apiModel;
       selectedProvider = mapping.provider;
     } else {
       // Default fallback
-      selectedProvider = provider || 'openai';
-      model = 'gpt-5-2025-08-07';
+      selectedProvider = provider || 'openrouter';
+      model = 'openai/gpt-5';
     }
     
     // Get API key based on provider
@@ -383,35 +561,44 @@ serve(async (req) => {
     let headers: Record<string, string> = {};
     let body: any = {};
     
-    // Build mode gets a code-generation system prompt
-    const systemPrompt = mode === 'build' 
-      ? 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags.'
-      : 'You are a helpful AI assistant.';
+    // Determine if this model can handle vision
+    const modelIsVisionCapable = hasImages && (
+      model.includes('gpt-5') || 
+      model.includes('gpt-4') ||
+      model.includes('gemini') ||
+      model.includes('claude') ||
+      model.includes('kimi-vl')
+    );
+    
+    // Build mode gets a code-generation system prompt, vision gets vision prompt
+    let systemPrompt: string;
+    if (hasImages && modelIsVisionCapable) {
+      systemPrompt = getVisionSystemPrompt(imageUrls.length > 1);
+    } else if (mode === 'build') {
+      systemPrompt = 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags.';
+    } else {
+      systemPrompt = 'You are a helpful AI assistant.';
+    }
     
     // Helper to create user message content with attachments for vision models
     const createUserContent = (text: string, fileUrls: string[]): any => {
+      const images = fileUrls.filter(isImageUrl);
+      const otherFiles = fileUrls.filter(url => !isImageUrl(url));
+      
+      // For vision models with images, use multimodal format
+      if (modelIsVisionCapable && images.length > 0) {
+        return createVisionContent(text, images);
+      }
+      
+      // For text-only, return simple string
       if (fileUrls.length === 0) {
         return text;
       }
       
-      // Vision models can process images - create multipart content
-      const content: any[] = [{ type: 'text', text }];
-      
-      for (const url of fileUrls) {
-        // Check if it's an image by extension
-        const isImage = /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(url);
-        if (isImage) {
-          content.push({
-            type: 'image_url',
-            image_url: { url }
-          });
-        } else {
-          // For non-image files, append URL as text context
-          content.push({
-            type: 'text',
-            text: `\n\n[Attached file: ${url}]`
-          });
-        }
+      // Append file references
+      let content = text;
+      for (const url of otherFiles) {
+        content += `\n\n[Attached file: ${url}]`;
       }
       
       return content;
@@ -462,7 +649,7 @@ serve(async (req) => {
         { role: 'user', content: createUserContent(message, attachments) }
       ];
       
-      console.log(`Single model OpenRouter request: ${requestedModel} -> ${model}`);
+      console.log(`Single model request: ${requestedModel} -> ${model}, vision: ${modelIsVisionCapable}`);
       
       body = {
         model,
@@ -474,7 +661,7 @@ serve(async (req) => {
       throw new Error(`Unsupported provider: ${selectedProvider}`);
     }
     
-    console.log('Calling AI provider:', selectedProvider, model, 'stream:', stream);
+    console.log('Calling AI provider:', selectedProvider, model, 'stream:', stream, 'vision:', modelIsVisionCapable);
     
     const response = await fetch(apiUrl, {
       method: 'POST',
@@ -485,6 +672,12 @@ serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('AI provider error:', response.status, errorText);
+      
+      // Provide more helpful error for vision failures
+      if (hasImages && response.status === 400) {
+        throw new Error('Unable to process the image. Please ensure the image is in a supported format (JPEG, PNG, GIF, WebP) and try again.');
+      }
+      
       throw new Error(`AI provider error: ${response.status}`);
     }
     
@@ -554,7 +747,6 @@ serve(async (req) => {
     console.log('AI response received:', JSON.stringify(data).substring(0, 200));
     
     let content: string;
-    // Both lovable and openrouter use OpenAI-compatible response format
     const choice = data.choices?.[0];
     content =
       choice?.message?.content ??
