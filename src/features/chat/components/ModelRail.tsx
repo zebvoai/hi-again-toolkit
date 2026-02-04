@@ -103,7 +103,7 @@ export function ModelRail({ models, selectedModels, onToggle, onSelectAll, onCle
           <button
             onClick={allSelected ? onClearAll : onSelectAll}
             className={cn(
-              "px-3 py-1.5 text-xs font-medium rounded-full transition-all duration-200",
+              "ml-2 px-3 py-1.5 text-xs font-medium rounded-full transition-all duration-200",
               "hover:scale-[1.02] active:scale-[0.98]",
               allSelected
                 ? "bg-primary/10 text-primary border border-primary/20"
