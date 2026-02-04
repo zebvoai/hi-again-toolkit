@@ -83,7 +83,7 @@ serve(async (req) => {
         'GPT Image 1.5',
         'MiniMax Image 01',
         'Qwen Image',
-        'Grok 2 Image'
+        'Grok Imagine'
       ],
       video: [
         'Gemini Video 2.0',

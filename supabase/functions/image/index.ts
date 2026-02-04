@@ -12,7 +12,6 @@ interface ImageRequest {
 }
 
 // Fixed list of 7 image models with their Wavespeed API paths
-// Format: display name key -> Wavespeed API model path
 const IMAGE_MODEL_MAPPING: Record<string, string> = {
   'vidu-q2': 'vidu/text-to-image-q2',
   'wan-2.6': 'alibaba/wan-2.6/text-to-image',
@@ -20,7 +19,77 @@ const IMAGE_MODEL_MAPPING: Record<string, string> = {
   'gpt-image-1.5': 'openai/gpt-image-1.5/text-to-image',
   'minimax-image-01': 'minimax/image-01/text-to-image',
   'qwen-image': 'wavespeed-ai/qwen-image/text-to-image',
-  'grok-2-image': 'x-ai/grok-2-image',
+  'grok-imagine': 'x-ai/grok-imagine-image/text-to-image',
+};
+
+// Model-specific request body configurations
+const getRequestBody = (modelKey: string, prompt: string) => {
+  switch (modelKey) {
+    case 'vidu-q2':
+      return {
+        prompt,
+        aspect_ratio: '1:1',
+        resolution: '1080p',
+        seed: -1,
+      };
+    case 'grok-imagine':
+      return {
+        prompt,
+        aspect_ratio: '1:1',
+        num_images: 1,
+        enable_sync_mode: true,
+        enable_base64_output: false,
+      };
+    case 'nano-banana-pro':
+      return {
+        prompt,
+        resolution: '1k',
+        output_format: 'png',
+        enable_sync_mode: true,
+        enable_base64_output: false,
+      };
+    case 'gpt-image-1.5':
+      return {
+        prompt,
+        size: '1024*1024',
+        quality: 'medium',
+        output_format: 'jpeg',
+        enable_sync_mode: true,
+        enable_base64_output: false,
+      };
+    case 'minimax-image-01':
+      return {
+        prompt,
+        size: '1024*1024',
+        num_images: 1,
+        prompt_optimizer: false,
+        enable_sync_mode: true,
+        enable_base64_output: false,
+      };
+    case 'qwen-image':
+      return {
+        prompt,
+        size: '1024*1024',
+        seed: -1,
+        output_format: 'jpeg',
+        enable_sync_mode: true,
+        enable_base64_output: false,
+      };
+    case 'wan-2.6':
+      return {
+        prompt,
+        size: '1024*1024',
+        enable_prompt_expansion: false,
+        seed: -1,
+        enable_sync_mode: true,
+      };
+    default:
+      return {
+        prompt,
+        size: '1024*1024',
+        enable_sync_mode: true,
+      };
+  }
 };
 
 serve(async (req) => {
@@ -62,17 +131,16 @@ serve(async (req) => {
     const apiUrl = `https://api.wavespeed.ai/api/v3/${apiModelPath}`;
     console.log('Calling Wavespeed API:', apiUrl);
     
+    const requestBody = getRequestBody(modelKey, prompt);
+    console.log('Request body:', JSON.stringify(requestBody));
+    
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${wavespeedApiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        prompt,
-        size: '1024*1024',
-        enable_sync_mode: true,
-      })
+      body: JSON.stringify(requestBody)
     });
     
     const responseText = await response.text();
@@ -108,8 +176,8 @@ serve(async (req) => {
       const taskId = data.data.id;
       console.log('Got task ID, polling for result:', taskId);
       
-      // Poll for result (max 60 seconds)
-      const maxAttempts = 30;
+      // Poll for result (max 120 seconds for slower models like Vidu)
+      const maxAttempts = 60;
       for (let attempt = 0; attempt < maxAttempts; attempt++) {
         await new Promise(resolve => setTimeout(resolve, 2000));
         
