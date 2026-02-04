@@ -73,7 +73,6 @@ export function AppSidebar() {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
 
   // Hover helpers (CSS group-hover can be flaky depending on wrappers/overflows)
-  const [hoveredProjectId, setHoveredProjectId] = useState<string | null>(null);
 
   const handleNewChat = (projectId?: string | null) => {
     clearMessages();
@@ -364,11 +363,7 @@ export function AppSidebar() {
                       <div key={project.id} className="space-y-0.5">
                         <div
                           onClick={() => handleProjectClick(project.id)}
-                           onMouseEnter={() => setHoveredProjectId(project.id)}
-                           onMouseLeave={() =>
-                             setHoveredProjectId((prev) => (prev === project.id ? null : prev))
-                           }
-                          className={`group relative flex items-center gap-2 px-2.5 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl cursor-pointer overflow-hidden ${
+                          className={`group relative flex items-center gap-1.5 px-2 h-9 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] rounded-xl cursor-pointer overflow-hidden ${
                             selectedProjectId === project.id ? 'bg-primary/10 border-l-2 border-primary' : ''
                           }`}
                         >
@@ -387,16 +382,15 @@ export function AppSidebar() {
                             </span>
                           )}
 
-                          {/* 3-dot menu - visible on hover */}
+                          {/* 3-dot menu - always visible */}
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button
                                 variant="ghost"
                                 size="icon"
                                 className={cn(
-                                  "relative z-30 w-7 h-7 mr-2 flex-shrink-0 transition-opacity duration-150 hover:bg-black/[0.06] dark:hover:bg-white/10 rounded-lg",
-                                  hoveredProjectId === project.id ? "opacity-100" : "opacity-0",
-                                  "data-[state=open]:opacity-100",
+                                  "relative z-30 w-6 h-6 flex-shrink-0 hover:bg-black/[0.06] dark:hover:bg-white/10 rounded-md opacity-100",
+                                  "data-[state=open]:opacity-100"
                                 )}
                                 onClick={(e) => e.stopPropagation()}
                               >
