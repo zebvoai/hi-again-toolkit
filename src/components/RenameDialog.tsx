@@ -12,21 +12,21 @@ import { Input } from '@/components/ui/input';
 interface RenameDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  currentTitle: string;
+  currentTitle?: string;
   onRename: (newTitle: string) => void;
 }
 
 export const RenameDialog = ({
   open,
   onOpenChange,
-  currentTitle,
+  currentTitle = '',
   onRename,
 }: RenameDialogProps) => {
-  const [title, setTitle] = useState(currentTitle);
+  const [title, setTitle] = useState(currentTitle || '');
 
   useEffect(() => {
     if (open) {
-      setTitle(currentTitle);
+      setTitle(currentTitle || '');
     }
   }, [open, currentTitle]);
 
@@ -64,8 +64,8 @@ export const RenameDialog = ({
             </Button>
             <Button
               type="submit"
-              disabled={!title.trim() || title.trim() === currentTitle}
-              className="rounded-xl bg-[#007AFF] hover:bg-[#0066DD]"
+              disabled={!title?.trim() || title?.trim() === (currentTitle || '')}
+              className="rounded-xl bg-primary hover:bg-primary/90"
             >
               Save
             </Button>
