@@ -270,15 +270,15 @@ export function ChatInterface() {
         </div>
       )}
 
-      {/* Messages Area - with bottom padding for fixed input */}
+      {/* Messages Area - with bottom padding for fixed input and top for model rail */}
       {isLoadingConversation ? (
-        <div className="flex-1 overflow-y-auto overflow-x-hidden py-6 pb-[240px]">
+        <div className={`flex-1 overflow-y-auto overflow-x-hidden pb-[240px] ${selectedMode === 'text' && models?.text ? 'pt-16' : 'py-6'}`}>
           <div className="w-full px-4 sm:px-6 lg:px-8">
             <MessageSkeleton />
           </div>
         </div>
       ) : messages.length > 0 ? (
-        <div className="flex-1 overflow-y-auto overflow-x-hidden py-4 sm:py-6 pb-[240px]">
+        <div className={`flex-1 overflow-y-auto overflow-x-hidden pb-[240px] ${selectedMode === 'text' && models?.text ? 'pt-16' : 'py-4 sm:py-6'}`}>
           <div className="space-y-4 stagger-children">
             {messages.map((message, index) => {
               const isMultiModelResponse = message.role === 'assistant' && 
@@ -354,7 +354,7 @@ export function ChatInterface() {
         </div>
       ) : (
         /* Empty State */
-        <div className="flex-1 flex items-center justify-center px-4 pb-[240px]">
+        <div className={`flex-1 flex items-center justify-center px-4 pb-[240px] ${selectedMode === 'text' && models?.text ? 'pt-16' : ''}`}>
           <div className="text-center">
             <h1 className="text-6xl font-bold text-blue-500 mb-3 animate-logo-entrance animate-float-gentle hover:scale-[1.02] transition-transform duration-300 cursor-default">
               Zebvo AI

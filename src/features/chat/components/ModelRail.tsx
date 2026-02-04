@@ -81,7 +81,7 @@ export function ModelRail({ models, selectedModels, onToggle, onSelectAll, onCle
   }, []);
 
   return (
-    <div className="sticky top-0 z-40 w-full bg-transparent border-b border-border/30">
+    <div className="fixed top-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-sm border-b border-border/30">
       <div className="flex items-center gap-3 pl-16 pr-4 py-3">
         {/* Quick Actions */}
         <div className="flex-shrink-0 flex items-center gap-1.5">
