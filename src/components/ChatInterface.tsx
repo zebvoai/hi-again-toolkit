@@ -274,15 +274,15 @@ export function ChatInterface() {
         </div>
       )}
 
-      {/* Messages Area - with bottom padding for fixed input and top for model rail */}
+      {/* Messages Area - with bottom padding for fixed input */}
       {isLoadingConversation ? (
-        <div className={`flex-1 overflow-y-auto overflow-x-hidden pb-[240px] ${selectedMode === 'text' && models?.text ? 'pt-16' : 'py-6'}`}>
+        <div className="flex-1 overflow-y-auto overflow-x-hidden pb-[240px] py-6">
           <div className="w-full px-4 sm:px-6 lg:px-8">
             <MessageSkeleton />
           </div>
         </div>
       ) : messages.length > 0 ? (
-        <div className={`flex-1 overflow-y-auto overflow-x-hidden pb-[240px] ${selectedMode === 'text' && models?.text ? 'pt-16' : 'py-4 sm:py-6'}`}>
+        <div className="flex-1 overflow-y-auto overflow-x-hidden pb-[240px] py-4 sm:py-6">
           <div className="space-y-4 stagger-children">
             {messages.map((message, index) => {
               const isMultiModelResponse = message.role === 'assistant' && 
