@@ -114,26 +114,29 @@ export function ChatInterface() {
     isLoading,
   });
 
-  // Auto-select ALL text models on first load
-  const [hasInitializedModels, setHasInitializedModels] = useState(false);
+  // Track previous mode to detect mode switches
+  const prevModeRef = useRef(selectedMode);
   
-  useEffect(() => {
-    if (!models || hasInitializedModels) return;
-    
-    // Only for text mode, auto-select all models on first load
-    if (selectedMode === 'text' && models.text && models.text.length > 0) {
-      if (selectedModels.length === 0) {
-        setSelectedModels([...models.text]);
-        setHasInitializedModels(true);
-      }
-    }
-  }, [models, selectedMode, hasInitializedModels, selectedModels.length, setSelectedModels]);
-
-  // Reset selected models when mode changes (for non-text modes)
+  // Handle model selection when mode changes
   useEffect(() => {
     if (!models) return;
-    if (selectedMode === 'text') return; // Text mode handles its own logic
     
+    const prevMode = prevModeRef.current;
+    prevModeRef.current = selectedMode;
+    
+    // When switching TO text mode, select all text models
+    if (selectedMode === 'text' && models.text && models.text.length > 0) {
+      // Check if current selection has valid text models
+      const validTextModels = selectedModels.filter(model => models.text!.includes(model));
+      
+      // If no valid text models are selected (e.g., coming from another mode), select all
+      if (validTextModels.length === 0) {
+        setSelectedModels([...models.text]);
+      }
+      return;
+    }
+    
+    // For non-text modes, set the appropriate default
     const defaultModels: Record<string, string> = {
       image: 'DALL-E 3',
       video: 'Gemini Video 2.0',
