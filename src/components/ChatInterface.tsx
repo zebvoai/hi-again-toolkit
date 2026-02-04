@@ -10,11 +10,15 @@ import { TypingIndicator } from '@/features/chat/components/TypingIndicator';
 import { DeepResearchIndicator } from '@/features/chat/components/DeepResearchIndicator';
 import { ModelRail } from '@/features/chat/components/ModelRail';
 import { ModeDropdown } from '@/features/modes/components/ModeDropdown';
+import { ChatActionsMenu } from '@/components/ChatActionsMenu';
+import { RenameDialog } from '@/components/RenameDialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useModels } from '@/features/chat/hooks/useModels';
+import { useConversations } from '@/features/chat/hooks/useConversations';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useRealtimeMessages } from '@/features/chat/hooks/useRealtimeMessages';
 import { triggerHapticFeedback, triggerConfetti, updatePageTitle, smoothScrollTo } from '@/lib/microInteractions';
+import { exportAsMarkdown, exportAsJSON } from '@/lib/exportConversation';
 import { useSidebar } from '@/components/ui/sidebar';
 
 export function ChatInterface() {
@@ -48,6 +52,19 @@ export function ChatInterface() {
     loadingConversationId,
   } = useChatStore();
   
+  // Conversation actions
+  const { 
+    conversations, 
+    deleteConversation, 
+    renameConversation, 
+    shareConversation 
+  } = useConversations();
+  const [showRenameDialog, setShowRenameDialog] = useState(false);
+  
+  // Get current conversation title
+  const currentConversation = conversations.find(c => c.id === currentConversationId);
+  const currentTitle = currentConversation?.title || 'Untitled';
+  
   // Only show loading if current conversation is the one loading
   const isCurrentConversationLoading = isLoading && loadingConversationId === currentConversationId;
   const {
@@ -64,6 +81,54 @@ export function ChatInterface() {
   // Sidebar control
   const { setOpenMobile, isMobile, state } = useSidebar();
   const isSidebarExpanded = state === 'expanded';
+  
+  // Conversation action handlers
+  const handleRename = () => {
+    setShowRenameDialog(true);
+  };
+  
+  const handleRenameSubmit = (newName: string) => {
+    if (currentConversationId) {
+      renameConversation(currentConversationId, newName);
+    }
+    setShowRenameDialog(false);
+  };
+  
+  const handleShare = () => {
+    if (currentConversationId) {
+      shareConversation(currentConversationId);
+    }
+  };
+  
+  const handleDuplicate = () => {
+    toast.info('Duplicate feature coming soon');
+  };
+  
+  const handleExportMarkdown = () => {
+    if (messages.length > 0) {
+      exportAsMarkdown(messages, currentTitle);
+      toast.success('Exported as Markdown');
+    }
+  };
+  
+  const handleExportJSON = () => {
+    if (messages.length > 0) {
+      exportAsJSON(messages, currentTitle);
+      toast.success('Exported as JSON');
+    }
+  };
+  
+  const handleArchive = () => {
+    toast.info('Archive feature coming soon');
+  };
+  
+  const handleDelete = () => {
+    if (currentConversationId) {
+      deleteConversation(currentConversationId);
+      clearMessages();
+      setCurrentConversationId(null);
+    }
+  };
 
   // Update page title based on loading state
   useEffect(() => {
@@ -276,6 +341,21 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
         />
       )}
 
+      {/* Top Right Actions - Chat menu + Mobile menu */}
+      <div className="fixed top-3 right-3 z-50 flex items-center gap-2">
+        {/* Chat Actions Menu - Only when a conversation exists */}
+        <ChatActionsMenu
+          onRename={handleRename}
+          onShare={handleShare}
+          onDuplicate={handleDuplicate}
+          onExportMarkdown={handleExportMarkdown}
+          onExportJSON={handleExportJSON}
+          onArchive={handleArchive}
+          onDelete={handleDelete}
+          disabled={!currentConversationId}
+        />
+      </div>
+
       {/* Mobile Menu Button - Only visible on mobile */}
       {isMobile && (
         <button 
@@ -286,6 +366,14 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
           <Menu className="w-5 h-5 text-foreground" />
         </button>
       )}
+
+      {/* Rename Dialog */}
+      <RenameDialog
+        open={showRenameDialog}
+        onOpenChange={setShowRenameDialog}
+        currentTitle={currentTitle}
+        onRename={handleRenameSubmit}
+      />
       
       {/* Temporary Mode Banner */}
       {isTemporaryMode && (
