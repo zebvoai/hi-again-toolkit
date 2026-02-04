@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MoreVertical, Share, Edit, Archive, Trash2, Copy, Download, FileJson, FileText } from 'lucide-react';
+import { Pencil, Share, Edit, Archive, Trash2, Copy, Download, FileJson, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -49,46 +49,31 @@ export const ConversationItem = ({
   return (
     <div
       className={cn(
-        // More compact row for small screens + prevent clipping
-        "group relative flex items-center gap-1.5 px-2 py-1.5 rounded-xl cursor-pointer overflow-hidden",
+        // Relative container for absolute-positioned pencil icon
+        "group relative px-2 py-1.5 rounded-xl cursor-pointer overflow-hidden",
         isActive 
           ? 'bg-white dark:bg-white/10 shadow-sm' 
           : 'hover:bg-muted/50 dark:hover:bg-white/[0.06]'
       )}
       onClick={onClick}
     >
-      {/* Content area - truncated with space for menu */}
-      <div className="flex-1 min-w-0 pr-2">
-        <p
-          className={cn(
-            "text-[12.5px] truncate leading-snug",
-            isActive ? 'font-medium text-primary' : 'text-foreground/90 dark:text-foreground/80'
-          )}
-        >
-          {title}
-        </p>
-        <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
-          {timeAgo}
-        </p>
-      </div>
-
-      {/* Three-dots menu - inline flex, always visible */}
-      <div className="flex-shrink-0">
+      {/* Pencil menu - top right corner */}
+      <div className="absolute top-1 right-1 z-10">
         <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
               size="icon"
               className={cn(
-                "h-6 w-6 rounded-md flex-shrink-0",
+                "h-5 w-5 rounded-md",
                 isOpen ? 'bg-muted dark:bg-white/10' : 'hover:bg-muted/80 dark:hover:bg-white/10',
                 "text-muted-foreground hover:text-foreground",
                 "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
               )}
               onClick={(e) => e.stopPropagation()}
-              aria-label="More options"
+              aria-label="Edit options"
             >
-              <MoreVertical className="w-3.5 h-3.5" />
+              <Pencil className="w-3 h-3" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -194,6 +179,21 @@ export const ConversationItem = ({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+      </div>
+
+      {/* Content area */}
+      <div className="pr-6">
+        <p
+          className={cn(
+            "text-[12.5px] truncate leading-snug",
+            isActive ? 'font-medium text-primary' : 'text-foreground/90 dark:text-foreground/80'
+          )}
+        >
+          {title}
+        </p>
+        <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
+          {timeAgo}
+        </p>
       </div>
     </div>
   );
