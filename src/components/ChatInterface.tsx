@@ -424,13 +424,13 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
 
       {/* Messages Area - with bottom padding for fixed input and top padding for fixed model rail */}
       {isLoadingConversation ? (
-        <div className={`flex-1 overflow-y-auto overflow-x-hidden pb-[240px] py-6 ${(selectedMode === 'text' && models?.text) || (selectedMode === 'image' && models?.image) ? 'pt-20' : ''}`}>
+        <div className={`flex-1 overflow-y-auto overflow-x-hidden pb-[240px] py-6 ${(selectedMode === 'text' && models?.text) || (selectedMode === 'image' && models?.image) ? 'pt-24' : ''}`}>
           <div className="w-full px-4 sm:px-6 lg:px-8">
             <MessageSkeleton />
           </div>
         </div>
       ) : messages.length > 0 ? (
-        <div className={`flex-1 overflow-y-auto overflow-x-hidden pb-[240px] py-4 sm:py-6 ${(selectedMode === 'text' && models?.text) || (selectedMode === 'image' && models?.image) ? 'pt-20' : ''}`}>
+        <div className={`flex-1 overflow-y-auto overflow-x-hidden pb-[240px] py-4 sm:py-6 ${(selectedMode === 'text' && models?.text) || (selectedMode === 'image' && models?.image) ? 'pt-24' : ''}`}>
           <div className="space-y-4 stagger-children">
             {messages.map((message, index) => {
               const isMultiModelResponse = message.role === 'assistant' && 
