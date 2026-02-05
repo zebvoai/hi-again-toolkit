@@ -656,17 +656,10 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
 
               {/* Auto-expanding Textarea */}
               <div className="flex-1 min-w-0 flex items-center px-4">
-                <textarea 
+              <textarea 
                   ref={inputRef}
                   value={input} 
-                  onChange={e => {
-                    setInput(e.target.value);
-                    // Auto-resize logic
-                    const textarea = e.target;
-                    textarea.style.height = 'auto';
-                    const newHeight = Math.min(textarea.scrollHeight, 200);
-                    textarea.style.height = `${newHeight}px`;
-                  }} 
+                  onChange={e => setInput(e.target.value)} 
                   onKeyDown={e => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();
@@ -678,10 +671,9 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
                   placeholder="Ask Zebvo ai" 
                   disabled={isCurrentConversationLoading} 
                   rows={1}
-                  className="w-full bg-transparent border-none outline-none focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 text-[17px] font-medium placeholder:text-muted-foreground/70 disabled:opacity-50 text-foreground resize-none overflow-y-auto leading-[1.5] py-[6px] scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent transition-[height] duration-200 ease-[cubic-bezier(0.25,0.1,0.25,1)]"
+                  className="w-full bg-transparent border-none outline-none focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 text-[17px] font-medium placeholder:text-muted-foreground/70 disabled:opacity-50 text-foreground resize-none overflow-y-auto leading-[1.5] py-[6px] scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent"
                   style={{ 
-                    maxHeight: '200px',
-                    minHeight: '30px'
+                    height: '42px'
                   }}
                   maxLength={4000} 
                 />
