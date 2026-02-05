@@ -98,6 +98,21 @@ const getRequestBody = (modelKey: string, prompt: string) => {
   }
 };
 
+// Get timeout config for each model - some are slower than others
+const getModelTimeoutConfig = (modelKey: string): { maxAttempts: number; interval: number } => {
+  switch (modelKey) {
+    case 'vidu-q2':
+      // Vidu is very slow - allow up to 3 minutes
+      return { maxAttempts: 90, interval: 2000 };
+    case 'grok-imagine':
+      // Grok can also be slow
+      return { maxAttempts: 75, interval: 2000 };
+    default:
+      // Default: 2 minutes
+      return { maxAttempts: 60, interval: 2000 };
+  }
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -182,10 +197,11 @@ serve(async (req) => {
       const taskId = data.data.id;
       console.log('Got task ID, polling for result:', taskId);
       
-      // Poll for result (max 120 seconds for slower models like Vidu)
-      const maxAttempts = 60;
+      // Poll for result with model-specific timeout
+      const timeoutConfig = getModelTimeoutConfig(modelKey);
+      const maxAttempts = timeoutConfig.maxAttempts;
       for (let attempt = 0; attempt < maxAttempts; attempt++) {
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, timeoutConfig.interval));
         
         const resultResponse = await fetch(
           `https://api.wavespeed.ai/api/v3/predictions/${taskId}/result`,
@@ -210,14 +226,39 @@ serve(async (req) => {
           imageUrl = resultData.data.outputs[0];
           break;
         } else if (resultData.data?.status === 'failed') {
-          throw new Error('Image generation failed');
+          const errorMsg = resultData.data?.error || 'Image generation failed';
+          throw new Error(errorMsg);
         }
+      }
+      
+      // If we exhausted all attempts without getting an image
+      if (!imageUrl) {
+        console.error('Polling timeout - model still processing after max attempts');
+        return new Response(
+          JSON.stringify({ 
+            error: `Image generation timed out. The ${model || 'selected'} model is taking longer than expected. Please try again or select a different model.`,
+            errorCode: 'timeout'
+          }),
+          { 
+            status: 504,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        );
       }
     }
     
     if (!imageUrl) {
       console.error('No image URL in response:', data);
-      throw new Error('No image returned from API');
+      return new Response(
+        JSON.stringify({ 
+          error: 'No image returned from API. The model may be experiencing issues. Please try a different model.',
+          errorCode: 'no_output'
+        }),
+        { 
+          status: 502,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
     }
     
     console.log('Final image URL:', imageUrl);
