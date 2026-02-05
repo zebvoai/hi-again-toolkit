@@ -489,20 +489,11 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
               />
             )}
             
-            {/* Text mode: show skeleton for multi-model, typing indicator for single */}
-            {isCurrentConversationLoading && selectedMode === 'text' && selectedModels.length > 1 && (
-              <TextResponseSkeleton models={selectedModels} />
-            )}
-            
+            {/* Single model text mode: show typing indicator */}
             {isCurrentConversationLoading && selectedMode === 'text' && selectedModels.length === 1 && (
               <div className="w-full px-4 sm:px-6 lg:px-8">
                 <TypingIndicator models={selectedModels} />
               </div>
-            )}
-            
-            {/* Image mode: show image skeletons */}
-            {isCurrentConversationLoading && selectedMode === 'image' && (
-              <ImageResponseSkeleton models={selectedModels} />
             )}
           </div>
           <div ref={messagesEndRef} className="h-[136px]" />
