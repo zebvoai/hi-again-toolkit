@@ -104,10 +104,10 @@ export function LibraryView({ onClose }: LibraryViewProps) {
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex min-h-0 overflow-hidden">
+      <div className="flex-1 flex min-h-0 overflow-hidden" style={{ height: 'calc(100% - 120px)' }}>
         {/* Gallery Grid */}
         <ScrollArea className="flex-1 h-full">
-          <div className="p-4">
+          <div className="p-4 pb-8">
             {isLoading ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                 {Array.from({ length: 12 }).map((_, i) => (
