@@ -57,7 +57,7 @@ export function LibraryView({ onClose }: LibraryViewProps) {
   };
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <div className="flex flex-col h-full min-h-0 bg-background">
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-border/30">
         <div className="flex items-center gap-3">
@@ -104,10 +104,10 @@ export function LibraryView({ onClose }: LibraryViewProps) {
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex min-h-0 overflow-hidden" style={{ height: 'calc(100% - 120px)' }}>
+      <div className="flex-1 flex min-h-0 overflow-hidden">
         {/* Gallery Grid */}
-        <ScrollArea className="flex-1 h-full">
-          <div className="p-4 pb-8">
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          <div className="p-4 pb-8 pr-4">
             {isLoading ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                 {Array.from({ length: 12 }).map((_, i) => (
@@ -119,9 +119,7 @@ export function LibraryView({ onClose }: LibraryViewProps) {
                 <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-4">
                   <ImageIcon className="w-8 h-8 text-muted-foreground/50" />
                 </div>
-                <h3 className="text-base font-medium text-foreground/80 mb-1">
-                  No images yet
-                </h3>
+                <h3 className="text-base font-medium text-foreground/80 mb-1">No images yet</h3>
                 <p className="text-sm text-muted-foreground max-w-[280px]">
                   {filter === 'uploaded'
                     ? 'Upload images in your chats to see them here'
@@ -138,7 +136,8 @@ export function LibraryView({ onClose }: LibraryViewProps) {
                       "group relative aspect-square rounded-xl overflow-hidden cursor-pointer",
                       "bg-muted/50 border border-border/30",
                       "hover:border-primary/50 hover:shadow-lg transition-all duration-200",
-                      selectedImage?.id === image.id && "ring-2 ring-primary ring-offset-2 ring-offset-background"
+                      selectedImage?.id === image.id &&
+                        "ring-2 ring-primary ring-offset-2 ring-offset-background",
                     )}
                   >
                     <img
@@ -147,15 +146,17 @@ export function LibraryView({ onClose }: LibraryViewProps) {
                       className="w-full h-full object-cover"
                       loading="lazy"
                     />
-                    
+
                     {/* Type Badge */}
                     <div className="absolute top-2 left-2">
-                      <div className={cn(
-                        "flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-medium backdrop-blur-sm",
-                        image.source_type === 'generated'
-                          ? "bg-primary/80 text-primary-foreground"
-                          : "bg-black/50 text-white"
-                      )}>
+                      <div
+                        className={cn(
+                          "flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-medium backdrop-blur-sm",
+                          image.source_type === 'generated'
+                            ? "bg-primary/80 text-primary-foreground"
+                            : "bg-black/50 text-white",
+                        )}
+                      >
                         {image.source_type === 'generated' ? (
                           <Sparkles className="w-3 h-3" />
                         ) : (
@@ -197,11 +198,11 @@ export function LibraryView({ onClose }: LibraryViewProps) {
               </div>
             )}
           </div>
-        </ScrollArea>
+        </div>
 
         {/* Detail Panel */}
         {selectedImage && (
-          <div className="hidden lg:flex flex-col w-80 border-l border-border/30 bg-card/50">
+          <div className="hidden lg:flex flex-col w-80 min-h-0 border-l border-border/30 bg-card/50">
             <div className="p-4 border-b border-border/20">
               <h3 className="font-medium text-sm truncate">
                 {selectedImage.filename || 'Untitled Image'}
@@ -211,7 +212,7 @@ export function LibraryView({ onClose }: LibraryViewProps) {
               </p>
             </div>
             
-            <ScrollArea className="flex-1 p-4">
+            <ScrollArea className="flex-1 min-h-0 p-4">
               <div className="space-y-4">
                 {/* Preview */}
                 <div className="rounded-xl overflow-hidden border border-border/30">

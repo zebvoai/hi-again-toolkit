@@ -620,7 +620,7 @@ export function AppSidebar() {
 
       {/* Library View */}
       <Dialog open={showLibrary} onOpenChange={setShowLibrary}>
-        <DialogContent className="max-w-6xl h-[85vh] p-0 overflow-hidden">
+        <DialogContent className="max-w-6xl h-[85vh] p-0 overflow-hidden flex flex-col min-h-0">
           <LibraryView onClose={() => setShowLibrary(false)} />
         </DialogContent>
       </Dialog>
