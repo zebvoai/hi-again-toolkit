@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Square, Menu, Share, Pencil, Trash2, Bug } from 'lucide-react';
+import { Square, Menu, Share, Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useChat } from '@/features/chat/hooks/useChat';
 import { useModeStore } from '@/features/modes/store/modeStore';
@@ -554,31 +554,9 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
       >
         <div className="w-full px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
           <form onSubmit={handleSubmit} key={selectedMode} className="animate-scale-in">
-            {/* Mode Dropdown + Chat Actions */}
+            {/* Mode Dropdown */}
             <div className="flex items-center gap-2 mb-3">
               <ModeDropdown />
-              
-              {/* Feedback Button */}
-              <div className="ml-auto">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setShowFeedbackDialog(true)}
-                        className="h-8 w-8 p-0 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/80 transition-all"
-                      >
-                        <Bug className="w-4 h-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Report bug or suggest feature</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
             </div>
 
             {/* File Attachments Preview */}
@@ -605,20 +583,6 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
 
             {/* Glass Input Bar - Full width, auto-expanding */}
             <div className="flex items-end w-full min-h-[60px] bg-card rounded-[30px] shadow-[0_2px_8px_rgba(0,0,0,0.04)] focus-within:shadow-[0_4px_16px_rgba(0,0,0,0.08)] focus-within:bg-card/95 transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] px-[11px] py-[9px]">
-              {/* Feedback Bug Button - Fixed at bottom */}
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button type="button" onClick={() => setShowFeedbackDialog(true)} className="flex-shrink-0 w-[42px] h-[42px] rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 hover:scale-[1.05] active:scale-[0.95] transition-all duration-[180ms] border border-border/50 mr-2">
-                      <Bug className="w-[18px] h-[18px] text-primary" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Send Feedback</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
               {/* Left Plus Button - Fixed at bottom */}
               <button type="button" onClick={triggerFileInput} className="flex-shrink-0 w-[42px] h-[42px] rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 hover:scale-[1.05] active:scale-[0.95] transition-all duration-[180ms] border border-border/50">
                 <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
