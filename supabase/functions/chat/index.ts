@@ -317,8 +317,8 @@ async function handleMultiModelRequest(
             const systemPrompt = hasImages && modelIsVisionCapable
               ? getVisionSystemPrompt(imageUrls.length > 1)
               : mode === 'build' 
-                ? 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags.'
-                : 'You are a helpful AI assistant.';
+                ? 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags. Keep responses under 150 words unless the user explicitly asks for more detail.'
+                : 'You are a helpful AI assistant. Keep your responses concise and under 150 words unless the user explicitly asks for more detail or a longer answer.';
             
             try {
               if (provider === 'lovable') {
@@ -575,9 +575,9 @@ serve(async (req) => {
     if (hasImages && modelIsVisionCapable) {
       systemPrompt = getVisionSystemPrompt(imageUrls.length > 1);
     } else if (mode === 'build') {
-      systemPrompt = 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags.';
+      systemPrompt = 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags. Keep responses under 150 words unless the user explicitly asks for more detail.';
     } else {
-      systemPrompt = 'You are a helpful AI assistant.';
+      systemPrompt = 'You are a helpful AI assistant. Keep your responses concise and under 150 words unless the user explicitly asks for more detail or a longer answer.';
     }
     
     // Helper to create user message content with attachments for vision models
