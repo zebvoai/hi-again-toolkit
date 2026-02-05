@@ -76,6 +76,39 @@ export type Database = {
           },
         ]
       }
+      feedback: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          image_urls: string[] | null
+          status: string
+          type: Database["public"]["Enums"]["feedback_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          image_urls?: string[] | null
+          status?: string
+          type: Database["public"]["Enums"]["feedback_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          image_urls?: string[] | null
+          status?: string
+          type?: Database["public"]["Enums"]["feedback_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: Json
@@ -258,6 +291,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      feedback_type: "bug" | "feature"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -386,6 +420,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      feedback_type: ["bug", "feature"],
     },
   },
 } as const

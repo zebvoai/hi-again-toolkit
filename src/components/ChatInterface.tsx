@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Square, Menu, Share, Pencil, Trash2, MoreHorizontal } from 'lucide-react';
+import { Square, Menu, Share, Pencil, Trash2, Bug } from 'lucide-react';
 import { toast } from 'sonner';
 import { useChat } from '@/features/chat/hooks/useChat';
 import { useModeStore } from '@/features/modes/store/modeStore';
@@ -12,6 +12,7 @@ import { TextResponseSkeleton } from '@/features/chat/components/TextResponseSke
 import { ImageResponseSkeleton } from '@/features/chat/components/ImageResponseSkeleton';
 import { ModelRail } from '@/features/chat/components/ModelRail';
 import { ModeDropdown } from '@/features/modes/components/ModeDropdown';
+import { FeedbackDialog } from '@/components/FeedbackDialog';
 
 import { RenameDialog } from '@/components/RenameDialog';
 import {
@@ -81,6 +82,7 @@ export function ChatInterface() {
   } = useConversations();
   const [showRenameDialog, setShowRenameDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
   
   // Get current conversation title
   const currentConversation = conversations.find(c => c.id === currentConversationId);
@@ -382,6 +384,12 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
         </button>
       )}
 
+      {/* Feedback Dialog */}
+      <FeedbackDialog
+        open={showFeedbackDialog}
+        onOpenChange={setShowFeedbackDialog}
+      />
+
       {/* Rename Dialog */}
       <RenameDialog
         open={showRenameDialog}
@@ -550,40 +558,27 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
             <div className="flex items-center gap-2 mb-3">
               <ModeDropdown />
               
-              {/* Chat Actions Dropdown - Only when conversation exists */}
-              {currentConversationId && (
-                <div className="ml-auto">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
+              {/* Feedback Button */}
+              <div className="ml-auto">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
+                        onClick={() => setShowFeedbackDialog(true)}
                         className="h-8 w-8 p-0 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/80 transition-all"
                       >
-                        <MoreHorizontal className="w-4 h-4" />
+                        <Bug className="w-4 h-4" />
                       </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-40 bg-popover border border-border shadow-lg z-50">
-                      <DropdownMenuItem onClick={handleRename} className="gap-2 cursor-pointer">
-                        <Pencil className="w-3.5 h-3.5" />
-                        <span>Rename</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={handleShare} className="gap-2 cursor-pointer">
-                        <Share className="w-3.5 h-3.5" />
-                        <span>Share</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={handleDelete} 
-                        className="gap-2 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        <span>Delete</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              )}
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Report bug or suggest feature</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
             </div>
 
             {/* File Attachments Preview */}
