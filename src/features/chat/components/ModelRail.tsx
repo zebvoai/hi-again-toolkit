@@ -120,19 +120,25 @@ export function ModelRail({ models, selectedModels, onToggle, onSelectAll, onCle
     };
   }, [sidebarWidth, models.length]);
 
+  // Determine if we're on mobile (sidebarWidth === 0 means mobile)
+  const isMobile = sidebarWidth === 0;
+
   return (
     <div 
       ref={railRef}
       className="fixed top-0 right-0 bg-background/80 backdrop-blur-sm border-b border-border/30 z-10"
-      style={{ left: sidebarWidth + 8 + 48 }}
+      style={{ left: isMobile ? 0 : sidebarWidth + 8 + 48 }}
     >
-      <div className="flex items-center gap-3 pl-4 pr-4 py-3">
+      <div className={cn(
+        "flex items-center gap-2 sm:gap-3 pr-3 sm:pr-4 py-2.5 sm:py-3",
+        isMobile ? "pl-14" : "pl-4" // Leave space for hamburger menu on mobile
+      )}>
         {/* Quick Actions */}
-        <div className="flex-shrink-0 flex items-center gap-1.5">
+        <div className="flex-shrink-0 flex items-center gap-1">
           <button
             onClick={allSelected ? onClearAll : onSelectAll}
             className={cn(
-              "ml-2 px-3 py-1.5 text-xs font-medium rounded-full",
+              "px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium rounded-full",
               "transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]",
               "hover:scale-[1.02] active:scale-[0.97]",
               allSelected
@@ -140,15 +146,15 @@ export function ModelRail({ models, selectedModels, onToggle, onSelectAll, onCle
                 : "bg-muted text-muted-foreground hover:bg-muted/80 border border-transparent"
             )}
           >
-            {allSelected ? 'Clear All' : 'Select All'}
+            {allSelected ? 'Clear' : 'All'}
           </button>
-          <span className="text-xs text-muted-foreground/60 tabular-nums">
+          <span className="text-[10px] sm:text-xs text-muted-foreground/60 tabular-nums">
             {selectedModels.length}/{models.length}
           </span>
         </div>
 
         {/* Divider */}
-        <div className="w-px h-6 bg-border/50 flex-shrink-0" />
+        <div className="w-px h-5 sm:h-6 bg-border/50 flex-shrink-0" />
 
         {/* Horizontal Scroll Rail */}
         <div 
@@ -156,7 +162,7 @@ export function ModelRail({ models, selectedModels, onToggle, onSelectAll, onCle
           className="flex-1 overflow-x-auto scrollbar-hide"
           style={{ scrollBehavior: 'smooth' }}
         >
-          <div className="flex items-center gap-2 py-0.5">
+          <div className="flex items-center gap-1.5 sm:gap-2 py-0.5">
             {models.map((model) => {
               const isSelected = selectedModels.includes(model);
               const style = getModelStyle(model);
@@ -166,8 +172,8 @@ export function ModelRail({ models, selectedModels, onToggle, onSelectAll, onCle
                   key={model}
                   onClick={() => onToggle(model)}
                   className={cn(
-                    "group relative flex items-center gap-2 px-3 py-2 rounded-xl border",
-                    "whitespace-nowrap text-sm font-medium flex-shrink-0",
+                    "group relative flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl border",
+                    "whitespace-nowrap text-xs sm:text-sm font-medium flex-shrink-0",
                     "transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]",
                     "hover:scale-[1.02] active:scale-[0.97]",
                     isSelected
@@ -178,7 +184,7 @@ export function ModelRail({ models, selectedModels, onToggle, onSelectAll, onCle
                   {/* Toggle Indicator */}
                   <div 
                     className={cn(
-                      "w-2 h-2 rounded-full transition-all duration-200",
+                      "w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full transition-all duration-200",
                       isSelected 
                         ? "bg-current scale-100" 
                         : "bg-muted-foreground/30 scale-75"
@@ -186,7 +192,7 @@ export function ModelRail({ models, selectedModels, onToggle, onSelectAll, onCle
                   />
                   
                   {/* Model Name */}
-                  <span className="truncate max-w-[140px]">{model}</span>
+                  <span className="truncate max-w-[100px] sm:max-w-[140px]">{model}</span>
                   
                   {/* Subtle hover glow for selected */}
                   {isSelected && (

@@ -515,21 +515,21 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
         </div>
       ) : (
         /* Empty State */
-        <div className={`flex-1 flex items-center justify-center px-4 pb-[240px] ${(selectedMode === 'text' && models?.text) || (selectedMode === 'image' && models?.image) ? 'pt-16' : ''}`}>
+        <div className={`flex-1 flex items-center justify-center px-4 pb-[200px] sm:pb-[240px] ${(selectedMode === 'text' && models?.text) || (selectedMode === 'image' && models?.image) ? 'pt-16' : ''}`}>
           <div className="text-center">
-            <h1 className="text-6xl font-bold text-blue-500 mb-3 animate-logo-entrance animate-float-gentle hover:scale-[1.02] transition-transform duration-300 cursor-default">
+            <h1 className="text-4xl sm:text-6xl font-bold text-blue-500 mb-2 sm:mb-3 animate-logo-entrance animate-float-gentle hover:scale-[1.02] transition-transform duration-300 cursor-default">
               Zebvo AI
             </h1>
-            <p className="text-muted-foreground text-base mb-6 animate-tagline-entrance">
+            <p className="text-muted-foreground text-sm sm:text-base mb-4 sm:mb-6 animate-tagline-entrance">
               The World's Greatest AI Platform
             </p>
-            <div className="flex items-center justify-center gap-1.5 mb-8">
+            <div className="flex items-center justify-center gap-1.5 mb-6 sm:mb-8">
               <div className="w-2 h-2 rounded-full bg-[#5B9FFF] animate-dot-pulse-wave" />
               <div className="w-2 h-2 rounded-full bg-[#B8D4FF] animate-dot-pulse-wave" style={{ animationDelay: '0.2s' }} />
               <div className="w-2 h-2 rounded-full bg-[#B8D4FF] animate-dot-pulse-wave" style={{ animationDelay: '0.4s' }} />
             </div>
-            {/* Keyboard shortcuts hint */}
-            <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground/60">
+            {/* Keyboard shortcuts hint - hidden on mobile */}
+            <div className="hidden sm:flex items-center justify-center gap-4 text-xs text-muted-foreground/60">
               <span className="flex items-center gap-1">
                 <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono">⌘K</kbd>
                 <span>Focus</span>
@@ -552,14 +552,14 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
         className="fixed bottom-0 right-0 z-30 bg-background border-t border-border/20 transition-[left] duration-300"
         style={{ left: isMobile ? 0 : (isSidebarExpanded ? 280 : 60) }}
       >
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+        <div className="w-full px-3 sm:px-6 lg:px-8 py-2 sm:py-4">
           <form onSubmit={handleSubmit} key={selectedMode} className="animate-scale-in">
             {/* Mode Dropdown */}
-            <div className="flex items-center justify-between gap-2 mb-3">
+            <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-2 sm:mb-3">
               <ModeDropdown />
 
               <TooltipProvider delayDuration={400}>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1">
                   {/* Feedback icon */}
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -568,7 +568,7 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
                         variant="ghost"
                         size="icon"
                         onClick={() => setShowFeedbackDialog(true)}
-                        className="h-10 w-10 rounded-xl hover:bg-accent/80"
+                        className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl hover:bg-accent/80"
                         aria-label="Feedback"
                       >
                         <MessageSquare className="h-4 w-4 text-muted-foreground" />
@@ -588,7 +588,7 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
                             type="button"
                             variant="ghost"
                             size="icon"
-                            className="h-10 w-10 rounded-xl hover:bg-accent/80"
+                            className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl hover:bg-accent/80"
                             aria-label="Conversation options"
                           >
                             <MoreVertical className="h-4 w-4 text-muted-foreground" />
@@ -646,16 +646,16 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
             <input ref={fileInputRef} type="file" multiple accept="*/*" onChange={handleFileSelect} className="hidden" />
 
             {/* Glass Input Bar - Full width, auto-expanding */}
-            <div className="flex items-end w-full min-h-[60px] bg-card rounded-[30px] shadow-[0_2px_8px_rgba(0,0,0,0.04)] focus-within:shadow-[0_4px_16px_rgba(0,0,0,0.08)] focus-within:bg-card/95 transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] px-[11px] py-[9px]">
+            <div className="flex items-end w-full min-h-[52px] sm:min-h-[60px] bg-card rounded-[24px] sm:rounded-[30px] shadow-[0_2px_8px_rgba(0,0,0,0.04)] focus-within:shadow-[0_4px_16px_rgba(0,0,0,0.08)] focus-within:bg-card/95 transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] px-[8px] sm:px-[11px] py-[7px] sm:py-[9px]">
               {/* Left Plus Button - Fixed at bottom */}
-              <button type="button" onClick={triggerFileInput} className="flex-shrink-0 w-[42px] h-[42px] rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 hover:scale-[1.05] active:scale-[0.95] transition-all duration-[180ms] border border-border/50">
-                <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+              <button type="button" onClick={triggerFileInput} className="flex-shrink-0 w-[36px] h-[36px] sm:w-[42px] sm:h-[42px] rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 hover:scale-[1.05] active:scale-[0.95] transition-all duration-[180ms] border border-border/50">
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" className="sm:w-[18px] sm:h-[18px]">
                   <path d="M10 4V16M4 10H16" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="round" />
                 </svg>
               </button>
 
               {/* Auto-expanding Textarea */}
-              <div className="flex-1 min-w-0 flex items-center px-4">
+              <div className="flex-1 min-w-0 flex items-center px-2 sm:px-4">
               <textarea 
                   ref={inputRef}
                   value={input} 
@@ -671,9 +671,9 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
                   placeholder="Ask Zebvo ai" 
                   disabled={isCurrentConversationLoading} 
                   rows={1}
-                  className="w-full bg-transparent border-none outline-none focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 text-[17px] font-medium placeholder:text-muted-foreground/70 disabled:opacity-50 text-foreground resize-none overflow-y-auto leading-[1.5] py-[6px] scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent"
+                  className="w-full bg-transparent border-none outline-none focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 text-[15px] sm:text-[17px] font-medium placeholder:text-muted-foreground/70 disabled:opacity-50 text-foreground resize-none overflow-y-auto leading-[1.5] py-[6px] scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent"
                   style={{ 
-                    height: '42px'
+                    height: '38px'
                   }}
                   maxLength={4000} 
                 />
@@ -687,9 +687,9 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
               )}
 
               {/* Right Send Button - Fixed at bottom */}
-              <button type={isCurrentConversationLoading ? "button" : "submit"} onClick={isCurrentConversationLoading ? cancelGeneration : undefined} disabled={!isCurrentConversationLoading && (!input.trim() || selectedModels.length === 0)} className={`flex-shrink-0 w-[42px] h-[42px] rounded-full flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] ${isCurrentConversationLoading ? 'bg-primary text-primary-foreground hover:bg-primary/80 shadow-lg shadow-primary/25' : !input.trim() || selectedModels.length === 0 ? 'bg-muted text-muted-foreground cursor-not-allowed border border-border/50' : 'bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-110 hover:shadow-lg hover:shadow-primary/25 animate-scale-in'}`}>
+              <button type={isCurrentConversationLoading ? "button" : "submit"} onClick={isCurrentConversationLoading ? cancelGeneration : undefined} disabled={!isCurrentConversationLoading && (!input.trim() || selectedModels.length === 0)} className={`flex-shrink-0 w-[36px] h-[36px] sm:w-[42px] sm:h-[42px] rounded-full flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] ${isCurrentConversationLoading ? 'bg-primary text-primary-foreground hover:bg-primary/80 shadow-lg shadow-primary/25' : !input.trim() || selectedModels.length === 0 ? 'bg-muted text-muted-foreground cursor-not-allowed border border-border/50' : 'bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-110 hover:shadow-lg hover:shadow-primary/25 animate-scale-in'}`}>
                 {isCurrentConversationLoading ? <Square className="w-4 h-4 fill-current animate-pulse" /> : (
-                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none" className="transition-all duration-300">
+                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" className="sm:w-[18px] sm:h-[18px] transition-all duration-300">
                     <path d="M3 10L17 10M17 10L11 4M17 10L11 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 )}

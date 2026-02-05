@@ -115,7 +115,7 @@ export const Message = ({
   
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} appear-smooth`}>
-      <div className={`flex ${isUser ? 'flex-row-reverse' : 'flex-row'} ${isUser ? 'max-w-[70%]' : 'max-w-[75%]'} gap-2.5`}>
+      <div className={`flex ${isUser ? 'flex-row-reverse' : 'flex-row'} ${isUser ? 'max-w-[85%] sm:max-w-[70%]' : 'max-w-[90%] sm:max-w-[75%]'} gap-2 sm:gap-2.5`}>
         {/* Avatar for AI only */}
         {!isUser && (
           <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/15 to-primary/35 flex items-center justify-center shadow-sm flex-shrink-0 mt-0.5 transition-transform duration-normal ease-spring hover:scale-110">
