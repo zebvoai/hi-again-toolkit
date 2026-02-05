@@ -258,6 +258,16 @@ export const Message = ({
                     blockquote: ({ children }) => <blockquote className="border-l-2 border-muted-foreground/30 pl-4 my-4 text-muted-foreground">{children}</blockquote>,
                     hr: () => <hr className="my-5 border-border/40" />,
                     a: ({ children, href }) => <a href={href} className="text-primary hover:underline underline-offset-2 transition-colors" target="_blank" rel="noopener noreferrer">{children}</a>,
+                    table: ({ children }) => (
+                      <div className="my-4 overflow-x-auto rounded-lg border border-border/40">
+                        <table className="w-full text-sm border-collapse">{children}</table>
+                      </div>
+                    ),
+                    thead: ({ children }) => <thead className="bg-muted/50">{children}</thead>,
+                    tbody: ({ children }) => <tbody className="divide-y divide-border/30">{children}</tbody>,
+                    tr: ({ children }) => <tr className="hover:bg-muted/20 transition-colors">{children}</tr>,
+                    th: ({ children }) => <th className="px-3 py-2 text-left text-xs font-semibold text-foreground/80 border-b border-border/40">{children}</th>,
+                    td: ({ children }) => <td className="px-3 py-2 text-[13px] text-foreground/90">{children}</td>,
                   }}
                 >
                   {contentString}
