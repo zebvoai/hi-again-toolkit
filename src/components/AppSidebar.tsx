@@ -1,4 +1,5 @@
-import { Plus, User, Search, Library, Folder, ChevronDown, ChevronRight, MoreVertical, Edit, Share, Trash2, Sparkles } from "lucide-react";
+import { Plus, User, Search, Library, Folder, ChevronDown, ChevronRight, MoreVertical, Edit, Share, Trash2 } from "lucide-react";
+import zebvoLogo from "@/assets/zebvo_logo.jpeg";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import {
@@ -268,9 +269,11 @@ export function AppSidebar() {
           {/* Logo, Brand, and Toggle in same row when expanded */}
           <div className={`flex items-center ${isCollapsed ? 'flex-col gap-2' : 'justify-between w-full'}`}>
             <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-2.5'}`}>
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center flex-shrink-0 shadow-sm">
-                <Sparkles className="w-4 h-4 text-primary-foreground" />
-              </div>
+              <img 
+                src={zebvoLogo} 
+                alt="Zebvo" 
+                className="w-8 h-8 rounded-xl object-cover flex-shrink-0 shadow-sm"
+              />
               {!isCollapsed && (
                 <span className="text-base font-semibold text-foreground tracking-tight">Zebvo Assist</span>
               )}
