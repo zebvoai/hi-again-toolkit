@@ -7,7 +7,9 @@ import { useChatStore } from '@/features/chat/store/chatStore';
 import { Message } from '@/features/chat/components/Message';
 import { MessageSkeleton } from '@/features/chat/components/MessageSkeleton';
 import { TypingIndicator } from '@/features/chat/components/TypingIndicator';
-import { DeepResearchIndicator } from '@/features/chat/components/DeepResearchIndicator';
+import { DeepResearchInlineLoader } from '@/features/chat/components/DeepResearchInlineLoader';
+import { TextResponseSkeleton } from '@/features/chat/components/TextResponseSkeleton';
+import { ImageResponseSkeleton } from '@/features/chat/components/ImageResponseSkeleton';
 import { ModelRail } from '@/features/chat/components/ModelRail';
 import { ModeDropdown } from '@/features/modes/components/ModeDropdown';
 
@@ -481,18 +483,26 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
             
             {/* Loading indicators based on mode */}
             {isCurrentConversationLoading && selectedMode === 'research' && (
-              <DeepResearchIndicator 
+              <DeepResearchInlineLoader 
                 status={researchStatus}
-                phase={researchPhase}
-                progress={researchProgress}
                 elapsedTime={researchElapsedTime}
               />
             )}
             
-            {isCurrentConversationLoading && selectedMode !== 'research' && selectedModels.length === 1 && (
+            {/* Text mode: show skeleton for multi-model, typing indicator for single */}
+            {isCurrentConversationLoading && selectedMode === 'text' && selectedModels.length > 1 && (
+              <TextResponseSkeleton models={selectedModels} />
+            )}
+            
+            {isCurrentConversationLoading && selectedMode === 'text' && selectedModels.length === 1 && (
               <div className="w-full px-4 sm:px-6 lg:px-8">
                 <TypingIndicator models={selectedModels} />
               </div>
+            )}
+            
+            {/* Image mode: show image skeletons */}
+            {isCurrentConversationLoading && selectedMode === 'image' && (
+              <ImageResponseSkeleton models={selectedModels} />
             )}
           </div>
           <div ref={messagesEndRef} className="h-[136px]" />

@@ -5,6 +5,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import type { MultiModelContent } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
 import { formatModelName } from '@/lib/utils';
 
 interface MultiModelResponseProps {
@@ -256,15 +257,13 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
 
                   {/* Response Content - Scrollable */}
                   <div className="flex-1 overflow-y-auto p-3 min-h-0">
-                    <div className="text-[13px] leading-[1.6] text-foreground">
+                  <div className="text-[13px] leading-[1.6] text-foreground">
                       {isGenerating ? (
-                        <div className="flex items-center gap-2 text-muted-foreground py-2">
-                          <div className="flex gap-1">
-                            <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce [animation-delay:0ms]" />
-                            <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce [animation-delay:150ms]" />
-                            <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce [animation-delay:300ms]" />
-                          </div>
-                          <span className="text-xs">Generating...</span>
+                        <div className="space-y-2.5 py-1">
+                          <Skeleton className="h-3.5 w-[95%]" />
+                          <Skeleton className="h-3.5 w-[80%]" />
+                          <Skeleton className="h-3.5 w-[88%]" />
+                          <Skeleton className="h-3.5 w-[70%]" />
                         </div>
                       ) : (
                         <ReactMarkdown components={markdownComponents}>
