@@ -74,6 +74,16 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
     h1: ({ children }: any) => <h1 className="text-base font-bold mb-2 mt-3 first:mt-0">{children}</h1>,
     h2: ({ children }: any) => <h2 className="text-sm font-bold mb-1.5 mt-2.5 first:mt-0">{children}</h2>,
     h3: ({ children }: any) => <h3 className="text-sm font-semibold mb-1.5 mt-2 first:mt-0">{children}</h3>,
+    table: ({ children }: any) => (
+      <div className="my-2.5 overflow-x-auto rounded-lg border border-border/40">
+        <table className="w-full text-xs border-collapse">{children}</table>
+      </div>
+    ),
+    thead: ({ children }: any) => <thead className="bg-muted/50">{children}</thead>,
+    tbody: ({ children }: any) => <tbody className="divide-y divide-border/30">{children}</tbody>,
+    tr: ({ children }: any) => <tr className="hover:bg-muted/20 transition-colors">{children}</tr>,
+    th: ({ children }: any) => <th className="px-2.5 py-1.5 text-left text-[11px] font-semibold text-foreground/80 border-b border-border/40 whitespace-nowrap">{children}</th>,
+    td: ({ children }: any) => <td className="px-2.5 py-1.5 text-[12px] text-foreground/90">{children}</td>,
   };
 
   // Single view (carousel)
