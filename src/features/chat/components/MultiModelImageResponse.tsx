@@ -1,6 +1,7 @@
 import { useRef, useEffect } from 'react';
-import { Download, Loader2 } from 'lucide-react';
+import { Download, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import type { MultiModelContent } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { formatModelName } from '@/lib/utils';
@@ -129,15 +130,21 @@ export const MultiModelImageResponse = ({ content, models }: MultiModelImageResp
               {/* Image content - always square 1:1 */}
               <div className="p-2">
                 {isLoading ? (
-                  <div className="aspect-square bg-background/50 rounded-lg flex items-center justify-center">
-                    <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                      <Loader2 className="w-8 h-8 animate-spin" />
-                      <span className="text-xs">Generating...</span>
+                  <div className="aspect-square rounded-lg overflow-hidden relative">
+                    <Skeleton className="w-full h-full" />
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+                      <div className="flex gap-1">
+                        <span className="w-1.5 h-1.5 bg-foreground/20 rounded-full animate-[bounce_1.4s_ease-in-out_infinite]" />
+                        <span className="w-1.5 h-1.5 bg-foreground/20 rounded-full animate-[bounce_1.4s_ease-in-out_infinite_0.2s]" />
+                        <span className="w-1.5 h-1.5 bg-foreground/20 rounded-full animate-[bounce_1.4s_ease-in-out_infinite_0.4s]" />
+                      </div>
+                      <span className="text-xs text-muted-foreground/60">Generating</span>
                     </div>
                   </div>
                 ) : isError ? (
-                  <div className="aspect-square bg-destructive/10 border border-destructive/30 rounded-lg flex items-center justify-center p-4">
-                    <p className="text-sm text-destructive text-center">{imageUrl}</p>
+                  <div className="aspect-square bg-destructive/5 border border-destructive/20 rounded-lg flex flex-col items-center justify-center gap-2 p-4">
+                    <AlertCircle className="w-6 h-6 text-destructive/60" />
+                    <p className="text-xs text-destructive/80 text-center">{imageUrl.replace('Error: ', '')}</p>
                   </div>
                 ) : (
                   <img 

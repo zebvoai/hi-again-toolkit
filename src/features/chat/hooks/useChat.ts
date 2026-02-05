@@ -381,9 +381,28 @@ export const useChat = () => {
           throw error;
         }
       } else if (selectedMode === 'image') {
-        // Handle multi-model image generation
+        // Handle multi-model image generation with progressive loading
         if (selectedModels.length > 1) {
-          let multiModelContent: MultiModelContent = {};
+          // Initialize with empty content for all models
+          const multiModelContent: MultiModelContent = {};
+          selectedModels.forEach(model => {
+            multiModelContent[model] = ''; // Empty = loading state
+          });
+          
+          // Add placeholder message immediately for progressive rendering
+          const assistantMessage: Message = {
+            id: assistantId,
+            role: 'assistant' as const,
+            content: { ...multiModelContent },
+            timestamp: Date.now(),
+            metadata: {
+              models: selectedModels,
+              isImage: true
+            }
+          };
+          addMessage(assistantMessage);
+          
+          // Generate images progressively - update as each completes
           const imagePromises = selectedModels.map(async (model) => {
             try {
               const response = await api.generateImage(
@@ -392,7 +411,12 @@ export const useChat = () => {
                 model.toLowerCase().replace(/\s+/g, '-'),
                 abortControllerRef.current?.signal
               );
+              
+              // Update the message content progressively
               multiModelContent[model] = response.imageUrl;
+              updateMessage(assistantId, { 
+                content: { ...multiModelContent } 
+              });
               
               // Save generated image to library
               await saveImageToLibrary({
@@ -406,30 +430,21 @@ export const useChat = () => {
               return { model, url: response.imageUrl };
             } catch (error) {
               multiModelContent[model] = `Error: ${error instanceof Error ? error.message : 'Unknown error'}`;
+              updateMessage(assistantId, { 
+                content: { ...multiModelContent } 
+              });
               return { model, url: null };
             }
           });
 
           await Promise.all(imagePromises);
 
-          const assistantMessage: Message = {
-            id: assistantId,
-            role: 'assistant' as const,
-            content: multiModelContent,
-            timestamp: Date.now(),
-            metadata: {
-              models: selectedModels,
-              isImage: true
-            }
-          };
-
-          addMessage(assistantMessage);
-
+          // Save final message to database
           if (convId) {
             await supabase.from('messages').insert({
               conversation_id: convId,
               role: assistantMessage.role,
-              content: assistantMessage.content,
+              content: multiModelContent,
               metadata: assistantMessage.metadata
             });
 
@@ -552,12 +567,22 @@ export const useChat = () => {
           ? VISION_CAPABLE_MODELS 
           : modelsToUse;
         
-        let multiModelContent: MultiModelContent = {};
-        let hasCreatedMessage = false;
-
+        const multiModelContent: MultiModelContent = {};
         effectiveModels.forEach(model => {
           multiModelContent[model] = '';
         });
+
+        // Add placeholder message immediately for instant feedback
+        const streamingMessage: Message = {
+          id: assistantId,
+          role: 'assistant' as const,
+          content: { ...multiModelContent },
+          timestamp: Date.now(),
+          metadata: {
+            models: effectiveModels
+          }
+        };
+        addMessage(streamingMessage);
 
         const response = await multiModelApi.sendMessageMultiModel(
           content,
@@ -566,74 +591,33 @@ export const useChat = () => {
           effectiveModels,
           (modelName: string, chunk: string) => {
             multiModelContent[modelName] += chunk;
-
-            if (!hasCreatedMessage) {
-              const streamingMessage = {
-                id: assistantId,
-                role: 'assistant' as const,
-                content: { ...multiModelContent },
-                timestamp: Date.now(),
-                metadata: {
-                  models: effectiveModels
-                }
-              };
-              addMessage(streamingMessage);
-              hasCreatedMessage = true;
-            } else {
-              updateMessage(assistantId, { content: { ...multiModelContent } });
-            }
+            updateMessage(assistantId, { content: { ...multiModelContent } });
           },
           abortControllerRef.current?.signal,
           fileUrls.length > 0 ? fileUrls : undefined
         );
 
-        if (hasCreatedMessage) {
-          const finalMessage = {
-            content: response.content,
-            metadata: {
-              models: response.models
-            }
-          };
-          updateMessage(assistantId, finalMessage);
-          
-          if (convId) {
-            await supabase.from('messages').insert({
-              conversation_id: convId,
-              role: 'assistant',
-              content: finalMessage.content,
-              metadata: finalMessage.metadata
-            });
-            
-            await supabase
-              .from('conversations')
-              .update({ updated_at: new Date().toISOString() })
-              .eq('id', convId);
+        // Update with final content
+        const finalMessage = {
+          content: response.content,
+          metadata: {
+            models: response.models
           }
-        } else {
-          const assistantMessage: Message = {
-            id: assistantId,
-            role: 'assistant' as const,
-            content: response.content,
-            timestamp: Date.now(),
-            metadata: {
-              models: response.models
-            }
-          };
-          addMessage(assistantMessage);
+        };
+        updateMessage(assistantId, finalMessage);
+        
+        if (convId) {
+          await supabase.from('messages').insert({
+            conversation_id: convId,
+            role: 'assistant',
+            content: finalMessage.content,
+            metadata: finalMessage.metadata
+          });
           
-          if (convId) {
-            await supabase.from('messages').insert({
-              conversation_id: convId,
-              role: assistantMessage.role,
-              content: assistantMessage.content,
-              metadata: assistantMessage.metadata
-            });
-            
-            await supabase
-              .from('conversations')
-              .update({ updated_at: new Date().toISOString() })
-              .eq('id', convId);
-          }
+          await supabase
+            .from('conversations')
+            .update({ updated_at: new Date().toISOString() })
+            .eq('id', convId);
         }
       } else {
         // For single model mode, force vision model if images are attached
