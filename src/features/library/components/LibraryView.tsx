@@ -71,14 +71,6 @@ export function LibraryView({ onClose }: LibraryViewProps) {
             </p>
           </div>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onClose}
-          className="rounded-full hover:bg-accent"
-        >
-          <X className="w-5 h-5" />
-        </Button>
       </div>
 
       {/* Filters */}
