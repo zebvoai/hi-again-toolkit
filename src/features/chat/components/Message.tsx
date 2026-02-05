@@ -3,7 +3,7 @@ import type { Message as MessageType, MultiModelContent } from '@/types';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Copy, Check, RefreshCw, Pencil, X, Save } from 'lucide-react';
+import { Copy, Check, RefreshCw, Pencil, X, Save, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { MultiModelResponse } from './MultiModelResponse';
@@ -48,6 +48,26 @@ export const Message = ({
     setCopied(true);
     toast.success('Copied to clipboard');
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const exportMessage = () => {
+    const content = typeof message.content === 'string' ? message.content : JSON.stringify(message.content, null, 2);
+    const modelName = message.metadata?.model ? formatModelName(message.metadata.model) : 'AI';
+    const timestamp = message.timestamp ? new Date(message.timestamp).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+    
+    const markdown = `# ${modelName} Response\n\n**Date:** ${timestamp}\n\n---\n\n${content}`;
+    
+    const blob = new Blob([markdown], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `research-${timestamp}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast.success('Research exported');
   };
 
   const handleStartEdit = () => {
@@ -286,6 +306,14 @@ export const Message = ({
                     <RefreshCw className="w-3.5 h-3.5" />
                   </button>
                 )}
+                
+                <button
+                  onClick={exportMessage}
+                  className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-all duration-fast ease-gentle active:scale-press"
+                  title="Export"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                </button>
                 
                 {message.metadata?.error && onRetry && (
                   <button
