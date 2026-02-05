@@ -18,8 +18,8 @@ const RESEARCH_MODELS = {
     provider: 'openrouter',
   },
   gemini: {
-    displayName: 'Gemini 3 Pro',
-    apiModel: 'gemini-2.5-pro-preview-06-05',
+    displayName: 'Gemini 2.5 Pro',
+    apiModel: 'gemini-2.5-pro',
     provider: 'google',
   },
   gpt5: {
@@ -32,28 +32,24 @@ const RESEARCH_MODELS = {
 // Research prompt for Claude and Gemini - focuses on deep, comprehensive analysis
 const RESEARCH_PROMPT = `You are a deep research analyst conducting thorough, comprehensive research.
 
-Your task is to provide an EXTREMELY DETAILED and COMPREHENSIVE analysis of the user's question.
+Your task is to provide a DETAILED analysis of the user's question.
 
 CRITICAL REQUIREMENTS:
-- Your response MUST be at least 1500-2000 words
-- Cover ALL aspects of the topic exhaustively
+- Your response MUST be at least 500-800 words
+- Cover the most important aspects of the topic
 - Include multiple perspectives and viewpoints
-- Provide detailed examples, evidence, and supporting data
-- Explore edge cases, nuances, and lesser-known aspects
-- Include historical context where relevant
-- Discuss implications and future considerations
+- Provide examples, evidence, and supporting data
+- Explore key nuances and lesser-known aspects
 
 Structure your analysis with:
-1. Deep background and context
-2. Core analysis with multiple sub-sections
-3. Detailed examples and case studies
-4. Different perspectives and viewpoints
-5. Potential challenges, limitations, or controversies
-6. Practical applications and implications
+1. Background and context
+2. Core analysis with sub-sections
+3. Examples or case studies
+4. Different perspectives
+5. Practical implications
 
 Guidelines:
-- Be thorough and comprehensive - this is DEEP research
-- Focus on substance and depth, not superficial coverage
+- Be thorough but focused - prioritize depth on the most important aspects
 - Highlight uncertainties or areas of debate
 - Do NOT format as a final answer - you're providing research notes
 - Do NOT add conversational intros or conclusions
@@ -62,33 +58,32 @@ Guidelines:
 Your research will be synthesized with another model's findings to create the final comprehensive response.`;
 
 // Synthesis prompt for GPT-5 - merges research outputs into comprehensive answer
-const SYNTHESIS_PROMPT = `You are synthesizing research from multiple AI analysts into a single, high-quality, COMPREHENSIVE answer.
+const SYNTHESIS_PROMPT = `You are synthesizing research from multiple AI analysts into a single, high-quality, well-structured answer.
 
-You will receive extensive research from two sources. Your job is to create a DETAILED, THOROUGH response.
+You will receive research from two sources. Your job is to create a CLEAR, THOROUGH response.
 
 CRITICAL REQUIREMENTS:
-- Your final response MUST be at least 2000 words
-- Merge ALL insights from both sources - do not leave anything out
-- Create a comprehensive, well-structured document
-- Include all examples, data, and evidence from the research
-- Maintain depth while ensuring clarity and readability
+- Your final response MUST be approximately 1000 words (800-1200 word range)
+- Merge the best insights from both sources
+- Create a well-structured, readable document
+- Include key examples and evidence from the research
+- Maintain depth while being concise
 
 REQUIRED OUTPUT STRUCTURE:
-1. **Introduction** - Set the context and scope (150-200 words)
-2. **Main Content** - Multiple detailed sections with subheadings covering all aspects (1400-1600 words minimum)
+1. **Introduction** - Set the context and scope (80-120 words)
+2. **Main Content** - Key sections with headings covering the most important aspects (600-800 words)
    - Use clear headings (##) and subheadings (###)
-   - Include all examples and evidence from research
-   - Cover different perspectives and viewpoints
-3. **Key Considerations** - Important caveats, challenges, or nuances (200-300 words)
-4. **Conclusion** - Synthesize key takeaways (150-200 words)
-5. **## Summary** - 5-7 concise bullet points capturing the main insights
-6. **## Sources** - If factual claims benefit from references, add clickable markdown links: [Source Title](URL)
+   - Include the best examples and evidence from research
+   - Cover different perspectives
+3. **Conclusion** - Synthesize key takeaways (80-120 words)
+4. **## Summary** - 4-6 concise bullet points capturing the main insights
+5. **## Sources** - If factual claims benefit from references, add clickable markdown links: [Source Title](URL)
 
 IMPORTANT:
 - Do NOT mention that you're synthesizing from multiple sources
 - Present the answer as a direct, authoritative response to the user
 - Make all source URLs clickable using markdown link syntax
-- Ensure the response is comprehensive and leaves no aspect unexplored`;
+- Keep it around 1000 words - be comprehensive but not bloated`;
 
 // Sanitize conversation history
 const sanitizeHistory = (history: Message[]): Message[] => {
@@ -259,7 +254,7 @@ serve(async (req) => {
       successfulResearch.push(`### Research from Claude Opus 4.5:\n${claudeResult.content}`);
     }
     if (geminiResult.success && geminiResult.content) {
-      successfulResearch.push(`### Research from Gemini 3 Pro:\n${geminiResult.content}`);
+      successfulResearch.push(`### Research from Gemini 2.5 Pro:\n${geminiResult.content}`);
     }
 
     if (successfulResearch.length === 0) {
@@ -311,7 +306,7 @@ Now synthesize the above research into a single, comprehensive answer.`;
         content: synthesisResult.content,
         model: 'Deep Research',
         synthesized: true,
-        modelsUsed: ['Claude Opus 4.5', 'Gemini 3 Pro', 'GPT-5'],
+        modelsUsed: ['Claude Opus 4.5', 'Gemini 2.5 Pro', 'GPT-5'],
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
