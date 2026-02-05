@@ -475,8 +475,9 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
               }
 
               // All messages use full width with consistent padding
+              // First message gets extra top margin to clear the model rail
               return (
-                <div key={message.id} className="w-full px-4 sm:px-6 lg:px-8">
+                <div key={message.id} className={`w-full px-4 sm:px-6 lg:px-8 ${index === 0 ? 'mt-28' : ''}`}>
                   <Message 
                     message={message} 
                     onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')}
