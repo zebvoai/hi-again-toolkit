@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Sparkles } from 'lucide-react';
 
 interface DeepResearchInlineLoaderProps {
@@ -5,10 +6,50 @@ interface DeepResearchInlineLoaderProps {
   elapsedTime?: number;
 }
 
+const researchingMessages = [
+  'Thinking',
+  'Searching sources',
+  'Thinking deeper',
+  'Reading articles',
+  'Analyzing data',
+  'Cross-referencing',
+  'Gathering insights',
+  'Exploring context',
+  'Thinking more',
+  'Verifying facts',
+];
+
+const synthesizingMessages = [
+  'Synthesizing',
+  'Connecting ideas',
+  'Building response',
+  'Refining answer',
+  'Polishing output',
+];
+
 export const DeepResearchInlineLoader = ({ 
   status = 'researching',
   elapsedTime = 0,
 }: DeepResearchInlineLoaderProps) => {
+  const [messageIndex, setMessageIndex] = useState(0);
+  
+  const messages = status === 'synthesizing' ? synthesizingMessages : researchingMessages;
+  
+  useEffect(() => {
+    if (status === 'complete') return;
+    
+    const interval = setInterval(() => {
+      setMessageIndex((prev) => (prev + 1) % messages.length);
+    }, 2500);
+    
+    return () => clearInterval(interval);
+  }, [status, messages.length]);
+  
+  // Reset index when status changes
+  useEffect(() => {
+    setMessageIndex(0);
+  }, [status]);
+  
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -16,14 +57,8 @@ export const DeepResearchInlineLoader = ({
   };
   
   const getMessage = () => {
-    switch (status) {
-      case 'researching':
-        return 'Researching';
-      case 'synthesizing':
-        return 'Synthesizing';
-      default:
-        return 'Complete';
-    }
+    if (status === 'complete') return 'Complete';
+    return messages[messageIndex];
   };
 
   return (
