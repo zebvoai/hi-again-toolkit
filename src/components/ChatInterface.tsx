@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Square, Menu, Share, Pencil, Trash2 } from 'lucide-react';
+import { Square, Menu, Share, Pencil, Trash2, MoreHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
 import { useChat } from '@/features/chat/hooks/useChat';
 import { useModeStore } from '@/features/modes/store/modeStore';
@@ -26,6 +26,12 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useModels } from '@/features/chat/hooks/useModels';
 import { useConversations } from '@/features/chat/hooks/useConversations';
@@ -543,67 +549,38 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
             <div className="flex items-center gap-2 mb-3">
               <ModeDropdown />
               
-              {/* Chat Actions - Only when conversation exists */}
+              {/* Chat Actions Dropdown - Only when conversation exists */}
               {currentConversationId && (
-                <div className="flex items-center gap-1 ml-auto">
-                  <TooltipProvider delayDuration={300}>
-                    {/* Rename */}
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleRename}
-                          className="h-8 px-2.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/80 transition-all"
-                        >
-                          <Pencil className="w-3.5 h-3.5 mr-1.5" />
-                          <span className="text-xs font-medium">Rename</span>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="text-xs">
-                        Rename conversation
-                      </TooltipContent>
-                    </Tooltip>
-
-                    {/* Share */}
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleShare}
-                          className="h-8 px-2.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/80 transition-all"
-                        >
-                          <Share className="w-3.5 h-3.5 mr-1.5" />
-                          <span className="text-xs font-medium">Share</span>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="text-xs">
-                        Copy share link
-                      </TooltipContent>
-                    </Tooltip>
-
-                    {/* Delete */}
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleDelete}
-                          className="h-8 px-2.5 rounded-lg text-destructive/70 hover:text-destructive hover:bg-destructive/10 transition-all"
-                        >
-                          <Trash2 className="w-3.5 h-3.5 mr-1.5" />
-                          <span className="text-xs font-medium">Delete</span>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="text-xs">
-                        Delete conversation
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                <div className="ml-auto">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/80 transition-all"
+                      >
+                        <MoreHorizontal className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-40 bg-popover border border-border shadow-lg z-50">
+                      <DropdownMenuItem onClick={handleRename} className="gap-2 cursor-pointer">
+                        <Pencil className="w-3.5 h-3.5" />
+                        <span>Rename</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleShare} className="gap-2 cursor-pointer">
+                        <Share className="w-3.5 h-3.5" />
+                        <span>Share</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={handleDelete} 
+                        className="gap-2 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Delete</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               )}
             </div>
