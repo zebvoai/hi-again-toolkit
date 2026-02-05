@@ -18,7 +18,7 @@ const getProviderColor = (model: string): string => {
 };
 
 export const TextResponseSkeleton = ({ models }: TextResponseSkeletonProps) => {
-  // Single model skeleton
+  // Single model skeleton - fixed height to prevent layout shift
   if (models.length === 1) {
     const model = models[0];
     return (
@@ -37,12 +37,15 @@ export const TextResponseSkeleton = ({ models }: TextResponseSkeletonProps) => {
               </span>
             </div>
             
-            {/* Content skeleton */}
-            <div className="rounded-2xl rounded-bl-md bg-card border border-border/30 px-4 py-3 space-y-2.5">
+            {/* Content skeleton - fixed min-height to match typical response */}
+            <div className="rounded-2xl rounded-bl-md bg-card border border-border/30 px-4 py-3 space-y-2.5 min-h-[180px]">
               <Skeleton className="h-3.5 w-[90%]" />
               <Skeleton className="h-3.5 w-[75%]" />
               <Skeleton className="h-3.5 w-[85%]" />
               <Skeleton className="h-3.5 w-[60%]" />
+              <Skeleton className="h-3.5 w-[80%]" />
+              <Skeleton className="h-3.5 w-[70%]" />
+              <Skeleton className="h-3.5 w-[55%]" />
             </div>
           </div>
         </div>
@@ -77,7 +80,7 @@ export const TextResponseSkeleton = ({ models }: TextResponseSkeletonProps) => {
               <div
                 key={model}
                 className="w-[300px] sm:w-[340px] lg:w-[380px] flex-shrink-0 flex flex-col bg-card rounded-xl border border-border/40 shadow-sm overflow-hidden"
-                style={{ minHeight: '200px', maxHeight: '400px' }}
+                style={{ height: '320px' }}
               >
                 {/* Card Header */}
                 <div className="flex-shrink-0 h-11 px-3 border-b border-border/20 bg-muted/20 flex items-center gap-2.5">
@@ -90,14 +93,17 @@ export const TextResponseSkeleton = ({ models }: TextResponseSkeletonProps) => {
                   </span>
                 </div>
 
-                {/* Skeleton content */}
-                <div className="flex-1 p-3 space-y-2.5">
+                {/* Skeleton content - fills available space */}
+                <div className="flex-1 p-3 space-y-2.5 overflow-hidden">
                   <Skeleton className="h-3.5 w-[95%]" />
                   <Skeleton className="h-3.5 w-[80%]" />
                   <Skeleton className="h-3.5 w-[88%]" />
                   <Skeleton className="h-3.5 w-[70%]" />
                   <Skeleton className="h-3.5 w-[85%]" />
                   <Skeleton className="h-3.5 w-[65%]" />
+                  <Skeleton className="h-3.5 w-[92%]" />
+                  <Skeleton className="h-3.5 w-[75%]" />
+                  <Skeleton className="h-3.5 w-[60%]" />
                 </div>
 
                 {/* Card Footer */}
