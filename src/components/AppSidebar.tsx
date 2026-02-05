@@ -256,7 +256,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar 
-      className={`hidden md:flex border-r border-border/20 canvas-glass flex-col h-screen transition-all duration-300 ease-out ${
+      className={`hidden md:flex border-r border-border/20 canvas-glass flex-col h-screen transition-[width] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
         isCollapsed ? 'w-[60px]' : 'w-[280px]'
       }`} 
       collapsible="icon"
