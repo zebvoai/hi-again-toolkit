@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 
 interface ModelRailProps {
@@ -76,9 +76,9 @@ const getModelStyle = (model: string): { bg: string; text: string; accent: strin
 };
 
 export function ModelRail({ models, selectedModels, onToggle, onSelectAll, onClearAll, sidebarWidth }: ModelRailProps) {
+  const railRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const allSelected = models.length > 0 && selectedModels.length === models.length;
-  const noneSelected = selectedModels.length === 0;
 
   // Smooth horizontal scroll with mouse wheel
   useEffect(() => {
@@ -96,8 +96,33 @@ export function ModelRail({ models, selectedModels, onToggle, onSelectAll, onCle
     return () => el.removeEventListener('wheel', handleWheel);
   }, []);
 
+  // Expose the *actual* rail height as a CSS variable so the message list can offset correctly
+  useLayoutEffect(() => {
+    const el = railRef.current;
+    if (!el) return;
+
+    const setOffset = () => {
+      const height = Math.ceil(el.getBoundingClientRect().height);
+      document.documentElement.style.setProperty('--model-rail-offset', `${height}px`);
+    };
+
+    setOffset();
+
+    const ro = new ResizeObserver(() => setOffset());
+    ro.observe(el);
+
+    window.addEventListener('resize', setOffset);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', setOffset);
+      document.documentElement.style.setProperty('--model-rail-offset', '0px');
+    };
+  }, [sidebarWidth, models.length]);
+
   return (
     <div 
+      ref={railRef}
       className="fixed top-0 right-0 bg-background/80 backdrop-blur-sm border-b border-border/30 z-10"
       style={{ left: sidebarWidth + 8 + 48 }}
     >
@@ -176,3 +201,4 @@ export function ModelRail({ models, selectedModels, onToggle, onSelectAll, onCle
     </div>
   );
 }
+
