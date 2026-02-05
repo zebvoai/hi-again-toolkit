@@ -58,12 +58,10 @@ export const DeepResearchInlineLoader = ({
                 <span className="animate-pulse">...</span>
               </span>
               
-              {/* Timer */}
-              {elapsedTime > 0 && (
-                <span className="text-[11px] text-muted-foreground/50 font-mono tabular-nums ml-auto">
-                  {formatTime(elapsedTime)}
-                </span>
-              )}
+              {/* Timer - always visible */}
+              <span className="text-[11px] text-muted-foreground/50 font-mono tabular-nums ml-auto">
+                {formatTime(elapsedTime)}
+              </span>
             </div>
           </div>
         </div>
