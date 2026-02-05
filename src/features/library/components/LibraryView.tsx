@@ -25,12 +25,9 @@ export function LibraryView({ onClose }: LibraryViewProps) {
   const { images, isLoading, deleteImage } = useUserImages();
   const [selectedImage, setSelectedImage] = useState<UserImage | null>(null);
   const [imageToDelete, setImageToDelete] = useState<UserImage | null>(null);
-  const [filter, setFilter] = useState<'all' | 'uploaded' | 'generated'>('all');
+  const [filter, setFilter] = useState<'uploaded' | 'generated'>('generated');
 
-  const filteredImages = images.filter(img => {
-    if (filter === 'all') return true;
-    return img.source_type === filter;
-  });
+  const filteredImages = images.filter(img => img.source_type === filter);
 
   const handleDownload = async (image: UserImage) => {
     try {
@@ -87,14 +84,6 @@ export function LibraryView({ onClose }: LibraryViewProps) {
       {/* Filters */}
       <div className="flex items-center gap-2 px-6 py-3 border-b border-border/20">
         <Button
-          variant={filter === 'all' ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => setFilter('all')}
-          className="h-8 rounded-lg text-xs"
-        >
-          All
-        </Button>
-        <Button
           variant={filter === 'uploaded' ? 'default' : 'ghost'}
           size="sm"
           onClick={() => setFilter('uploaded')}
@@ -115,99 +104,99 @@ export function LibraryView({ onClose }: LibraryViewProps) {
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex min-h-0">
+      <div className="flex-1 flex min-h-0 overflow-hidden">
         {/* Gallery Grid */}
-        <ScrollArea className="flex-1 p-4">
-          {isLoading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-              {Array.from({ length: 12 }).map((_, i) => (
-                <Skeleton key={i} className="aspect-square rounded-xl" />
-              ))}
-            </div>
-          ) : filteredImages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full py-20 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-4">
-                <ImageIcon className="w-8 h-8 text-muted-foreground/50" />
+        <ScrollArea className="flex-1 h-full">
+          <div className="p-4">
+            {isLoading ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                {Array.from({ length: 12 }).map((_, i) => (
+                  <Skeleton key={i} className="aspect-square rounded-xl" />
+                ))}
               </div>
-              <h3 className="text-base font-medium text-foreground/80 mb-1">
-                No images yet
-              </h3>
-              <p className="text-sm text-muted-foreground max-w-[280px]">
-                {filter === 'all' 
-                  ? 'Upload images or generate them with AI to see them here'
-                  : filter === 'uploaded'
-                  ? 'Upload images in your chats to see them here'
-                  : 'Generate images with AI to see them here'}
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-              {filteredImages.map((image) => (
-                <div
-                  key={image.id}
-                  onClick={() => setSelectedImage(image)}
-                  className={cn(
-                    "group relative aspect-square rounded-xl overflow-hidden cursor-pointer",
-                    "bg-muted/50 border border-border/30",
-                    "hover:border-primary/50 hover:shadow-lg transition-all duration-200",
-                    selectedImage?.id === image.id && "ring-2 ring-primary ring-offset-2 ring-offset-background"
-                  )}
-                >
-                  <img
-                    src={image.thumbnail_url || image.url}
-                    alt={image.filename || 'Image'}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                  
-                  {/* Type Badge */}
-                  <div className="absolute top-2 left-2">
-                    <div className={cn(
-                      "flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-medium backdrop-blur-sm",
-                      image.source_type === 'generated'
-                        ? "bg-primary/80 text-primary-foreground"
-                        : "bg-black/50 text-white"
-                    )}>
-                      {image.source_type === 'generated' ? (
-                        <Sparkles className="w-3 h-3" />
-                      ) : (
-                        <Upload className="w-3 h-3" />
-                      )}
-                      <span className="hidden sm:inline">
-                        {image.source_type === 'generated' ? 'AI' : 'Upload'}
-                      </span>
+            ) : filteredImages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full py-20 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-4">
+                  <ImageIcon className="w-8 h-8 text-muted-foreground/50" />
+                </div>
+                <h3 className="text-base font-medium text-foreground/80 mb-1">
+                  No images yet
+                </h3>
+                <p className="text-sm text-muted-foreground max-w-[280px]">
+                  {filter === 'uploaded'
+                    ? 'Upload images in your chats to see them here'
+                    : 'Generate images with AI to see them here'}
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                {filteredImages.map((image) => (
+                  <div
+                    key={image.id}
+                    onClick={() => setSelectedImage(image)}
+                    className={cn(
+                      "group relative aspect-square rounded-xl overflow-hidden cursor-pointer",
+                      "bg-muted/50 border border-border/30",
+                      "hover:border-primary/50 hover:shadow-lg transition-all duration-200",
+                      selectedImage?.id === image.id && "ring-2 ring-primary ring-offset-2 ring-offset-background"
+                    )}
+                  >
+                    <img
+                      src={image.thumbnail_url || image.url}
+                      alt={image.filename || 'Image'}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                    
+                    {/* Type Badge */}
+                    <div className="absolute top-2 left-2">
+                      <div className={cn(
+                        "flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-medium backdrop-blur-sm",
+                        image.source_type === 'generated'
+                          ? "bg-primary/80 text-primary-foreground"
+                          : "bg-black/50 text-white"
+                      )}>
+                        {image.source_type === 'generated' ? (
+                          <Sparkles className="w-3 h-3" />
+                        ) : (
+                          <Upload className="w-3 h-3" />
+                        )}
+                        <span className="hidden sm:inline">
+                          {image.source_type === 'generated' ? 'AI' : 'Upload'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Hover Actions */}
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <Button
+                        size="icon"
+                        variant="secondary"
+                        className="w-9 h-9 rounded-full"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDownload(image);
+                        }}
+                      >
+                        <Download className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="destructive"
+                        className="w-9 h-9 rounded-full"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setImageToDelete(image);
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                     </div>
                   </div>
-
-                  {/* Hover Actions */}
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                    <Button
-                      size="icon"
-                      variant="secondary"
-                      className="w-9 h-9 rounded-full"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDownload(image);
-                      }}
-                    >
-                      <Download className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="destructive"
-                      className="w-9 h-9 rounded-full"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setImageToDelete(image);
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </ScrollArea>
 
         {/* Detail Panel */}
