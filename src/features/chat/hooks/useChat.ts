@@ -307,15 +307,24 @@ export const useChat = () => {
     try {
       // Handle Deep Research mode - uses fixed 3-model pipeline
       if (selectedMode === 'research') {
-        // Start elapsed time counter
+        // Clear any existing timer first
+        if (researchTimerRef.current) {
+          clearInterval(researchTimerRef.current);
+          researchTimerRef.current = null;
+        }
+        
+        // Reset and start elapsed time counter
         setResearchElapsedTime(0);
         setResearchStatus('researching');
         setResearchPhase('parallel');
         setResearchProgress(0);
         
+        // Use a small delay to ensure state is reset before starting timer
+        const startTime = Date.now();
         researchTimerRef.current = window.setInterval(() => {
-          setResearchElapsedTime(prev => prev + 1);
-        }, 1000);
+          const elapsed = Math.floor((Date.now() - startTime) / 1000);
+          setResearchElapsedTime(elapsed);
+        }, 100); // Update more frequently for smoother display
         
         try {
           // Use the new deep research pipeline (Claude + Gemini -> GPT-5 synthesis)

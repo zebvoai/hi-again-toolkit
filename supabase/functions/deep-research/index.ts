@@ -19,8 +19,8 @@ const RESEARCH_MODELS = {
   },
   gemini: {
     displayName: 'Gemini 3 Pro',
-    apiModel: 'google/gemini-3-pro-preview',
-    provider: 'lovable',
+    apiModel: 'gemini-2.5-pro-preview-06-05',
+    provider: 'google',
   },
   gpt5: {
     displayName: 'GPT-5',
@@ -29,47 +29,66 @@ const RESEARCH_MODELS = {
   },
 };
 
-// Research prompt for Claude and Gemini - focuses on deep analysis
-const RESEARCH_PROMPT = `You are a deep research analyst. Your task is to thoroughly analyze the user's question.
+// Research prompt for Claude and Gemini - focuses on deep, comprehensive analysis
+const RESEARCH_PROMPT = `You are a deep research analyst conducting thorough, comprehensive research.
 
-Focus on:
-- Accuracy and factual correctness
-- Edge cases and nuances
-- Unique insights and perspectives
-- Supporting evidence and reasoning
+Your task is to provide an EXTREMELY DETAILED and COMPREHENSIVE analysis of the user's question.
+
+CRITICAL REQUIREMENTS:
+- Your response MUST be at least 1500-2000 words
+- Cover ALL aspects of the topic exhaustively
+- Include multiple perspectives and viewpoints
+- Provide detailed examples, evidence, and supporting data
+- Explore edge cases, nuances, and lesser-known aspects
+- Include historical context where relevant
+- Discuss implications and future considerations
+
+Structure your analysis with:
+1. Deep background and context
+2. Core analysis with multiple sub-sections
+3. Detailed examples and case studies
+4. Different perspectives and viewpoints
+5. Potential challenges, limitations, or controversies
+6. Practical applications and implications
 
 Guidelines:
-- Be thorough and comprehensive
-- Focus on substance, not filler
+- Be thorough and comprehensive - this is DEEP research
+- Focus on substance and depth, not superficial coverage
 - Highlight uncertainties or areas of debate
 - Do NOT format as a final answer - you're providing research notes
 - Do NOT add conversational intros or conclusions
-- Just provide your analysis directly
+- Just provide your detailed analysis directly
 
-Your research will be synthesized with another model's findings.`;
+Your research will be synthesized with another model's findings to create the final comprehensive response.`;
 
-// Synthesis prompt for GPT-5 - merges research outputs
-const SYNTHESIS_PROMPT = `You are synthesizing research from multiple AI analysts into a single, high-quality answer.
+// Synthesis prompt for GPT-5 - merges research outputs into comprehensive answer
+const SYNTHESIS_PROMPT = `You are synthesizing research from multiple AI analysts into a single, high-quality, COMPREHENSIVE answer.
 
-You will receive research from two sources. Your job is to:
-1. Merge their insights into a unified, coherent response
-2. Resolve any contradictions thoughtfully
-3. Remove redundancy while preserving unique insights
-4. Maintain a natural, conversational tone (not academic or robotic)
-5. Structure the answer clearly with appropriate formatting
+You will receive extensive research from two sources. Your job is to create a DETAILED, THOROUGH response.
 
-REQUIRED OUTPUT FORMAT:
-1. Main answer with clear structure and headings where helpful
-2. At the very end, add a "## Summary" section with 3-5 concise bullet points
-3. If the answer includes factual claims, statistics, or external knowledge that would benefit from references, add a "## Sources" section
-   - Format each source as a clickable markdown link: [Source Title](https://example.com/article)
-   - Only include sources when genuinely helpful and relevant
-   - Do NOT add sources for opinion-based or exploratory queries
+CRITICAL REQUIREMENTS:
+- Your final response MUST be at least 2000 words
+- Merge ALL insights from both sources - do not leave anything out
+- Create a comprehensive, well-structured document
+- Include all examples, data, and evidence from the research
+- Maintain depth while ensuring clarity and readability
+
+REQUIRED OUTPUT STRUCTURE:
+1. **Introduction** - Set the context and scope (150-200 words)
+2. **Main Content** - Multiple detailed sections with subheadings covering all aspects (1400-1600 words minimum)
+   - Use clear headings (##) and subheadings (###)
+   - Include all examples and evidence from research
+   - Cover different perspectives and viewpoints
+3. **Key Considerations** - Important caveats, challenges, or nuances (200-300 words)
+4. **Conclusion** - Synthesize key takeaways (150-200 words)
+5. **## Summary** - 5-7 concise bullet points capturing the main insights
+6. **## Sources** - If factual claims benefit from references, add clickable markdown links: [Source Title](URL)
 
 IMPORTANT:
 - Do NOT mention that you're synthesizing from multiple sources
-- Present the answer as a direct response to the user
-- Make all source URLs clickable using markdown link syntax`;
+- Present the answer as a direct, authoritative response to the user
+- Make all source URLs clickable using markdown link syntax
+- Ensure the response is comprehensive and leaves no aspect unexplored`;
 
 // Sanitize conversation history
 const sanitizeHistory = (history: Message[]): Message[] => {
@@ -96,22 +115,56 @@ async function callModel(
     let headers: Record<string, string> = { 'Content-Type': 'application/json' };
     let body: Record<string, unknown> = {};
 
-    if (modelConfig.provider === 'lovable') {
-      apiKey = Deno.env.get('LOVABLE_API_KEY') || '';
-      if (!apiKey) throw new Error('LOVABLE_API_KEY not configured');
+    if (modelConfig.provider === 'google') {
+      apiKey = Deno.env.get('GOOGLE_API_KEY') || '';
+      if (!apiKey) throw new Error('GOOGLE_API_KEY not configured');
       
-      apiUrl = 'https://ai.gateway.lovable.dev/v1/chat/completions';
-      headers['Authorization'] = `Bearer ${apiKey}`;
+      // Use Google's Generative Language API directly
+      apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelConfig.apiModel}:generateContent?key=${apiKey}`;
+      headers = { 'Content-Type': 'application/json' };
       
       body = {
-        model: modelConfig.apiModel,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...history.map(m => ({ role: m.role, content: m.content })),
-          { role: 'user', content: userMessage },
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: `${systemPrompt}\n\n${userMessage}` }]
+          }
         ],
-        max_tokens: 8000,
+        generationConfig: {
+          maxOutputTokens: 16000,
+          temperature: 0.7,
+        }
       };
+      
+      // For Google, we need different response parsing
+      console.log(`[Deep Research] Calling ${modelConfig.displayName} (${modelConfig.apiModel}) via Google API...`);
+      
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`[Deep Research] ${modelConfig.displayName} error:`, response.status, errorText);
+        
+        if (response.status === 429) {
+          return { content: '', success: false, error: 'Rate limit exceeded. Please try again.' };
+        }
+        if (response.status === 402) {
+          return { content: '', success: false, error: 'Insufficient credits. Please add more credits.' };
+        }
+        
+        return { content: '', success: false, error: `Model error: ${response.status}` };
+      }
+
+      const data = await response.json();
+      const content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      
+      console.log(`[Deep Research] ${modelConfig.displayName} response: ${content.substring(0, 100)}...`);
+      
+      return { content, success: true };
     } else if (modelConfig.provider === 'openrouter') {
       apiKey = Deno.env.get('OPENROUTER_API_KEY') || '';
       if (!apiKey) throw new Error('OPENROUTER_API_KEY not configured');
@@ -128,7 +181,7 @@ async function callModel(
           ...history.map(m => ({ role: m.role, content: m.content })),
           { role: 'user', content: userMessage },
         ],
-        max_tokens: 8000,
+        max_tokens: 16000,
       };
     } else {
       throw new Error(`Unsupported provider: ${modelConfig.provider}`);
