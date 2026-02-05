@@ -82,7 +82,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
     const currentContent = content[currentModel] || '';
 
     return (
-      <div className="w-full px-4 sm:px-6 appear-smooth">
+      <div className="w-full px-4 sm:px-6 appear-smooth mt-16">
         {/* Header with toggle */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
@@ -185,7 +185,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
 
   // Compare view - horizontal scroll with equal height cards
   return (
-    <div className="w-full appear-smooth">
+    <div className="w-full appear-smooth mt-16">
       {/* Header */}
       <div className="flex items-center justify-between mb-3 px-4 sm:px-6">
         <div className="flex items-center gap-3">
