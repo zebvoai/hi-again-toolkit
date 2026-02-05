@@ -42,7 +42,7 @@ export const ModeDropdown = () => {
   
   return (
     <>
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1 sm:gap-1.5">
         {modes.map((mode) => {
           const Icon = mode.icon;
           const isSelected = mode.id === selectedMode;
@@ -53,7 +53,7 @@ export const ModeDropdown = () => {
               key={mode.id}
               onClick={() => handleModeChange(mode.id)}
               className={cn(
-                "flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200",
+                "flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-200",
                 "hover:bg-accent/80 active:scale-[0.98]",
                 isSelected 
                   ? "bg-card border-2 border-primary shadow-sm" 
@@ -61,12 +61,12 @@ export const ModeDropdown = () => {
               )}
             >
               <div className={cn(
-                "w-5 h-5 rounded-lg flex items-center justify-center transition-all",
+                "w-4 h-4 sm:w-5 sm:h-5 rounded-lg flex items-center justify-center transition-all",
                 isSelected 
                   ? "bg-primary text-primary-foreground" 
                   : "bg-muted-foreground/20 text-muted-foreground"
               )}>
-                <Icon className="w-3 h-3" />
+                <Icon className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
               </div>
               <span className={cn(
                 "transition-colors",

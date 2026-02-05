@@ -197,8 +197,8 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
   return (
     <div className="w-full appear-smooth mt-16">
       {/* Header */}
-      <div className="flex items-center justify-between mb-3 px-4 sm:px-6">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between mb-2 sm:mb-3 px-3 sm:px-6">
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* View Toggle */}
           <div className="inline-flex items-center p-0.5 bg-muted/40 rounded-lg border border-border/30">
             <button 
@@ -216,8 +216,8 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
               Compare
             </button>
           </div>
-          <span className="text-xs text-muted-foreground">
-            Comparing {models.length} models
+          <span className="text-[11px] sm:text-xs text-muted-foreground">
+            {models.length} models
           </span>
         </div>
         
@@ -236,7 +236,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
         <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
         
         <div className="overflow-x-auto scrollbar-hide scroll-smooth pb-2">
-          <div className="flex gap-3 px-4 sm:px-6" style={{ minWidth: 'min-content' }}>
+          <div className="flex gap-2.5 sm:gap-3 px-3 sm:px-6" style={{ minWidth: 'min-content' }}>
             {models.map((model, idx) => {
               const response = content[model] || '';
               const isGenerating = !response || response.trim() === '';
@@ -244,8 +244,8 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
               return (
                 <div
                   key={model}
-                  className="w-[300px] sm:w-[340px] lg:w-[380px] flex-shrink-0 flex flex-col bg-card rounded-xl border border-border/40 shadow-sm overflow-hidden hover:shadow-md hover:border-border/60 hover:-translate-y-1 transition-all duration-normal ease-spring"
-                  style={{ minHeight: '200px', maxHeight: '400px' }}
+                  className="w-[260px] sm:w-[340px] lg:w-[380px] flex-shrink-0 flex flex-col bg-card rounded-xl border border-border/40 shadow-sm overflow-hidden hover:shadow-md hover:border-border/60 hover:-translate-y-1 transition-all duration-normal ease-spring"
+                  style={{ minHeight: '180px', maxHeight: '400px' }}
                 >
                   {/* Card Header - Fixed height with model indicator */}
                   <div className="flex-shrink-0 h-11 px-3 border-b border-border/20 bg-muted/20 flex items-center gap-2.5">
