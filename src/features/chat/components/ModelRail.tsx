@@ -107,8 +107,9 @@ export function ModelRail({ models, selectedModels, onToggle, onSelectAll, onCle
           <button
             onClick={allSelected ? onClearAll : onSelectAll}
             className={cn(
-              "ml-2 px-3 py-1.5 text-xs font-medium rounded-full transition-all duration-200",
-              "hover:scale-[1.02] active:scale-[0.98]",
+              "ml-2 px-3 py-1.5 text-xs font-medium rounded-full",
+              "transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]",
+              "hover:scale-[1.02] active:scale-[0.97]",
               allSelected
                 ? "bg-primary/10 text-primary border border-primary/20"
                 : "bg-muted text-muted-foreground hover:bg-muted/80 border border-transparent"
@@ -140,9 +141,10 @@ export function ModelRail({ models, selectedModels, onToggle, onSelectAll, onCle
                   key={model}
                   onClick={() => onToggle(model)}
                   className={cn(
-                    "group relative flex items-center gap-2 px-3 py-2 rounded-xl border transition-all duration-200",
+                    "group relative flex items-center gap-2 px-3 py-2 rounded-xl border",
                     "whitespace-nowrap text-sm font-medium flex-shrink-0",
-                    "hover:scale-[1.02] active:scale-[0.98]",
+                    "transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]",
+                    "hover:scale-[1.02] active:scale-[0.97]",
                     isSelected
                       ? cn(style.bg, style.text, style.accent, "shadow-sm")
                       : "bg-muted/30 text-muted-foreground/50 border-transparent opacity-50 hover:opacity-70"

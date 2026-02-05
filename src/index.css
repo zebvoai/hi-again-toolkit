@@ -55,9 +55,16 @@
   @apply text-blue-600 hover:text-blue-700 hover:underline;
 }
 
-/* Smooth scrolling */
+/* Smooth scrolling with optimized performance */
 html {
   scroll-behavior: smooth;
+}
+
+/* Optimized scroll containers */
+.overflow-y-auto,
+.overflow-x-auto {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Custom animations */
@@ -162,22 +169,22 @@ html {
 @keyframes message-in-left {
   0% {
     opacity: 0;
-    transform: translateX(-12px) translateY(8px) scale(0.96);
+    transform: translateX(-8px) translateY(4px);
   }
   100% {
     opacity: 1;
-    transform: translateX(0) translateY(0) scale(1);
+    transform: translateX(0) translateY(0);
   }
 }
 
 @keyframes message-in-right {
   0% {
     opacity: 0;
-    transform: translateX(12px) translateY(8px) scale(0.96);
+    transform: translateX(8px) translateY(4px);
   }
   100% {
     opacity: 1;
-    transform: translateX(0) translateY(0) scale(1);
+    transform: translateX(0) translateY(0);
   }
 }
 
@@ -186,11 +193,11 @@ html {
 }
 
 .animate-message-in-left {
-  animation: message-in-left 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation: message-in-left 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .animate-message-in-right {
-  animation: message-in-right 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation: message-in-right 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .animate-shimmer {
@@ -285,7 +292,13 @@ button, a, input, textarea, select,
 .interactive {
   transition-property: transform, background-color, border-color, color, box-shadow, opacity;
   transition-duration: var(--duration-normal);
-  transition-timing-function: var(--ease-default);
+  transition-timing-function: var(--ease-gentle);
+  will-change: transform;
+}
+
+/* Smooth transform origin for all scaled elements */
+*:active {
+  transition-duration: var(--duration-fast) !important;
 }
 
 /* Focus states - accessible and beautiful */
@@ -554,24 +567,25 @@ button, a, input, textarea, select,
 
 /* Smooth appearance */
 .appear-smooth {
-  animation: fade-in var(--duration-moderate) var(--ease-out-expo);
-}
-
-.appear-scale {
-  animation: scale-in var(--duration-normal) var(--ease-out-expo);
-}
-
-/* Stagger children animations */
-.stagger-children > * {
   animation: fade-in var(--duration-moderate) var(--ease-out-expo) both;
 }
 
+.appear-scale {
+  animation: scale-in var(--duration-normal) var(--ease-out-expo) both;
+}
+
+/* Stagger children animations - smoother with longer duration */
+.stagger-children > * {
+  animation: fade-in var(--duration-slow) var(--ease-gentle) both;
+}
+
 .stagger-children > *:nth-child(1) { animation-delay: 0ms; }
-.stagger-children > *:nth-child(2) { animation-delay: 50ms; }
-.stagger-children > *:nth-child(3) { animation-delay: 100ms; }
-.stagger-children > *:nth-child(4) { animation-delay: 150ms; }
-.stagger-children > *:nth-child(5) { animation-delay: 200ms; }
-.stagger-children > *:nth-child(6) { animation-delay: 250ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 40ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 80ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 120ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 160ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 200ms; }
+.stagger-children > *:nth-child(n+7) { animation-delay: 240ms; }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
