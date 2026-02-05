@@ -300,7 +300,7 @@ export const Message = ({
                 {onRegenerate && (
                   <button
                     onClick={onRegenerate}
-                    className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-all duration-fast ease-gentle active:scale-press hover:rotate-180 transition-transform duration-slow"
+                    className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-all duration-slow ease-gentle active:scale-press hover:rotate-180"
                     title="Regenerate"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
