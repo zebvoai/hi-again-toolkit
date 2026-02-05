@@ -136,7 +136,7 @@ const getModelMapping = (displayName: string): { apiModel: string, provider: str
     
     // Microsoft
     'Phi 4': { apiModel: 'microsoft/phi-4', provider: 'openrouter' },
-    'Phi 4 Reasoning': { apiModel: 'microsoft/phi-4-reasoning-plus', provider: 'openrouter' },
+    'Phi 4 Reasoning': { apiModel: 'microsoft/phi-4-reasoning-plus:free', provider: 'openrouter' },
     
     // NVIDIA
     'Nemotron 70B': { apiModel: 'nvidia/llama-3.1-nemotron-70b-instruct', provider: 'openrouter' },
