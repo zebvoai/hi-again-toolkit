@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Square, Menu, Share, Pencil, Trash2 } from 'lucide-react';
+import { Square, Menu, Share, Pencil, Trash2, MoreVertical, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 import { useChat } from '@/features/chat/hooks/useChat';
 import { useModeStore } from '@/features/modes/store/modeStore';
@@ -555,8 +555,72 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
         <div className="w-full px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
           <form onSubmit={handleSubmit} key={selectedMode} className="animate-scale-in">
             {/* Mode Dropdown */}
-            <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center justify-between gap-2 mb-3">
               <ModeDropdown />
+
+              <TooltipProvider delayDuration={400}>
+                <div className="flex items-center gap-1.5">
+                  {/* Feedback icon */}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setShowFeedbackDialog(true)}
+                        className="h-10 w-10 rounded-xl hover:bg-accent/80"
+                        aria-label="Feedback"
+                      >
+                        <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      <p>Feedback</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  {/* Conversation menu (3 dots) */}
+                  <DropdownMenu>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-10 w-10 rounded-xl hover:bg-accent/80"
+                            aria-label="Conversation options"
+                          >
+                            <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        <p>Options</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuItem onClick={handleRename} className="gap-2">
+                        <Pencil className="h-4 w-4 text-muted-foreground" />
+                        Rename
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleShare} className="gap-2">
+                        <Share className="h-4 w-4 text-muted-foreground" />
+                        Share
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setShowFeedbackDialog(true)} className="gap-2">
+                        <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                        Feedback
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleDelete} className="gap-2 text-destructive focus:text-destructive">
+                        <Trash2 className="h-4 w-4" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </TooltipProvider>
             </div>
 
             {/* File Attachments Preview */}
