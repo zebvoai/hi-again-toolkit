@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { Camera, Loader2, LogOut } from 'lucide-react';
+import { Camera, Loader2, LogOut, Shield } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 import {
   Dialog,
   DialogContent,
@@ -13,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useProfile } from '@/hooks/useProfile';
+import { Separator } from '@/components/ui/separator';
 
 interface AccountDialogProps {
   open: boolean;
@@ -22,6 +24,7 @@ interface AccountDialogProps {
 export function AccountDialog({ open, onOpenChange }: AccountDialogProps) {
   const { profile, isLoading, updateProfile, uploadAvatar } = useProfile();
   const { signOut } = useAuth();
+  const { isAdmin } = useIsAdmin();
   const [username, setUsername] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -155,6 +158,29 @@ export function AccountDialog({ open, onOpenChange }: AccountDialogProps) {
                 {profile?.email || 'No email'}
               </div>
             </div>
+
+            {/* Admin Panel - Only visible to admin */}
+            {isAdmin && (
+              <>
+                <Separator />
+                <div>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      // TODO: Navigate to admin panel
+                      console.log('Opening Admin Panel');
+                    }}
+                    className="w-full justify-start rounded-xl gap-2 border-primary/30 text-primary hover:bg-primary/10"
+                  >
+                    <Shield className="w-4 h-4" />
+                    Admin Panel
+                  </Button>
+                  <p className="text-xs text-muted-foreground mt-1.5 ml-1">
+                    Manage users, settings, and platform configuration
+                  </p>
+                </div>
+              </>
+            )}
 
             {/* Logout */}
             <div className="pt-2 border-t border-border/50">
