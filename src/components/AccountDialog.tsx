@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useProfile } from '@/hooks/useProfile';
 import { Separator } from '@/components/ui/separator';
+import { AdminPanel } from '@/features/admin/components/AdminPanel';
 
 interface AccountDialogProps {
   open: boolean;
@@ -29,6 +30,7 @@ export function AccountDialog({ open, onOpenChange }: AccountDialogProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Sync local state with profile
@@ -166,17 +168,14 @@ export function AccountDialog({ open, onOpenChange }: AccountDialogProps) {
                 <div>
                   <Button
                     variant="outline"
-                    onClick={() => {
-                      // TODO: Navigate to admin panel
-                      console.log('Opening Admin Panel');
-                    }}
+                    onClick={() => setShowAdminPanel(true)}
                     className="w-full justify-start rounded-xl gap-2 border-primary/30 text-primary hover:bg-primary/10"
                   >
                     <Shield className="w-4 h-4" />
                     Admin Panel
                   </Button>
                   <p className="text-xs text-muted-foreground mt-1.5 ml-1">
-                    Manage users, settings, and platform configuration
+                    View bug reports and feature suggestions
                   </p>
                 </div>
               </>
@@ -221,6 +220,13 @@ export function AccountDialog({ open, onOpenChange }: AccountDialogProps) {
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      {/* Admin Panel Dialog */}
+      <Dialog open={showAdminPanel} onOpenChange={setShowAdminPanel}>
+        <DialogContent className="max-w-5xl h-[85vh] p-0 overflow-hidden flex flex-col min-h-0">
+          <AdminPanel onClose={() => setShowAdminPanel(false)} />
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }
