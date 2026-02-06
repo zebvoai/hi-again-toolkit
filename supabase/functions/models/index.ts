@@ -48,15 +48,18 @@ serve(async (req) => {
   }
 
   try {
-    // Base models (direct API - flagship only)
+    // Base models - flagship only
     const baseModels = [
-      // OpenAI (direct API) - flagship only
-      'GPT-5',
+      // OpenAI via OpenRouter - fast model
+      'GPT-4.1 Nano',
       // Anthropic (direct API) - flagship only
       'Claude Opus 4.5',
       // Google (via Lovable AI Gateway) - flagship only
       'Gemini 3 Pro',
     ];
+    
+    // Add GPT-4.1 Nano to OpenRouter mapping
+    openRouterModelMap['GPT-4.1 Nano'] = 'openai/gpt-4.1-nano';
     
     // Build mapping of display name -> API ID for OpenRouter models
     const openRouterModelMap: Record<string, string> = {};

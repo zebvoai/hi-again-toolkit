@@ -67,12 +67,13 @@ const selectVisionModel = (selectedModels: string[]): string => {
 // Model mapping helper - supports OpenAI, Anthropic, Lovable (Gemini), and OpenRouter
 const getModelMapping = (displayName: string): { apiModel: string, provider: string } => {
   const modelMapping: Record<string, { apiModel: string, provider: string }> = {
-    // OpenAI Models (via OpenRouter)
+    // OpenAI Models (via OpenRouter) - Fast models first
+    'GPT-4.1 Nano': { apiModel: 'openai/gpt-4.1-nano', provider: 'openrouter' },
+    'GPT-4.1 Mini': { apiModel: 'openai/gpt-4.1-mini', provider: 'openrouter' },
+    'GPT-4.1': { apiModel: 'openai/gpt-4.1', provider: 'openrouter' },
     'GPT-5': { apiModel: 'openai/gpt-5', provider: 'openrouter' },
     'GPT-5 Mini': { apiModel: 'openai/gpt-5-mini', provider: 'openrouter' },
     'GPT-5 Nano': { apiModel: 'openai/gpt-5-nano', provider: 'openrouter' },
-    'GPT-4.1': { apiModel: 'openai/gpt-4.1', provider: 'openrouter' },
-    'GPT-4.1 Mini': { apiModel: 'openai/gpt-4.1-mini', provider: 'openrouter' },
     'O3': { apiModel: 'openai/o3', provider: 'openrouter' },
     'O4 Mini': { apiModel: 'openai/o4-mini', provider: 'openrouter' },
     
