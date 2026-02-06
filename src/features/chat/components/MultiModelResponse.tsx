@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Copy, Check, ChevronLeft, ChevronRight, Download, Columns2, LayoutList } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import type { MultiModelContent } from '@/types';
@@ -160,7 +161,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
               {/* Content */}
               <div className="bg-card rounded-xl border border-border/30 p-4 shadow-sm">
                 <div className="prose prose-sm max-w-none text-foreground text-[13px] leading-relaxed">
-                  <ReactMarkdown components={markdownComponents}>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
                     {currentContent}
                   </ReactMarkdown>
                 </div>
@@ -276,7 +277,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
                           <Skeleton className="h-3.5 w-[70%]" />
                         </div>
                       ) : (
-                        <ReactMarkdown components={markdownComponents}>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
                           {response}
                         </ReactMarkdown>
                       )}
