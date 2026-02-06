@@ -8,8 +8,8 @@ import { supabase } from '@/integrations/supabase/client';
 // Remove once unified auth (SSO / shared DB) is implemented.
 // =============================================================
 const ZEBVO_REPLICA_URLS = [
-  'https://monitor.zebvo.ai/functions/v1/replica-signup',
-  'https://canvas.zebvo.ai/functions/v1/replica-signup',
+  'https://onoajwcvzhwpnmpyhtkx.supabase.co/functions/v1/replica-signup', // monitor.zebvo.ai
+  'https://wmcvhgtuxbwfpgwsusvq.supabase.co/functions/v1/replica-signup', // canvas.zebvo.ai
 ];
 // NOTE: Canonical path is /internal/auth/replica-signup but Supabase
 // edge functions are served at /functions/v1/<name>. All three apps
