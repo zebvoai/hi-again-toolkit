@@ -2,6 +2,38 @@ import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+// =============================================================
+// TEMPORARY SYNC LOGIC — Cross-app user replication
+// After local signup, replicate credentials to other Zebvo apps.
+// Remove once unified auth (SSO / shared DB) is implemented.
+// =============================================================
+const ZEBVO_REPLICA_URLS = [
+  'https://monitor.zebvo.ai/functions/v1/replica-signup',
+  'https://canvas.zebvo.ai/functions/v1/replica-signup',
+];
+
+async function replicateSignupToOtherApps(email: string, password: string) {
+  try {
+    await Promise.allSettled(
+      ZEBVO_REPLICA_URLS.map((url) =>
+        fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-zebvo-internal': 'true',
+          },
+          body: JSON.stringify({ email, password }),
+        }).catch(() => {
+          // Silently ignore — never block main signup
+        })
+      )
+    );
+  } catch {
+    // Never throw — this is fire-and-forget
+  }
+}
+// ============= END TEMPORARY SYNC LOGIC =============
+
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -45,6 +77,12 @@ export const useAuth = () => {
         emailRedirectTo: redirectUrl
       }
     });
+
+    // TEMPORARY SYNC LOGIC — replicate signup to other Zebvo apps (fire-and-forget)
+    if (!error) {
+      replicateSignupToOtherApps(email, password);
+    }
+
     return { error };
   };
 
