@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Message as MessageType, MultiModelContent } from '@/types';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Copy, Check, RefreshCw, Pencil, X, Save, Download } from 'lucide-react';
@@ -209,6 +210,7 @@ export const Message = ({
             ) : (
               <div className="text-[15px] leading-[1.75] text-foreground/90">
                 <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
                   components={{
                     code({ inline, className, children, ...props }: any) {
                       const match = /language-(\w+)/.exec(className || '');
