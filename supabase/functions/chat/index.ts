@@ -2,12 +2,95 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 interface Message {
   role: string;
   content: string | any[];
+}
+
+// Keywords that indicate the user wants real-time/live data
+const LIVE_DATA_KEYWORDS = [
+  'today', 'current', 'latest', 'now', 'right now', 'this moment',
+  'weather', 'temperature', 'forecast',
+  'news', 'headlines', 'breaking',
+  'stock', 'price', 'market', 'trading',
+  'score', 'match', 'game', 'live score',
+  'exchange rate', 'currency',
+  'trending', 'viral',
+  'happening', 'recent', 'just happened',
+  '2024', '2025', '2026', 'this year', 'this month', 'this week',
+  'yesterday', 'last night', 'this morning',
+  'update', 'status', 'real-time', 'realtime'
+];
+
+// Check if a query needs live data
+const needsLiveData = (message: string): boolean => {
+  const lowerMessage = message.toLowerCase();
+  return LIVE_DATA_KEYWORDS.some(keyword => lowerMessage.includes(keyword));
+};
+
+// Fetch live context from Perplexity
+async function fetchLiveContext(query: string): Promise<string | null> {
+  const perplexityApiKey = Deno.env.get('PERPLEXITY_API_KEY');
+  
+  if (!perplexityApiKey) {
+    console.log('[Live Data] PERPLEXITY_API_KEY not configured, skipping live data fetch');
+    return null;
+  }
+  
+  try {
+    console.log('[Live Data] Fetching live context for query:', query);
+    
+    const response = await fetch('https://api.perplexity.ai/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${perplexityApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'sonar',
+        messages: [
+          { 
+            role: 'system', 
+            content: 'You are a search assistant. Provide factual, up-to-date information with specific data points (numbers, dates, names). Be concise but comprehensive. Include the current date/time context when relevant. Format as bullet points for easy reading.'
+          },
+          { role: 'user', content: query }
+        ],
+        search_recency_filter: 'day', // Get the most recent data
+        max_tokens: 1000
+      }),
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[Live Data] Perplexity API error:', response.status, errorText);
+      return null;
+    }
+    
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content;
+    const citations = data.citations || [];
+    
+    if (content) {
+      let liveContext = `\n\n=== LIVE WEB DATA (fetched just now) ===\n${content}`;
+      
+      if (citations.length > 0) {
+        liveContext += `\n\nSources:\n${citations.slice(0, 5).map((url: string, i: number) => `${i + 1}. ${url}`).join('\n')}`;
+      }
+      
+      liveContext += '\n=== END LIVE DATA ===\n\n';
+      
+      console.log('[Live Data] Successfully fetched live context');
+      return liveContext;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('[Live Data] Error fetching live context:', error);
+    return null;
+  }
 }
 
 // Vision-capable models that can analyze images
@@ -252,6 +335,16 @@ async function handleMultiModelRequest(
   const imageUrls = attachments.filter(isImageUrl);
   const hasImages = imageUrls.length > 0;
   
+  // Fetch live context if query needs real-time data
+  let liveContext = '';
+  if (needsLiveData(message)) {
+    const fetchedContext = await fetchLiveContext(message);
+    if (fetchedContext) {
+      liveContext = fetchedContext;
+      console.log('[Live Data] Injecting live context into prompts');
+    }
+  }
+  
   // If images are attached, filter to only vision-capable models
   let effectiveModels = models;
   if (hasImages) {
@@ -272,9 +365,12 @@ async function handleMultiModelRequest(
     const images = fileUrls.filter(isImageUrl);
     const otherFiles = fileUrls.filter(url => !isImageUrl(url));
     
+    // Prepend live context to the message if available
+    const enhancedText = liveContext ? `${liveContext}User question: ${text}` : text;
+    
     // For vision models with images, use multimodal format
     if (isVisionModel && images.length > 0) {
-      const content = createVisionContent(text, images);
+      const content = createVisionContent(enhancedText, images);
       
       // Append non-image files as text references
       for (const url of otherFiles) {
@@ -285,9 +381,9 @@ async function handleMultiModelRequest(
     }
     
     // For text-only or non-vision models, use simple string
-    if (fileUrls.length === 0) return text;
+    if (fileUrls.length === 0) return enhancedText;
     
-    let textContent = text;
+    let textContent = enhancedText;
     for (const url of otherFiles) {
       textContent += `\n\n[Attached file: ${url}]`;
     }
@@ -320,11 +416,16 @@ async function handleMultiModelRequest(
 `;
             
             // Use vision-specific system prompt if images are present
-            const baseSystemPrompt = hasImages && modelIsVisionCapable
+            let baseSystemPrompt = hasImages && modelIsVisionCapable
               ? getVisionSystemPrompt(imageUrls.length > 1)
               : mode === 'build' 
                 ? 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags. Provide comprehensive, detailed responses of at least 500 words. When presenting data in tables, ensure proper markdown table formatting with aligned columns and headers.'
                 : 'You are a helpful AI assistant. Provide comprehensive, detailed, and well-structured responses of at least 500 words. When presenting data in tables, always use proper markdown table formatting with aligned columns, clear headers, and consistent cell content. Never truncate or abbreviate table data.';
+            
+            // Add live data instruction if we have context
+            if (liveContext) {
+              baseSystemPrompt += '\n\nIMPORTANT: You have been provided with LIVE WEB DATA that was just fetched from the internet. Use this data to provide accurate, up-to-date responses. Always cite the sources when using this information.';
+            }
             
             const systemPrompt = zebvoIdentity + baseSystemPrompt;
             
@@ -542,6 +643,16 @@ serve(async (req) => {
     let model: string;
     let selectedProvider: string;
     
+    // Fetch live context if query needs real-time data
+    let liveContext = '';
+    if (needsLiveData(message)) {
+      const fetchedContext = await fetchLiveContext(message);
+      if (fetchedContext) {
+        liveContext = fetchedContext;
+        console.log('[Live Data] Injecting live context into single model prompt');
+      }
+    }
+    
     // If images are attached but no vision-capable model selected, auto-select one
     if (hasImages) {
       const effectiveModel = requestedModel && isVisionCapable(requestedModel) 
@@ -593,6 +704,11 @@ serve(async (req) => {
       baseSystemPrompt = 'You are a helpful AI assistant. Provide comprehensive, detailed, and well-structured responses of at least 500 words. When presenting data in tables, always use proper markdown table formatting with aligned columns, clear headers, and consistent cell content. Never truncate or abbreviate table data.';
     }
     
+    // Add live data instruction if we have context
+    if (liveContext) {
+      baseSystemPrompt += '\n\nIMPORTANT: You have been provided with LIVE WEB DATA that was just fetched from the internet. Use this data to provide accurate, up-to-date responses. Always cite the sources when using this information.';
+    }
+    
     const systemPrompt = zebvoIdentity + baseSystemPrompt;
     
     // Helper to create user message content with attachments for vision models
@@ -600,18 +716,21 @@ serve(async (req) => {
       const images = fileUrls.filter(isImageUrl);
       const otherFiles = fileUrls.filter(url => !isImageUrl(url));
       
+      // Prepend live context to the message if available
+      const enhancedText = liveContext ? `${liveContext}User question: ${text}` : text;
+      
       // For vision models with images, use multimodal format
       if (modelIsVisionCapable && images.length > 0) {
-        return createVisionContent(text, images);
+        return createVisionContent(enhancedText, images);
       }
       
       // For text-only, return simple string
       if (fileUrls.length === 0) {
-        return text;
+        return enhancedText;
       }
       
       // Append file references
-      let content = text;
+      let content = enhancedText;
       for (const url of otherFiles) {
         content += `\n\n[Attached file: ${url}]`;
       }
