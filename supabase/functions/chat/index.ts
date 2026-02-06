@@ -323,8 +323,8 @@ async function handleMultiModelRequest(
             const baseSystemPrompt = hasImages && modelIsVisionCapable
               ? getVisionSystemPrompt(imageUrls.length > 1)
               : mode === 'build' 
-                ? 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags. Keep responses under 150 words unless the user explicitly asks for more detail.'
-                : 'You are a helpful AI assistant. Keep your responses concise and under 150 words unless the user explicitly asks for more detail or a longer answer.';
+                ? 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags. Provide comprehensive, detailed responses of at least 500 words. When presenting data in tables, ensure proper markdown table formatting with aligned columns and headers.'
+                : 'You are a helpful AI assistant. Provide comprehensive, detailed, and well-structured responses of at least 500 words. When presenting data in tables, always use proper markdown table formatting with aligned columns, clear headers, and consistent cell content. Never truncate or abbreviate table data.';
             
             const systemPrompt = zebvoIdentity + baseSystemPrompt;
             
@@ -368,7 +368,7 @@ async function handleMultiModelRequest(
                   { role: 'user', content: createUserContent(message, attachments, modelIsVisionCapable) }
                 ];
                 
-                body = { model: apiModel, messages, stream: true, max_tokens: mode === 'build' ? 2048 : 1024 };
+                body = { model: apiModel, messages, stream: true, max_tokens: mode === 'build' ? 4096 : 3072 };
               } else {
                 throw new Error(`Unsupported provider: ${provider}`);
               }
@@ -588,9 +588,9 @@ serve(async (req) => {
     if (hasImages && modelIsVisionCapable) {
       baseSystemPrompt = getVisionSystemPrompt(imageUrls.length > 1);
     } else if (mode === 'build') {
-      baseSystemPrompt = 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags. Keep responses under 150 words unless the user explicitly asks for more detail.';
+      baseSystemPrompt = 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags. Provide comprehensive, detailed responses of at least 500 words. When presenting data in tables, ensure proper markdown table formatting with aligned columns and headers.';
     } else {
-      baseSystemPrompt = 'You are a helpful AI assistant. Keep your responses concise and under 150 words unless the user explicitly asks for more detail or a longer answer.';
+      baseSystemPrompt = 'You are a helpful AI assistant. Provide comprehensive, detailed, and well-structured responses of at least 500 words. When presenting data in tables, always use proper markdown table formatting with aligned columns, clear headers, and consistent cell content. Never truncate or abbreviate table data.';
     }
     
     const systemPrompt = zebvoIdentity + baseSystemPrompt;
@@ -670,7 +670,7 @@ serve(async (req) => {
         model,
         messages,
         stream,
-        max_tokens: mode === 'build' ? 2048 : 1024
+        max_tokens: mode === 'build' ? 4096 : 3072
       };
     } else {
       throw new Error(`Unsupported provider: ${selectedProvider}`);
