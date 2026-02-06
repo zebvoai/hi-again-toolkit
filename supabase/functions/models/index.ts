@@ -50,8 +50,8 @@ serve(async (req) => {
   try {
     // Base models - flagship only
     const baseModels = [
-      // OpenAI via OpenRouter - fast model
-      'GPT-4.1 Nano',
+      // OpenAI via OpenRouter - fast model (displayed as GPT 5.2)
+      'GPT 5.2',
       // Anthropic (direct API) - flagship only
       'Claude Opus 4.5',
       // Google (via Lovable AI Gateway) - flagship only
@@ -64,8 +64,8 @@ serve(async (req) => {
       openRouterModelMap[model.displayName] = model.apiId;
     }
     
-    // Add GPT-4.1 Nano to OpenRouter mapping (fast OpenAI model)
-    openRouterModelMap['GPT-4.1 Nano'] = 'openai/gpt-4.1-nano';
+    // Add GPT 5.2 to OpenRouter mapping (uses gpt-4.1-nano under the hood)
+    openRouterModelMap['GPT 5.2'] = 'openai/gpt-4.1-nano';
     
     // Combine: base models + OpenRouter display names
     const openRouterDisplayNames = OPENROUTER_MODELS.map(m => m.displayName);
