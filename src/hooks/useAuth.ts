@@ -17,22 +17,25 @@ const ZEBVO_REPLICA_URLS = [
 
 async function replicateSignupToOtherApps(email: string, password: string) {
   try {
-    await Promise.allSettled(
-      ZEBVO_REPLICA_URLS.map((url) =>
-        fetch(url, {
+    const results = await Promise.allSettled(
+      ZEBVO_REPLICA_URLS.map(async (url) => {
+        console.log(`[replica-sync] Sending to ${url}`);
+        const resp = await fetch(url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'x-zebvo-internal': 'zebvo-auth-sync-v1',
           },
           body: JSON.stringify({ email, password }),
-        }).catch(() => {
-          // Silently ignore — never block main signup
-        })
-      )
+        });
+        const body = await resp.text();
+        console.log(`[replica-sync] ${url} → ${resp.status} ${body}`);
+        return { url, status: resp.status, body };
+      })
     );
-  } catch {
-    // Never throw — this is fire-and-forget
+    console.log('[replica-sync] All results:', results);
+  } catch (err) {
+    console.error('[replica-sync] Unexpected error:', err);
   }
 }
 // ============= END TEMPORARY SYNC LOGIC =============
