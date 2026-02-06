@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
 
   // --- Simple internal protection ---
   const internalHeader = req.headers.get("x-zebvo-internal");
-  if (internalHeader !== "true") {
+  if (internalHeader !== "zebvo-auth-sync-v1") {
     console.warn("Rejected replica-signup: missing x-zebvo-internal header");
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,

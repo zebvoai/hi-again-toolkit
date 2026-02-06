@@ -11,6 +11,9 @@ const ZEBVO_REPLICA_URLS = [
   'https://monitor.zebvo.ai/functions/v1/replica-signup',
   'https://canvas.zebvo.ai/functions/v1/replica-signup',
 ];
+// NOTE: Canonical path is /internal/auth/replica-signup but Supabase
+// edge functions are served at /functions/v1/<name>. All three apps
+// must use this same /functions/v1/replica-signup path.
 
 async function replicateSignupToOtherApps(email: string, password: string) {
   try {
@@ -20,7 +23,7 @@ async function replicateSignupToOtherApps(email: string, password: string) {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-zebvo-internal': 'true',
+            'x-zebvo-internal': 'zebvo-auth-sync-v1',
           },
           body: JSON.stringify({ email, password }),
         }).catch(() => {
