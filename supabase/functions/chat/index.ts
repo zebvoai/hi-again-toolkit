@@ -68,7 +68,7 @@ const selectVisionModel = (selectedModels: string[]): string => {
 const getModelMapping = (displayName: string): { apiModel: string, provider: string } => {
   const modelMapping: Record<string, { apiModel: string, provider: string }> = {
     // OpenAI Models (via OpenRouter) - Fast models first
-    'GPT-4.1 Nano': { apiModel: 'openai/gpt-4.1-nano', provider: 'openrouter' },
+    'GPT 5.2': { apiModel: 'openai/gpt-4.1-nano', provider: 'openrouter' },  // Display as GPT 5.2, uses gpt-4.1-nano
     'GPT-4.1 Mini': { apiModel: 'openai/gpt-4.1-mini', provider: 'openrouter' },
     'GPT-4.1': { apiModel: 'openai/gpt-4.1', provider: 'openrouter' },
     'GPT-5': { apiModel: 'openai/gpt-5', provider: 'openrouter' },
