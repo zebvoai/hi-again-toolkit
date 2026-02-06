@@ -1,8 +1,8 @@
 import type { Message } from '@/types';
 
 export interface DeepResearchProgress {
-  status: 'researching' | 'synthesizing' | 'complete';
-  phase: 'parallel' | 'synthesis' | 'done';
+  status: 'researching' | 'analyzing' | 'writing' | 'complete';
+  phase: 'search' | 'analysis' | 'writing' | 'done';
   progress: number;
 }
 
@@ -11,6 +11,8 @@ export interface DeepResearchResponse {
   model: string;
   synthesized: boolean;
   modelsUsed?: string[];
+  wordCount?: number;
+  citationsCount?: number;
   error?: string;
 }
 
@@ -34,9 +36,8 @@ const sanitizeHistoryForAPI = (history: Message[]): { role: string; content: str
 
 export const deepResearchApi = {
   /**
-   * Execute deep research with the fixed 3-model pipeline:
-   * 1. Parallel research: Claude Opus 4.5 + Gemini 3 Pro
-   * 2. Synthesis: GPT-5
+   * Execute deep research using Perplexity sonar-deep-research
+   * Returns comprehensive 6000+ word research with citations
    */
   async executeResearch(
     prompt: string,
@@ -47,11 +48,11 @@ export const deepResearchApi = {
     // Start with researching phase
     onProgress?.({
       status: 'researching',
-      phase: 'parallel',
+      phase: 'search',
       progress: 0,
     });
 
-    // Simulate progress during the API call
+    // Simulate progress during the API call (Perplexity deep research can take 30-60+ seconds)
     let progressValue = 0;
     const progressInterval = setInterval(() => {
       if (signal?.aborted) {
@@ -59,20 +60,27 @@ export const deepResearchApi = {
         return;
       }
       
-      progressValue += 0.02;
+      progressValue += 0.008; // Slower progress for longer research
       
-      if (progressValue < 0.6) {
-        // First 60%: researching phase
+      if (progressValue < 0.35) {
+        // First 35%: searching phase
         onProgress?.({
           status: 'researching',
-          phase: 'parallel',
+          phase: 'search',
+          progress: progressValue,
+        });
+      } else if (progressValue < 0.65) {
+        // 35-65%: analyzing phase
+        onProgress?.({
+          status: 'analyzing',
+          phase: 'analysis',
           progress: progressValue,
         });
       } else if (progressValue < 0.95) {
-        // 60-95%: synthesis phase
+        // 65-95%: writing phase
         onProgress?.({
-          status: 'synthesizing',
-          phase: 'synthesis',
+          status: 'writing',
+          phase: 'writing',
           progress: progressValue,
         });
       }
@@ -105,7 +113,7 @@ export const deepResearchApi = {
           throw new Error('Rate limit exceeded. Please wait a moment and try again.');
         }
         if (response.status === 402) {
-          throw new Error('Insufficient credits. Please add more credits to continue.');
+          throw new Error('Insufficient credits. Please check your Perplexity account.');
         }
         
         throw new Error(errorData.error || `Research failed with status ${response.status}`);
@@ -122,9 +130,11 @@ export const deepResearchApi = {
 
       return {
         content: data.content,
-        model: data.model || 'Deep Research',
+        model: data.model || 'Perplexity Deep Research',
         synthesized: data.synthesized ?? true,
-        modelsUsed: data.modelsUsed,
+        modelsUsed: data.modelsUsed || ['sonar-deep-research'],
+        wordCount: data.wordCount,
+        citationsCount: data.citationsCount,
       };
     } catch (error) {
       clearInterval(progressInterval);

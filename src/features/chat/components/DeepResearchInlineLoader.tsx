@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Sparkles } from 'lucide-react';
 
 interface DeepResearchInlineLoaderProps {
-  status?: 'researching' | 'synthesizing' | 'complete';
+  status?: 'researching' | 'analyzing' | 'writing' | 'complete';
   elapsedTime?: number;
 }
 
@@ -11,18 +11,22 @@ const researchingMessages = [
   'Searching sources',
   'Thinking deeper',
   'Reading articles',
-  'Analyzing data',
-  'Cross-referencing',
   'Gathering insights',
-  'Exploring context',
-  'Thinking more',
-  'Verifying facts',
+  'Cross-referencing',
 ];
 
-const synthesizingMessages = [
-  'Synthesizing',
+const analyzingMessages = [
+  'Analyzing data',
+  'Exploring context',
+  'Verifying facts',
   'Connecting ideas',
+  'Processing information',
+];
+
+const writingMessages = [
+  'Writing research',
   'Building response',
+  'Structuring content',
   'Refining answer',
   'Polishing output',
 ];
@@ -33,7 +37,11 @@ export const DeepResearchInlineLoader = ({
 }: DeepResearchInlineLoaderProps) => {
   const [messageIndex, setMessageIndex] = useState(0);
   
-  const messages = status === 'synthesizing' ? synthesizingMessages : researchingMessages;
+  const messages = status === 'writing' 
+    ? writingMessages 
+    : status === 'analyzing' 
+      ? analyzingMessages 
+      : researchingMessages;
   
   useEffect(() => {
     if (status === 'complete') return;
