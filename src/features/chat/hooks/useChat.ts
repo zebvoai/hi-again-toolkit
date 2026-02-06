@@ -67,7 +67,7 @@ export const useChat = () => {
   
   // Research-specific state
   const [researchStatus, setResearchStatus] = useState<DeepResearchProgress['status']>('researching');
-  const [researchPhase, setResearchPhase] = useState<DeepResearchProgress['phase']>('parallel');
+  const [researchPhase, setResearchPhase] = useState<DeepResearchProgress['phase']>('search');
   const [researchProgress, setResearchProgress] = useState(0);
   const [researchElapsedTime, setResearchElapsedTime] = useState(0);
   const researchTimerRef = useRef<number | null>(null);
@@ -316,7 +316,7 @@ export const useChat = () => {
         // Reset and start elapsed time counter
         setResearchElapsedTime(0);
         setResearchStatus('researching');
-        setResearchPhase('parallel');
+        setResearchPhase('search');
         setResearchProgress(0);
         
         // Use a small delay to ensure state is reset before starting timer

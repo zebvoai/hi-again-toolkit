@@ -4,13 +4,14 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Copy, Check, RefreshCw, Pencil, X, Save, Download } from 'lucide-react';
+import { Copy, Check, RefreshCw, Pencil, X, Save, Download, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { MultiModelResponse } from './MultiModelResponse';
 import { MultiModelImageResponse } from './MultiModelImageResponse';
 import { formatModelName } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
+import { exportResearchAsPDF } from '@/lib/pdfExport';
 
 interface MessageProps {
   message: MessageType;
@@ -70,6 +71,27 @@ export const Message = ({
     
     toast.success('Research exported');
   };
+
+  const exportAsPDF = () => {
+    const content = typeof message.content === 'string' ? message.content : JSON.stringify(message.content, null, 2);
+    const modelName = message.metadata?.model ? formatModelName(message.metadata.model) : 'AI';
+    const wordCount = content.split(/\s+/).filter((w: string) => w.length > 0).length;
+    
+    exportResearchAsPDF(content, {
+      title: 'Deep Research Report',
+      model: modelName,
+      wordCount,
+    });
+    
+    toast.success('PDF downloaded');
+  };
+
+  // Check if this is a research response (long content from research model)
+  const isResearchResponse = !isUser && 
+    message.metadata?.isResearch || 
+    (message.metadata?.model?.toLowerCase().includes('research') && 
+     typeof message.content === 'string' && 
+     message.content.length > 5000);
 
   const handleStartEdit = () => {
     if (typeof message.content === 'string') {
@@ -322,10 +344,20 @@ export const Message = ({
                 <button
                   onClick={exportMessage}
                   className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-all duration-fast ease-gentle active:scale-press"
-                  title="Export"
+                  title="Export Markdown"
                 >
                   <Download className="w-3.5 h-3.5" />
                 </button>
+                
+                {isResearchResponse && (
+                  <button
+                    onClick={exportAsPDF}
+                    className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-all duration-fast ease-gentle active:scale-press"
+                    title="Download PDF"
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                  </button>
+                )}
                 
                 {message.metadata?.error && onRetry && (
                   <button
