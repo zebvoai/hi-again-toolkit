@@ -78,8 +78,8 @@ export const Message = ({
     const wordCount = content.split(/\s+/).filter((w: string) => w.length > 0).length;
     
     exportResearchAsPDF(content, {
-      title: 'Deep Research Report',
-      model: modelName,
+      title: 'Zebvo Deep Research Report',
+      model: 'Zebvo Deep Research',
       wordCount,
     });
     

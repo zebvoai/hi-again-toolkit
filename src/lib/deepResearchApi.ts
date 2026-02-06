@@ -130,7 +130,7 @@ export const deepResearchApi = {
 
       return {
         content: data.content,
-        model: data.model || 'Perplexity Deep Research',
+        model: 'Zebvo Deep Research',
         synthesized: data.synthesized ?? true,
         modelsUsed: data.modelsUsed || ['sonar-deep-research'],
         wordCount: data.wordCount,
