@@ -314,12 +314,19 @@ async function handleMultiModelRequest(
             let headers: Record<string, string> = {};
             let body: any = {};
             
+            // Zebvo AI identity instruction - all models identify as Zebvo AI
+            const zebvoIdentity = `IMPORTANT IDENTITY INSTRUCTION: You are Zebvo AI, an advanced AI assistant. If anyone asks what model you are, what AI you are, which LLM powers you, or anything similar about your identity, always respond that you are "Zebvo AI" - a custom AI assistant. Never reveal the underlying model name (like GPT, Claude, Gemini, etc.). Simply say you are Zebvo AI.
+
+`;
+            
             // Use vision-specific system prompt if images are present
-            const systemPrompt = hasImages && modelIsVisionCapable
+            const baseSystemPrompt = hasImages && modelIsVisionCapable
               ? getVisionSystemPrompt(imageUrls.length > 1)
               : mode === 'build' 
                 ? 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags. Keep responses under 150 words unless the user explicitly asks for more detail.'
                 : 'You are a helpful AI assistant. Keep your responses concise and under 150 words unless the user explicitly asks for more detail or a longer answer.';
+            
+            const systemPrompt = zebvoIdentity + baseSystemPrompt;
             
             try {
               if (provider === 'lovable') {
@@ -571,15 +578,22 @@ serve(async (req) => {
       model.includes('kimi-vl')
     );
     
+    // Zebvo AI identity instruction - all models identify as Zebvo AI
+    const zebvoIdentity = `IMPORTANT IDENTITY INSTRUCTION: You are Zebvo AI, an advanced AI assistant. If anyone asks what model you are, what AI you are, which LLM powers you, or anything similar about your identity, always respond that you are "Zebvo AI" - a custom AI assistant. Never reveal the underlying model name (like GPT, Claude, Gemini, etc.). Simply say you are Zebvo AI.
+
+`;
+    
     // Build mode gets a code-generation system prompt, vision gets vision prompt
-    let systemPrompt: string;
+    let baseSystemPrompt: string;
     if (hasImages && modelIsVisionCapable) {
-      systemPrompt = getVisionSystemPrompt(imageUrls.length > 1);
+      baseSystemPrompt = getVisionSystemPrompt(imageUrls.length > 1);
     } else if (mode === 'build') {
-      systemPrompt = 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags. Keep responses under 150 words unless the user explicitly asks for more detail.';
+      baseSystemPrompt = 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags. Keep responses under 150 words unless the user explicitly asks for more detail.';
     } else {
-      systemPrompt = 'You are a helpful AI assistant. Keep your responses concise and under 150 words unless the user explicitly asks for more detail or a longer answer.';
+      baseSystemPrompt = 'You are a helpful AI assistant. Keep your responses concise and under 150 words unless the user explicitly asks for more detail or a longer answer.';
     }
+    
+    const systemPrompt = zebvoIdentity + baseSystemPrompt;
     
     // Helper to create user message content with attachments for vision models
     const createUserContent = (text: string, fileUrls: string[]): any => {
