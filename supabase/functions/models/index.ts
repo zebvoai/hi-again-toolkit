@@ -35,9 +35,6 @@ const OPENROUTER_MODELS: { displayName: string; apiId: string }[] = [
   // Kimi / Moonshot - flagship only
   { displayName: 'Kimi K2', apiId: 'moonshotai/kimi-k2' },
   
-  // Microsoft - flagship only
-  { displayName: 'Phi 4 Reasoning', apiId: 'microsoft/phi-4-reasoning-plus' },
-  
   // NVIDIA
   { displayName: 'Nemotron 70B', apiId: 'nvidia/llama-3.1-nemotron-70b-instruct' },
   
