@@ -58,14 +58,14 @@ serve(async (req) => {
       'Gemini 3 Pro',
     ];
     
-    // Add GPT-4.1 Nano to OpenRouter mapping
-    openRouterModelMap['GPT-4.1 Nano'] = 'openai/gpt-4.1-nano';
-    
     // Build mapping of display name -> API ID for OpenRouter models
     const openRouterModelMap: Record<string, string> = {};
     for (const model of OPENROUTER_MODELS) {
       openRouterModelMap[model.displayName] = model.apiId;
     }
+    
+    // Add GPT-4.1 Nano to OpenRouter mapping (fast OpenAI model)
+    openRouterModelMap['GPT-4.1 Nano'] = 'openai/gpt-4.1-nano';
     
     // Combine: base models + OpenRouter display names
     const openRouterDisplayNames = OPENROUTER_MODELS.map(m => m.displayName);
