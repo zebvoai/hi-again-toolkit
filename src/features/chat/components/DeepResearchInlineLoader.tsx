@@ -81,7 +81,7 @@ export const DeepResearchInlineLoader = ({
           {/* Model name */}
           <div className="flex items-center gap-1.5 mb-1 ml-0.5">
             <span className="text-[10px] font-medium text-indigo-500/80">
-              Deep Research
+              Zebvo Deep Research
             </span>
           </div>
           

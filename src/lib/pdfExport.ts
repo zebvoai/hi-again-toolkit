@@ -37,7 +37,7 @@ export const exportResearchAsPDF = (
   content: string,
   options: ExportOptions = {}
 ): void => {
-  const { title = 'Deep Research Report', model = 'Perplexity Deep Research', wordCount } = options;
+  const { title = 'Deep Research Report', model = 'Zebvo Deep Research', wordCount } = options;
   
   const doc = new jsPDF({
     orientation: 'portrait',
