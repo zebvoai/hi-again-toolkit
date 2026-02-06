@@ -13,26 +13,11 @@ import { ImageResponseSkeleton } from '@/features/chat/components/ImageResponseS
 import { ModelRail } from '@/features/chat/components/ModelRail';
 import { ModeDropdown } from '@/features/modes/components/ModeDropdown';
 import { FeedbackDialog } from '@/components/FeedbackDialog';
-
 import { RenameDialog } from '@/components/RenameDialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useModels } from '@/features/chat/hooks/useModels';
 import { useConversations } from '@/features/chat/hooks/useConversations';
@@ -41,7 +26,6 @@ import { useRealtimeMessages } from '@/features/chat/hooks/useRealtimeMessages';
 import { triggerHapticFeedback, triggerConfetti, updatePageTitle, smoothScrollTo } from '@/lib/microInteractions';
 import { exportAsMarkdown, exportAsJSON } from '@/lib/exportConversation';
 import { useSidebar } from '@/components/ui/sidebar';
-
 export function ChatInterface() {
   const [input, setInput] = useState('');
   const [isTemporaryMode, setIsTemporaryMode] = useState(false);
@@ -59,7 +43,7 @@ export function ChatInterface() {
     researchStatus,
     researchPhase,
     researchProgress,
-    researchElapsedTime,
+    researchElapsedTime
   } = useChat();
   const {
     selectedMode
@@ -70,24 +54,24 @@ export function ChatInterface() {
     clearMessages,
     setCurrentConversationId,
     currentConversationId,
-    loadingConversationId,
+    loadingConversationId
   } = useChatStore();
-  
+
   // Conversation actions
-  const { 
-    conversations, 
-    deleteConversation, 
-    renameConversation, 
-    shareConversation 
+  const {
+    conversations,
+    deleteConversation,
+    renameConversation,
+    shareConversation
   } = useConversations();
   const [showRenameDialog, setShowRenameDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
-  
+
   // Get current conversation title
   const currentConversation = conversations.find(c => c.id === currentConversationId);
   const currentTitle = currentConversation?.title || 'Untitled';
-  
+
   // Only show loading if current conversation is the one loading
   const isCurrentConversationLoading = isLoading && loadingConversationId === currentConversationId;
   const {
@@ -100,55 +84,51 @@ export function ChatInterface() {
 
   // Enable realtime sync for messages across tabs
   useRealtimeMessages();
-  
+
   // Sidebar control
-  const { setOpenMobile, isMobile, state } = useSidebar();
+  const {
+    setOpenMobile,
+    isMobile,
+    state
+  } = useSidebar();
   const isSidebarExpanded = state === 'expanded';
-  
+
   // Conversation action handlers
   const handleRename = () => {
     setShowRenameDialog(true);
   };
-  
   const handleRenameSubmit = (newName: string) => {
     if (currentConversationId) {
       renameConversation(currentConversationId, newName);
     }
     setShowRenameDialog(false);
   };
-  
   const handleShare = () => {
     if (currentConversationId) {
       shareConversation(currentConversationId);
     }
   };
-  
   const handleDuplicate = () => {
     toast.info('Duplicate feature coming soon');
   };
-  
   const handleExportMarkdown = () => {
     if (messages.length > 0) {
       exportAsMarkdown(messages, currentTitle);
       toast.success('Exported as Markdown');
     }
   };
-  
   const handleExportJSON = () => {
     if (messages.length > 0) {
       exportAsJSON(messages, currentTitle);
       toast.success('Exported as JSON');
     }
   };
-  
   const handleArchive = () => {
     toast.info('Archive feature coming soon');
   };
-  
   const handleDelete = () => {
     setShowDeleteDialog(true);
   };
-  
   const confirmDelete = () => {
     if (currentConversationId) {
       deleteConversation(currentConversationId);
@@ -167,14 +147,11 @@ export function ChatInterface() {
 
   // Trigger confetti on first AI response
   useEffect(() => {
-    const hasNewAssistantMessage = messages.length > prevMessagesLengthRef.current && 
-      messages[messages.length - 1]?.role === 'assistant';
-    
+    const hasNewAssistantMessage = messages.length > prevMessagesLengthRef.current && messages[messages.length - 1]?.role === 'assistant';
     if (hasNewAssistantMessage && isFirstResponse && !isCurrentConversationLoading) {
       triggerConfetti();
       setIsFirstResponse(false);
     }
-    
     prevMessagesLengthRef.current = messages.length;
   }, [messages, isFirstResponse, isCurrentConversationLoading]);
 
@@ -198,60 +175,55 @@ export function ChatInterface() {
     onCopyLastResponse: () => {
       const lastAssistant = [...messages].reverse().find(m => m.role === 'assistant');
       if (lastAssistant) {
-        const content = typeof lastAssistant.content === 'string' 
-          ? lastAssistant.content 
-          : JSON.stringify(lastAssistant.content);
+        const content = typeof lastAssistant.content === 'string' ? lastAssistant.content : JSON.stringify(lastAssistant.content);
         navigator.clipboard.writeText(content);
         toast.success('Copied to clipboard');
       }
     },
     onCancelGeneration: cancelGeneration,
-    isLoading,
+    isLoading
   });
 
   // Track previous mode to detect mode switches
   const prevModeRef = useRef(selectedMode);
-  
+
   // Handle model selection when mode changes
   useEffect(() => {
     if (!models) return;
-    
     const prevMode = prevModeRef.current;
     prevModeRef.current = selectedMode;
-    
+
     // When switching TO text mode, select all text models
     if (selectedMode === 'text' && models.text && models.text.length > 0) {
       // Check if current selection has valid text models
       const validTextModels = selectedModels.filter(model => models.text!.includes(model));
-      
+
       // If no valid text models are selected (e.g., coming from another mode), select all
       if (validTextModels.length === 0) {
         setSelectedModels([...models.text]);
       }
       return;
     }
-    
+
     // For image mode, auto-select all image models by default
-if (selectedMode === 'image' && models.image && models.image.length > 0) {
+    if (selectedMode === 'image' && models.image && models.image.length > 0) {
       const validImageModels = selectedModels.filter(model => models.image!.includes(model));
-      
+
       // If no valid image models are selected, select all
       if (validImageModels.length === 0) {
         setSelectedModels([...models.image]);
       }
       return;
     }
-    
+
     // For non-text/non-image modes, set the appropriate default
     const defaultModels: Record<string, string> = {
       video: 'Gemini Video 2.0',
       build: 'GPT-5',
       research: 'Sonar Deep Research'
     };
-
     const availableModelsForMode = models[selectedMode] || [];
     const validModels = selectedModels.filter(model => availableModelsForMode.includes(model));
-
     if (validModels.length === 0) {
       const defaultModel = defaultModels[selectedMode] || 'GPT-5';
       setSelectedModels([defaultModel]);
@@ -264,23 +236,19 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
   useEffect(() => {
     smoothScrollTo(messagesEndRef.current);
   }, [messages, isLoading]);
-
   const handleSendMessage = () => {
     // Haptic feedback on mobile
     triggerHapticFeedback('light');
-    
     sendMessage(input, attachedFiles);
     setInput('');
     setAttachedFiles([]);
   };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim() && !isLoading && selectedModels.length > 0) {
       handleSendMessage();
     }
   };
-
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
@@ -291,15 +259,12 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
       fileInputRef.current.value = '';
     }
   };
-
   const handleRemoveFile = (index: number) => {
     setAttachedFiles(prev => prev.filter((_, i) => i !== index));
   };
-
   const triggerFileInput = () => {
     fileInputRef.current?.click();
   };
-
   const getPlaceholder = () => {
     const basePlaceholder = (() => {
       switch (selectedMode) {
@@ -329,7 +294,6 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
       setSelectedModels([...selectedModels, model]);
     }
   };
-
   const handleSelectAllModels = () => {
     if (selectedMode === 'text' && models?.text) {
       setSelectedModels([...models.text]);
@@ -337,7 +301,6 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
       setSelectedModels([...models.image]);
     }
   };
-
   const handleClearAllModels = () => {
     // Keep at least one model selected
     if (selectedMode === 'text' && models?.text && models.text.length > 0) {
@@ -346,57 +309,23 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
       setSelectedModels([models.image[0]]);
     }
   };
-
-  return (
-    <div className="flex flex-col h-full relative bg-background overflow-hidden">
+  return <div className="flex flex-col h-full relative bg-background overflow-hidden">
       {/* Model Rail - Fixed at top (text and image modes) */}
-      {selectedMode === 'text' && models?.text && (
-        <ModelRail
-          models={models.text}
-          selectedModels={selectedModels}
-          onToggle={handleToggleModel}
-          onSelectAll={handleSelectAllModels}
-          onClearAll={handleClearAllModels}
-          sidebarWidth={isMobile ? 0 : isSidebarExpanded ? 256 : 60}
-        />
-      )}
+      {selectedMode === 'text' && models?.text && <ModelRail models={models.text} selectedModels={selectedModels} onToggle={handleToggleModel} onSelectAll={handleSelectAllModels} onClearAll={handleClearAllModels} sidebarWidth={isMobile ? 0 : isSidebarExpanded ? 256 : 60} />}
       
-      {selectedMode === 'image' && models?.image && (
-        <ModelRail
-          models={models.image}
-          selectedModels={selectedModels}
-          onToggle={handleToggleModel}
-          onSelectAll={handleSelectAllModels}
-          onClearAll={handleClearAllModels}
-          sidebarWidth={isMobile ? 0 : isSidebarExpanded ? 256 : 60}
-        />
-      )}
+      {selectedMode === 'image' && models?.image && <ModelRail models={models.image} selectedModels={selectedModels} onToggle={handleToggleModel} onSelectAll={handleSelectAllModels} onClearAll={handleClearAllModels} sidebarWidth={isMobile ? 0 : isSidebarExpanded ? 256 : 60} />}
 
 
       {/* Mobile Menu Button - Only visible on mobile */}
-      {isMobile && (
-        <button 
-          onClick={() => setOpenMobile(true)}
-          className="fixed top-3 left-3 z-50 w-10 h-10 flex items-center justify-center rounded-full bg-card/80 backdrop-blur-sm border border-border/30 shadow-sm md:hidden"
-          aria-label="Open menu"
-        >
+      {isMobile && <button onClick={() => setOpenMobile(true)} className="fixed top-3 left-3 z-50 w-10 h-10 flex items-center justify-center rounded-full bg-card/80 backdrop-blur-sm border border-border/30 shadow-sm md:hidden" aria-label="Open menu">
           <Menu className="w-5 h-5 text-foreground" />
-        </button>
-      )}
+        </button>}
 
       {/* Feedback Dialog */}
-      <FeedbackDialog
-        open={showFeedbackDialog}
-        onOpenChange={setShowFeedbackDialog}
-      />
+      <FeedbackDialog open={showFeedbackDialog} onOpenChange={setShowFeedbackDialog} />
 
       {/* Rename Dialog */}
-      <RenameDialog
-        open={showRenameDialog}
-        onOpenChange={setShowRenameDialog}
-        currentTitle={currentTitle}
-        onRename={handleRenameSubmit}
-      />
+      <RenameDialog open={showRenameDialog} onOpenChange={setShowRenameDialog} currentTitle={currentTitle} onRename={handleRenameSubmit} />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
@@ -409,10 +338,7 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2">
             <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={confirmDelete}
-              className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
+            <AlertDialogAction onClick={confirmDelete} className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -420,113 +346,82 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
       </AlertDialog>
       
       {/* Temporary Mode Banner */}
-      {isTemporaryMode && (
-        <div className="px-4 pt-4">
+      {isTemporaryMode && <div className="px-4 pt-4">
           <Alert className="glass-panel border-primary/20 max-w-4xl mx-auto">
             <AlertDescription className="text-primary text-sm flex items-center gap-2">
               🕶️ <span className="font-medium">Temporary Chat Mode</span> — This conversation is private and won't be saved
             </AlertDescription>
           </Alert>
-        </div>
-      )}
+        </div>}
 
       {/* Messages Area - with bottom padding for fixed input and top padding for fixed model rail */}
-      {isLoadingConversation ? (
-        <div className={`flex-1 overflow-y-auto overflow-x-hidden pb-[240px] py-6 ${(selectedMode === 'text' && models?.text) || (selectedMode === 'image' && models?.image) ? 'pt-[max(7rem,calc(var(--model-rail-offset,0px)+12px))] scroll-pt-[max(7rem,calc(var(--model-rail-offset,0px)+12px))]' : ''}`}>
+      {isLoadingConversation ? <div className={`flex-1 overflow-y-auto overflow-x-hidden pb-[240px] py-6 ${selectedMode === 'text' && models?.text || selectedMode === 'image' && models?.image ? 'pt-[max(7rem,calc(var(--model-rail-offset,0px)+12px))] scroll-pt-[max(7rem,calc(var(--model-rail-offset,0px)+12px))]' : ''}`}>
           <div className="w-full px-4 sm:px-6 lg:px-8">
             <MessageSkeleton />
           </div>
-        </div>
-      ) : messages.length > 0 ? (
-        <div className={`flex-1 overflow-y-auto overflow-x-hidden pb-[240px] py-4 sm:py-6 ${(selectedMode === 'text' && models?.text) || (selectedMode === 'image' && models?.image) ? 'pt-[max(7rem,calc(var(--model-rail-offset,0px)+12px))] scroll-pt-[max(7rem,calc(var(--model-rail-offset,0px)+12px))]' : ''}`}>
+        </div> : messages.length > 0 ? <div className={`flex-1 overflow-y-auto overflow-x-hidden pb-[240px] py-4 sm:py-6 ${selectedMode === 'text' && models?.text || selectedMode === 'image' && models?.image ? 'pt-[max(7rem,calc(var(--model-rail-offset,0px)+12px))] scroll-pt-[max(7rem,calc(var(--model-rail-offset,0px)+12px))]' : ''}`}>
           <div className="space-y-4 stagger-children">
             {messages.map((message, index) => {
-              const isMultiModelResponse = message.role === 'assistant' && 
-                typeof message.content === 'object' && 
-                !Array.isArray(message.content) && 
-                message.metadata?.models?.length > 1;
-              const isUserMessage = message.role === 'user';
-              const nextMessage = messages[index + 1];
-              const nextIsMultiModel = nextMessage?.role === 'assistant' && 
-                typeof nextMessage.content === 'object' && 
-                !Array.isArray(nextMessage.content) && 
-                nextMessage.metadata?.models?.length > 1;
-              const prevMessage = messages[index - 1];
-              const prevIsMultiModel = prevMessage?.role === 'assistant' &&
-                typeof prevMessage.content === 'object' &&
-                !Array.isArray(prevMessage.content) &&
-                prevMessage.metadata?.models?.length > 1;
+          const isMultiModelResponse = message.role === 'assistant' && typeof message.content === 'object' && !Array.isArray(message.content) && message.metadata?.models?.length > 1;
+          const isUserMessage = message.role === 'user';
+          const nextMessage = messages[index + 1];
+          const nextIsMultiModel = nextMessage?.role === 'assistant' && typeof nextMessage.content === 'object' && !Array.isArray(nextMessage.content) && nextMessage.metadata?.models?.length > 1;
+          const prevMessage = messages[index - 1];
+          const prevIsMultiModel = prevMessage?.role === 'assistant' && typeof prevMessage.content === 'object' && !Array.isArray(prevMessage.content) && prevMessage.metadata?.models?.length > 1;
 
-              // If this is a multi-model response that is identical to the previous one,
-              // skip rendering to avoid duplicate rows in the UI
-              if (isMultiModelResponse && prevIsMultiModel) {
-                const normalizeModels = (modelsArray: string[] = []) =>
-                  [...modelsArray].sort().join('|');
-
-                const normalizeContent = (content: unknown) => {
-                  if (!content || typeof content !== 'object' || Array.isArray(content)) {
-                    return JSON.stringify(content);
-                  }
-                  const entries = Object.entries(content as Record<string, unknown>)
-                    .sort(([a], [b]) => a.localeCompare(b));
-                  return JSON.stringify(entries);
-                };
-
-                const currModels = message.metadata?.models || [];
-                const prevModels = prevMessage!.metadata?.models || [];
-                const sameModels = normalizeModels(currModels) === normalizeModels(prevModels);
-                const sameContent = normalizeContent(message.content) === normalizeContent(prevMessage!.content);
-
-                if (sameModels && sameContent) {
-                  return null;
-                }
+          // If this is a multi-model response that is identical to the previous one,
+          // skip rendering to avoid duplicate rows in the UI
+          if (isMultiModelResponse && prevIsMultiModel) {
+            const normalizeModels = (modelsArray: string[] = []) => [...modelsArray].sort().join('|');
+            const normalizeContent = (content: unknown) => {
+              if (!content || typeof content !== 'object' || Array.isArray(content)) {
+                return JSON.stringify(content);
               }
+              const entries = Object.entries(content as Record<string, unknown>).sort(([a], [b]) => a.localeCompare(b));
+              return JSON.stringify(entries);
+            };
+            const currModels = message.metadata?.models || [];
+            const prevModels = prevMessage!.metadata?.models || [];
+            const sameModels = normalizeModels(currModels) === normalizeModels(prevModels);
+            const sameContent = normalizeContent(message.content) === normalizeContent(prevMessage!.content);
+            if (sameModels && sameContent) {
+              return null;
+            }
+          }
 
-              // All messages use full width with consistent padding
-              // First message gets extra top margin to clear the model rail
-              return (
-                <div key={message.id} className={`w-full px-4 sm:px-6 lg:px-8 ${index === 0 ? 'mt-16' : ''}`}>
-                  <Message 
-                    message={message} 
-                    onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')}
-                    onRegenerate={() => regenerateResponse(message.id)}
-                    onEdit={(newContent) => editAndRegenerate(message.id, newContent)}
-                  />
-                </div>
-              );
-            })}
+          // All messages use full width with consistent padding
+          // First message gets extra top margin to clear the model rail
+          return <div key={message.id} className={`w-full px-4 sm:px-6 lg:px-8 ${index === 0 ? 'mt-16' : ''}`}>
+                  <Message message={message} onRetry={() => retryMessage(typeof message.content === 'string' ? message.content : '')} onRegenerate={() => regenerateResponse(message.id)} onEdit={newContent => editAndRegenerate(message.id, newContent)} />
+                </div>;
+        })}
             
             {/* Loading indicators based on mode */}
-            {isCurrentConversationLoading && selectedMode === 'research' && (
-              <DeepResearchInlineLoader 
-                status={researchStatus}
-                elapsedTime={researchElapsedTime}
-              />
-            )}
+            {isCurrentConversationLoading && selectedMode === 'research' && <DeepResearchInlineLoader status={researchStatus} elapsedTime={researchElapsedTime} />}
             
             {/* Single model text mode: show typing indicator */}
-            {isCurrentConversationLoading && selectedMode === 'text' && selectedModels.length === 1 && (
-              <div className="w-full px-4 sm:px-6 lg:px-8">
+            {isCurrentConversationLoading && selectedMode === 'text' && selectedModels.length === 1 && <div className="w-full px-4 sm:px-6 lg:px-8">
                 <TypingIndicator models={selectedModels} />
-              </div>
-            )}
+              </div>}
           </div>
           <div ref={messagesEndRef} className="h-[136px]" />
-        </div>
-      ) : (
-        /* Empty State */
-        <div className={`flex-1 flex items-center justify-center px-4 pb-[200px] sm:pb-[240px] ${(selectedMode === 'text' && models?.text) || (selectedMode === 'image' && models?.image) ? 'pt-16' : ''}`}>
+        </div> : (/* Empty State */
+    <div className={`flex-1 flex items-center justify-center px-4 pb-[200px] sm:pb-[240px] ${selectedMode === 'text' && models?.text || selectedMode === 'image' && models?.image ? 'pt-16' : ''}`}>
           <div className="text-center">
             <h1 className="text-4xl sm:text-6xl font-bold text-blue-500 mb-2 sm:mb-3 animate-logo-entrance animate-float-gentle hover:scale-[1.02] transition-transform duration-300 cursor-default">
               Zebvo AI
             </h1>
             <p className="text-muted-foreground text-sm sm:text-base mb-4 sm:mb-6 animate-tagline-entrance">
-              The World's Greatest AI Platform
+              Get Answers from the World's Top AI Models in One Chat
             </p>
             <div className="flex items-center justify-center gap-1.5 mb-6 sm:mb-8">
               <div className="w-2 h-2 rounded-full bg-[#5B9FFF] animate-dot-pulse-wave" />
-              <div className="w-2 h-2 rounded-full bg-[#B8D4FF] animate-dot-pulse-wave" style={{ animationDelay: '0.2s' }} />
-              <div className="w-2 h-2 rounded-full bg-[#B8D4FF] animate-dot-pulse-wave" style={{ animationDelay: '0.4s' }} />
+              <div className="w-2 h-2 rounded-full bg-[#B8D4FF] animate-dot-pulse-wave" style={{
+            animationDelay: '0.2s'
+          }} />
+              <div className="w-2 h-2 rounded-full bg-[#B8D4FF] animate-dot-pulse-wave" style={{
+            animationDelay: '0.4s'
+          }} />
             </div>
             {/* Keyboard shortcuts hint - hidden on mobile */}
             <div className="hidden sm:flex items-center justify-center gap-4 text-xs text-muted-foreground/60">
@@ -544,14 +439,12 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
               </span>
             </div>
           </div>
-        </div>
-      )}
+        </div>)}
 
       {/* Chat Input Area - Fixed at bottom, full width, responsive */}
-      <div 
-        className="fixed bottom-0 right-0 z-30 bg-background border-t border-border/20 transition-[left] duration-300"
-        style={{ left: isMobile ? 0 : (isSidebarExpanded ? 280 : 60) }}
-      >
+      <div className="fixed bottom-0 right-0 z-30 bg-background border-t border-border/20 transition-[left] duration-300" style={{
+      left: isMobile ? 0 : isSidebarExpanded ? 280 : 60
+    }}>
         <div className="w-full px-3 sm:px-6 lg:px-8 py-2 sm:py-4">
           <form onSubmit={handleSubmit} key={selectedMode} className="animate-scale-in">
             {/* Mode Dropdown */}
@@ -563,14 +456,7 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
                   {/* Feedback icon */}
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setShowFeedbackDialog(true)}
-                        className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl hover:bg-accent/80"
-                        aria-label="Feedback"
-                      >
+                      <Button type="button" variant="ghost" size="icon" onClick={() => setShowFeedbackDialog(true)} className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl hover:bg-accent/80" aria-label="Feedback">
                         <MessageSquare className="h-4 w-4 text-muted-foreground" />
                       </Button>
                     </TooltipTrigger>
@@ -584,13 +470,7 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <DropdownMenuTrigger asChild>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl hover:bg-accent/80"
-                            aria-label="Conversation options"
-                          >
+                          <Button type="button" variant="ghost" size="icon" className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl hover:bg-accent/80" aria-label="Conversation options">
                             <MoreVertical className="h-4 w-4 text-muted-foreground" />
                           </Button>
                         </DropdownMenuTrigger>
@@ -624,11 +504,9 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
             </div>
 
             {/* File Attachments Preview */}
-            {attachedFiles.length > 0 && (
-              <div className="mb-3 p-3 bg-card rounded-[18px] border border-border/50">
+            {attachedFiles.length > 0 && <div className="mb-3 p-3 bg-card rounded-[18px] border border-border/50">
                 <div className="flex flex-wrap gap-2">
-                  {attachedFiles.map((file, index) => (
-                    <div key={index} className="flex items-center gap-2 bg-muted/50 rounded-xl px-3 py-2 text-sm">
+                  {attachedFiles.map((file, index) => <div key={index} className="flex items-center gap-2 bg-muted/50 rounded-xl px-3 py-2 text-sm">
                       <span className="text-foreground truncate max-w-[200px]">{file.name}</span>
                       <span className="text-muted-foreground text-xs">
                         ({(file.size / 1024).toFixed(1)} KB)
@@ -636,11 +514,9 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
                       <button type="button" onClick={() => handleRemoveFile(index)} className="text-muted-foreground hover:text-foreground ml-1 transition-colors duration-[180ms]">
                         ×
                       </button>
-                    </div>
-                  ))}
+                    </div>)}
                 </div>
-              </div>
-            )}
+              </div>}
 
             {/* Hidden File Input */}
             <input ref={fileInputRef} type="file" multiple accept="*/*" onChange={handleFileSelect} className="hidden" />
@@ -656,48 +532,32 @@ if (selectedMode === 'image' && models.image && models.image.length > 0) {
 
               {/* Auto-expanding Textarea */}
               <div className="flex-1 min-w-0 flex items-center px-2 sm:px-4">
-              <textarea 
-                  ref={inputRef}
-                  value={input} 
-                  onChange={e => setInput(e.target.value)} 
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      if (input.trim() && selectedModels.length > 0 && !isCurrentConversationLoading) {
-                        handleSubmit(e as unknown as React.FormEvent);
-                      }
-                    }
-                  }}
-                  placeholder="Ask Zebvo ai" 
-                  disabled={isCurrentConversationLoading} 
-                  rows={1}
-                  className="w-full bg-transparent border-none outline-none focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 text-[15px] sm:text-[17px] font-medium placeholder:text-muted-foreground/70 disabled:opacity-50 text-foreground resize-none overflow-y-auto leading-[1.5] py-[6px] scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent"
-                  style={{ 
-                    height: '38px'
-                  }}
-                  maxLength={4000} 
-                />
+              <textarea ref={inputRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  if (input.trim() && selectedModels.length > 0 && !isCurrentConversationLoading) {
+                    handleSubmit(e as unknown as React.FormEvent);
+                  }
+                }
+              }} placeholder="Ask Zebvo ai" disabled={isCurrentConversationLoading} rows={1} className="w-full bg-transparent border-none outline-none focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 text-[15px] sm:text-[17px] font-medium placeholder:text-muted-foreground/70 disabled:opacity-50 text-foreground resize-none overflow-y-auto leading-[1.5] py-[6px] scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent" style={{
+                height: '38px'
+              }} maxLength={4000} />
               </div>
 
               {/* Character count */}
-              {input.length > 3500 && (
-                <span className={`text-xs mr-2 self-center ${input.length > 3900 ? 'text-destructive' : 'text-muted-foreground'}`}>
+              {input.length > 3500 && <span className={`text-xs mr-2 self-center ${input.length > 3900 ? 'text-destructive' : 'text-muted-foreground'}`}>
                   {4000 - input.length}
-                </span>
-              )}
+                </span>}
 
               {/* Right Send Button - Fixed at bottom */}
               <button type={isCurrentConversationLoading ? "button" : "submit"} onClick={isCurrentConversationLoading ? cancelGeneration : undefined} disabled={!isCurrentConversationLoading && (!input.trim() || selectedModels.length === 0)} className={`flex-shrink-0 w-[36px] h-[36px] sm:w-[42px] sm:h-[42px] rounded-full flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] ${isCurrentConversationLoading ? 'bg-primary text-primary-foreground hover:bg-primary/80 shadow-lg shadow-primary/25' : !input.trim() || selectedModels.length === 0 ? 'bg-muted text-muted-foreground cursor-not-allowed border border-border/50' : 'bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-110 hover:shadow-lg hover:shadow-primary/25 animate-scale-in'}`}>
-                {isCurrentConversationLoading ? <Square className="w-4 h-4 fill-current animate-pulse" /> : (
-                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" className="sm:w-[18px] sm:h-[18px] transition-all duration-300">
+                {isCurrentConversationLoading ? <Square className="w-4 h-4 fill-current animate-pulse" /> : <svg width="16" height="16" viewBox="0 0 20 20" fill="none" className="sm:w-[18px] sm:h-[18px] transition-all duration-300">
                     <path d="M3 10L17 10M17 10L11 4M17 10L11 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                )}
+                  </svg>}
               </button>
             </div>
           </form>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 }
