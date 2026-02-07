@@ -23,11 +23,11 @@ const TEXT_TO_IMAGE_MAPPING: Record<string, string> = {
   'grok-imagine': 'x-ai/grok-imagine-image/text-to-image',
 };
 
-// Image editing model mappings - only models with actual editing endpoints
-// Models without editing support will fall back to text-to-image
+// Image editing model mappings - models with actual editing endpoints
 const IMAGE_EDIT_MAPPING: Record<string, string> = {
-  'qwen-image': 'wavespeed-ai/qwen-image-edit', // Qwen has dedicated edit model
-  'gpt-image-1.5': 'openai/gpt-image-1/edit', // GPT Image 1 edit endpoint
+  'nano-banana-pro': 'google/nano-banana-pro/edit',
+  'wan-2.6': 'alibaba/wan-2.6/image-edit',
+  'grok-imagine': 'x-ai/grok-imagine-image/edit',
 };
 
 // Model-specific request body configurations - ALL use 1:1 square aspect ratio
@@ -109,25 +109,34 @@ const getTextToImageBody = (modelKey: string, prompt: string) => {
 // Image editing request body configurations - only for models with edit support
 const getImageEditBody = (modelKey: string, prompt: string, sourceImage: string) => {
   switch (modelKey) {
-    case 'qwen-image':
+    case 'nano-banana-pro':
       return {
         prompt,
-        image: sourceImage,
+        images: [sourceImage], // Uses images array
+        resolution: '1k',
+        output_format: 'png',
         enable_sync_mode: true,
         enable_base64_output: false,
       };
-    case 'gpt-image-1.5':
+    case 'wan-2.6':
       return {
         prompt,
-        image: sourceImage,
-        size: '1024*1024',
+        images: [sourceImage], // Uses images array
+        enable_prompt_expansion: false,
+        seed: -1,
         enable_sync_mode: true,
+      };
+    case 'grok-imagine':
+      return {
+        prompt,
+        image: sourceImage, // Uses single image string
+        enable_sync_mode: false, // Grok uses async mode
         enable_base64_output: false,
       };
     default:
       return {
         prompt,
-        image: sourceImage,
+        images: [sourceImage],
         enable_sync_mode: true,
         enable_base64_output: false,
       };
