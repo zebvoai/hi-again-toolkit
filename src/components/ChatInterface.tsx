@@ -418,7 +418,7 @@ export function ChatInterface() {
           <div className="w-full px-4 sm:px-6 lg:px-8">
             <MessageSkeleton />
           </div>
-        </div> : messages.length > 0 ? <div className={`flex-1 overflow-y-auto overflow-x-hidden pb-[240px] py-4 sm:py-6 ${selectedMode === 'text' && models?.text || selectedMode === 'image' && models?.image ? 'pt-[max(7rem,calc(var(--model-rail-offset,0px)+12px))] scroll-pt-[max(7rem,calc(var(--model-rail-offset,0px)+12px))]' : ''}`}>
+        </div> : messages.length > 0 ? <div key={currentConversationId || 'new'} className={`flex-1 overflow-y-auto overflow-x-hidden pb-[240px] py-4 sm:py-6 animate-content-fade-in ${selectedMode === 'text' && models?.text || selectedMode === 'image' && models?.image ? 'pt-[max(7rem,calc(var(--model-rail-offset,0px)+12px))] scroll-pt-[max(7rem,calc(var(--model-rail-offset,0px)+12px))]' : ''}`}>
           <div className="space-y-4 stagger-children">
             {messages.map((message, index) => {
           const isMultiModelResponse = message.role === 'assistant' && typeof message.content === 'object' && !Array.isArray(message.content) && message.metadata?.models?.length > 1;
@@ -501,7 +501,7 @@ export function ChatInterface() {
         </div>)}
 
       {/* Chat Input Area - Fixed at bottom, full width, responsive */}
-      <div className="fixed bottom-0 right-0 z-30 bg-background border-t border-border/20 transition-[left] duration-300" style={{
+      <div className="fixed bottom-0 right-0 z-30 bg-background border-t border-border/20 transition-[left] duration-300 animate-slide-up-fade" style={{
       left: isMobile ? 0 : isSidebarExpanded ? 280 : 60
     }}>
         <div className="w-full px-3 sm:px-6 lg:px-8 py-2 sm:py-4">

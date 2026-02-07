@@ -185,7 +185,7 @@ export const Message = ({
   const isVeryShortMessage = contentString.length < 20;
   
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} ${shouldAnimate ? 'appear-smooth' : ''}`}>
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} ${shouldAnimate ? (isUser ? 'animate-message-in-right' : 'animate-message-in-left') : ''}`}>
       <div className={`flex ${isUser ? 'flex-row-reverse' : 'flex-row'} ${isUser ? 'max-w-[85%] sm:max-w-[70%]' : 'max-w-[90%] sm:max-w-[75%]'} gap-2 sm:gap-2.5`}>
         {/* Avatar for AI only */}
         {!isUser && (
