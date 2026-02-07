@@ -8,7 +8,6 @@ import { useToast } from '@/hooks/use-toast';
 import { formatModelName } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { copyImageToClipboard } from '@/hooks/useImagePaste';
-
 interface MultiModelImageResponseProps {
   content: MultiModelContent;
   models: string[];
@@ -20,61 +19,102 @@ interface MultiModelImageResponseProps {
 // Aspect ratio to CSS class mapping
 const getAspectRatioClass = (ratio?: string): string => {
   switch (ratio) {
-    case '16:9': return 'aspect-video';
-    case '9:16': return 'aspect-[9/16]';
-    case '3:2': return 'aspect-[3/2]';
-    case '2:3': return 'aspect-[2/3]';
+    case '16:9':
+      return 'aspect-video';
+    case '9:16':
+      return 'aspect-[9/16]';
+    case '3:2':
+      return 'aspect-[3/2]';
+    case '2:3':
+      return 'aspect-[2/3]';
     case '1:1':
-    default: return 'aspect-square';
+    default:
+      return 'aspect-square';
   }
 };
 
 // Model provider colors (matching ModelRail)
-const getModelStyle = (model: string): { bg: string; border: string } => {
+const getModelStyle = (model: string): {
+  bg: string;
+  border: string;
+} => {
   const lowerModel = model.toLowerCase();
-  
   if (lowerModel.includes('vidu')) {
-    return { bg: 'bg-fuchsia-500/10', border: 'border-fuchsia-500/30' };
+    return {
+      bg: 'bg-fuchsia-500/10',
+      border: 'border-fuchsia-500/30'
+    };
   }
   if (lowerModel.includes('wan')) {
-    return { bg: 'bg-amber-500/10', border: 'border-amber-500/30' };
+    return {
+      bg: 'bg-amber-500/10',
+      border: 'border-amber-500/30'
+    };
   }
   if (lowerModel.includes('nano') || lowerModel.includes('banana')) {
-    return { bg: 'bg-yellow-500/10', border: 'border-yellow-500/30' };
+    return {
+      bg: 'bg-yellow-500/10',
+      border: 'border-yellow-500/30'
+    };
   }
   if (lowerModel.includes('gpt') || lowerModel.includes('openai')) {
-    return { bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' };
+    return {
+      bg: 'bg-emerald-500/10',
+      border: 'border-emerald-500/30'
+    };
   }
   if (lowerModel.includes('minimax')) {
-    return { bg: 'bg-pink-500/10', border: 'border-pink-500/30' };
+    return {
+      bg: 'bg-pink-500/10',
+      border: 'border-pink-500/30'
+    };
   }
   if (lowerModel.includes('qwen')) {
-    return { bg: 'bg-purple-500/10', border: 'border-purple-500/30' };
+    return {
+      bg: 'bg-purple-500/10',
+      border: 'border-purple-500/30'
+    };
   }
   if (lowerModel.includes('grok') || lowerModel.includes('imagine')) {
-    return { bg: 'bg-slate-500/10', border: 'border-slate-500/30' };
+    return {
+      bg: 'bg-slate-500/10',
+      border: 'border-slate-500/30'
+    };
   }
-  
-  return { bg: 'bg-muted', border: 'border-border' };
+  return {
+    bg: 'bg-muted',
+    border: 'border-border'
+  };
 };
-
-export const MultiModelImageResponse = ({ content, models, aspectRatio, prompt, onEditPrompt }: MultiModelImageResponseProps) => {
+export const MultiModelImageResponse = ({
+  content,
+  models,
+  aspectRatio,
+  prompt,
+  onEditPrompt
+}: MultiModelImageResponseProps) => {
   const aspectClass = getAspectRatioClass(aspectRatio);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
-  const [lightboxImage, setLightboxImage] = useState<{ url: string; model: string } | null>(null);
+  const {
+    toast
+  } = useToast();
+  const [lightboxImage, setLightboxImage] = useState<{
+    url: string;
+    model: string;
+  } | null>(null);
   const [copiedModel, setCopiedModel] = useState<string | null>(null);
   const [copiedPrompt, setCopiedPrompt] = useState(false);
-
   const handleCopyPrompt = () => {
     if (prompt) {
       navigator.clipboard.writeText(prompt);
       setCopiedPrompt(true);
-      toast({ description: 'Prompt copied to clipboard', duration: 2000 });
+      toast({
+        description: 'Prompt copied to clipboard',
+        duration: 2000
+      });
       setTimeout(() => setCopiedPrompt(false), 2000);
     }
   };
-
   const handleEditPrompt = () => {
     if (prompt && onEditPrompt) {
       onEditPrompt(prompt);
@@ -85,18 +125,17 @@ export const MultiModelImageResponse = ({ content, models, aspectRatio, prompt, 
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    
     const handleWheel = (e: WheelEvent) => {
       if (Math.abs(e.deltaX) < Math.abs(e.deltaY)) {
         e.preventDefault();
         el.scrollLeft += e.deltaY;
       }
     };
-    
-    el.addEventListener('wheel', handleWheel, { passive: false });
+    el.addEventListener('wheel', handleWheel, {
+      passive: false
+    });
     return () => el.removeEventListener('wheel', handleWheel);
   }, []);
-
   const handleDownload = async (url: string, modelName: string) => {
     try {
       const response = await fetch(url);
@@ -109,138 +148,83 @@ export const MultiModelImageResponse = ({ content, models, aspectRatio, prompt, 
       a.click();
       window.URL.revokeObjectURL(downloadUrl);
       document.body.removeChild(a);
-      
       toast({
         description: 'Image downloaded successfully',
-        duration: 2000,
+        duration: 2000
       });
     } catch (error) {
       toast({
         description: 'Failed to download image',
         variant: 'destructive',
-        duration: 2000,
+        duration: 2000
       });
     }
   };
-
   const handleCopyToClipboard = async (url: string, model: string) => {
     setCopiedModel(model);
     const success = await copyImageToClipboard(url);
-    
     if (success) {
       toast({
         description: 'Image copied to clipboard',
-        duration: 2000,
+        duration: 2000
       });
     } else {
       toast({
         description: 'Failed to copy image',
         variant: 'destructive',
-        duration: 2000,
+        duration: 2000
       });
     }
-    
     setTimeout(() => setCopiedModel(null), 2000);
   };
-
-  return (
-    <div className="w-full">
+  return <div className="w-full">
       {/* Fullscreen Lightbox */}
-      {lightboxImage && (
-        <ImageLightbox
-          src={lightboxImage.url}
-          alt={`Generated by ${lightboxImage.model}`}
-          modelName={formatModelName(lightboxImage.model)}
-          onClose={() => setLightboxImage(null)}
-        />
-      )}
+      {lightboxImage && <ImageLightbox src={lightboxImage.url} alt={`Generated by ${lightboxImage.model}`} modelName={formatModelName(lightboxImage.model)} onClose={() => setLightboxImage(null)} />}
       {/* Prompt actions bar */}
-      {prompt && (
-        <div className="flex items-center gap-2 mb-3 px-1">
+      {prompt && <div className="flex items-center gap-2 mb-3 px-1">
           <span className="text-xs text-muted-foreground truncate flex-1 max-w-[300px]" title={prompt}>
             "{prompt}"
           </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 px-2 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
-            onClick={handleCopyPrompt}
-          >
+          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1.5 text-muted-foreground hover:text-foreground" onClick={handleCopyPrompt}>
             {copiedPrompt ? <Check className="w-3 h-3 text-primary" /> : <Copy className="w-3 h-3" />}
             Copy
           </Button>
-          {onEditPrompt && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 px-2 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
-              onClick={handleEditPrompt}
-            >
+          {onEditPrompt && <Button variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1.5 text-muted-foreground hover:text-foreground" onClick={handleEditPrompt}>
               <Pencil className="w-3 h-3" />
               Edit
-            </Button>
-          )}
-        </div>
-      )}
+            </Button>}
+        </div>}
       
       {/* Horizontal scroll container - full width, hidden scrollbar */}
-      <div 
-        ref={scrollRef}
-        className="flex gap-4 overflow-x-auto scrollbar-hide"
-        style={{ scrollBehavior: 'smooth', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-      >
-      {models.map((model) => {
-          const imageUrl = content[model];
-          const isError = typeof imageUrl === 'string' && imageUrl.startsWith('Error:');
-          const isLoading = !imageUrl || imageUrl === '';
-          const style = getModelStyle(model);
-          
-          return (
-            <div 
-              key={model} 
-              className={cn(
-                "flex-shrink-0 w-[280px] sm:w-[320px] md:w-[360px] rounded-xl border-2 overflow-hidden",
-                style.bg,
-                style.border
-              )}
-            >
+      <div ref={scrollRef} className="flex gap-4 overflow-x-auto scrollbar-hide" style={{
+      scrollBehavior: 'smooth',
+      scrollbarWidth: 'none',
+      msOverflowStyle: 'none'
+    }}>
+      {models.map(model => {
+        const imageUrl = content[model];
+        const isError = typeof imageUrl === 'string' && imageUrl.startsWith('Error:');
+        const isLoading = !imageUrl || imageUrl === '';
+        const style = getModelStyle(model);
+        return <div key={model} className={cn("flex-shrink-0 w-[280px] sm:w-[320px] md:w-[360px] rounded-xl border-2 overflow-hidden", style.bg, style.border)}>
               {/* Model header */}
               <div className="flex items-center justify-between px-3 py-2 border-b border-border/30">
                 <span className="text-sm font-medium text-foreground truncate">
                   {formatModelName(model)}
                 </span>
-                {!isError && !isLoading && (
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 hover:bg-background/50"
-                      onClick={() => handleCopyToClipboard(imageUrl, model)}
-                      title="Copy to clipboard"
-                    >
-                      {copiedModel === model ? (
-                        <Check className="w-4 h-4 text-green-500" />
-                      ) : (
-                        <Copy className="w-4 h-4" />
-                      )}
+                {!isError && !isLoading && <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-background/50" onClick={() => handleCopyToClipboard(imageUrl, model)} title="Copy to clipboard">
+                      {copiedModel === model ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 hover:bg-background/50"
-                      onClick={() => handleDownload(imageUrl, model)}
-                      title="Download image"
-                    >
+                    <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-background/50" onClick={() => handleDownload(imageUrl, model)} title="Download image">
                       <Download className="w-4 h-4" />
                     </Button>
-                  </div>
-                )}
+                  </div>}
               </div>
               
               {/* Image content - always square 1:1 */}
               <div className="p-2">
-                {isLoading ? (
-                  <div className={`${aspectClass} rounded-lg overflow-hidden relative`}>
+                {isLoading ? <div className={`${aspectClass} rounded-lg overflow-hidden relative`}>
                     <Skeleton className="w-full h-full" />
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
                       <div className="flex gap-1">
@@ -250,40 +234,23 @@ export const MultiModelImageResponse = ({ content, models, aspectRatio, prompt, 
                       </div>
                       <span className="text-xs text-muted-foreground/60">Generating</span>
                     </div>
-                  </div>
-                ) : isError ? (
-                  <div className={`${aspectClass} bg-destructive/5 border border-destructive/20 rounded-lg flex flex-col items-center justify-center gap-2 p-4`}>
+                  </div> : isError ? <div className={`${aspectClass} bg-destructive/5 border border-destructive/20 rounded-lg flex flex-col items-center justify-center gap-2 p-4`}>
                     <AlertCircle className="w-6 h-6 text-destructive/60" />
                     <p className="text-xs text-destructive/80 text-center">{imageUrl.replace('Error: ', '')}</p>
-                  </div>
-                ) : (
-                  <img 
-                    src={imageUrl} 
-                    alt={`Generated by ${model}`}
-                    className={`w-full ${aspectClass} object-cover rounded-lg shadow-md cursor-pointer hover:opacity-90 transition-opacity`}
-                    onClick={() => setLightboxImage({ url: imageUrl, model })}
-                    onError={(e) => {
-                      console.error(`Failed to load image from ${model}:`, imageUrl);
-                      const target = e.target as HTMLImageElement;
-                      target.alt = `Failed to load image from ${model}`;
-                    }}
-                    loading="lazy"
-                  />
-                )}
+                  </div> : <img src={imageUrl} alt={`Generated by ${model}`} className={`w-full ${aspectClass} object-cover rounded-lg shadow-md cursor-pointer hover:opacity-90 transition-opacity`} onClick={() => setLightboxImage({
+              url: imageUrl,
+              model
+            })} onError={e => {
+              console.error(`Failed to load image from ${model}:`, imageUrl);
+              const target = e.target as HTMLImageElement;
+              target.alt = `Failed to load image from ${model}`;
+            }} loading="lazy" />}
               </div>
-            </div>
-          );
-        })}
+            </div>;
+      })}
       </div>
       
       {/* Disclaimer section */}
-      <div className="mt-4 px-3 py-3 rounded-lg bg-muted/50 border border-border/50">
-        <p className="text-xs text-muted-foreground leading-relaxed">
-          <span className="font-medium text-foreground/80">Note:</span> This image is generated by the selected model, not by Zebvo AI. 
-          Zebvo AI is not responsible for any blurry text, sensitive content, or mistakes that may appear in the image. 
-          For better accuracy, try multiple models and compare the results. Once you find the output you like, deselect the other models and use a single model consistently to get better results.
-        </p>
-      </div>
-    </div>
-  );
+      
+    </div>;
 };
