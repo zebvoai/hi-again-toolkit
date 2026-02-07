@@ -494,58 +494,70 @@ async function handleMultiModelRequest(
             
             const systemPrompt = zebvoIdentity + baseSystemPrompt;
             
-            try {
-              if (provider === 'lovable') {
-                // Lovable AI Gateway for Gemini models
-                apiKey = Deno.env.get('LOVABLE_API_KEY') || '';
-                if (!apiKey) throw new Error('LOVABLE_API_KEY not configured');
+            // Helper function to make API request
+            const makeApiRequest = async (useProvider: string, useApiModel: string): Promise<Response> => {
+              let reqUrl = '';
+              let reqHeaders: Record<string, string> = {};
+              let reqBody: any = {};
+              
+              const messages = [
+                { role: 'system', content: systemPrompt },
+                ...sanitizedHistory.map(m => ({ role: m.role, content: m.content })),
+                { role: 'user', content: createUserContent(message, attachments, modelIsVisionCapable) }
+              ];
+              
+              if (useProvider === 'lovable') {
+                const lovableKey = Deno.env.get('LOVABLE_API_KEY') || '';
+                if (!lovableKey) throw new Error('LOVABLE_API_KEY not configured');
                 
-                apiUrl = 'https://ai.gateway.lovable.dev/v1/chat/completions';
-                headers = {
-                  'Authorization': `Bearer ${apiKey}`,
+                reqUrl = 'https://ai.gateway.lovable.dev/v1/chat/completions';
+                reqHeaders = {
+                  'Authorization': `Bearer ${lovableKey}`,
                   'Content-Type': 'application/json'
                 };
+                reqBody = { model: useApiModel, messages, stream: true };
+              } else {
+                const openrouterKey = Deno.env.get('OPENROUTER_API_KEY') || '';
+                if (!openrouterKey) throw new Error('OPENROUTER_API_KEY not configured');
                 
-                const messages = [
-                  { role: 'system', content: systemPrompt },
-                  ...sanitizedHistory.map(m => ({ role: m.role, content: m.content })),
-                  { role: 'user', content: createUserContent(message, attachments, modelIsVisionCapable) }
-                ];
-                
-                body = { model: apiModel, messages, stream: true };
-              } else if (provider === 'openrouter') {
-                // All text models (OpenAI, Anthropic, etc.) route through OpenRouter
-                apiKey = Deno.env.get('OPENROUTER_API_KEY') || '';
-                if (!apiKey) throw new Error('OPENROUTER_API_KEY not configured');
-                
-                console.log(`[${modelName}] Using OpenRouter API model ID: ${apiModel}`);
-                
-                apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
-                headers = {
-                  'Authorization': `Bearer ${apiKey}`,
+                reqUrl = 'https://openrouter.ai/api/v1/chat/completions';
+                reqHeaders = {
+                  'Authorization': `Bearer ${openrouterKey}`,
                   'Content-Type': 'application/json',
                   'HTTP-Referer': 'https://lovable.dev',
                   'X-Title': 'Lovable AI'
                 };
-                
-                const messages = [
-                  { role: 'system', content: systemPrompt },
-                  ...sanitizedHistory.map(m => ({ role: m.role, content: m.content })),
-                  { role: 'user', content: createUserContent(message, attachments, modelIsVisionCapable) }
-                ];
-                
-                body = { model: apiModel, messages, stream: true, max_tokens: mode === 'build' ? 4096 : 3072 };
-              } else {
-                throw new Error(`Unsupported provider: ${provider}`);
+                reqBody = { model: useApiModel, messages, stream: true, max_tokens: mode === 'build' ? 4096 : 3072 };
               }
               
-              console.log(`[${modelName}] Calling ${provider} with model ${apiModel}, vision: ${hasImages && modelIsVisionCapable}`);
+              console.log(`[${modelName}] Calling ${useProvider} with model ${useApiModel}, vision: ${hasImages && modelIsVisionCapable}`);
               
-              const response = await fetch(apiUrl, {
+              return fetch(reqUrl, {
                 method: 'POST',
-                headers,
-                body: JSON.stringify(body)
+                headers: reqHeaders,
+                body: JSON.stringify(reqBody)
               });
+            };
+            
+            // OpenRouter fallback mapping for Gemini models
+            const geminiOpenRouterFallback: Record<string, string> = {
+              'google/gemini-3-pro-preview': 'google/gemini-2.5-pro-preview-03-25',
+              'google/gemini-2.5-pro': 'google/gemini-2.5-pro-preview-03-25',
+              'google/gemini-2.5-flash': 'google/gemini-2.5-flash-preview-05-20',
+              'google/gemini-2.5-flash-lite': 'google/gemini-2.5-flash-preview-05-20',
+            };
+            
+            try {
+              let response = await makeApiRequest(provider, apiModel);
+              
+              // If Lovable AI returns 402 (payment required), try OpenRouter fallback for Gemini
+              if (!response.ok && response.status === 402 && provider === 'lovable') {
+                const fallbackModel = geminiOpenRouterFallback[apiModel];
+                if (fallbackModel) {
+                  console.log(`[${modelName}] Lovable AI credits exhausted (402), falling back to OpenRouter: ${fallbackModel}`);
+                  response = await makeApiRequest('openrouter', fallbackModel);
+                }
+              }
               
               if (!response.ok) {
                 const errorText = await response.text();
@@ -561,9 +573,11 @@ async function handleMultiModelRequest(
                   error: errorDetails
                 }));
 
-                // Provide more helpful error for vision failures
+                // Provide more helpful error messages
                 let fallbackContent = 'The model could not generate a response at the moment. Please try again.';
-                if (hasImages && response.status === 400) {
+                if (response.status === 402) {
+                  fallbackContent = 'AI credits exhausted. Please add credits to continue using this model.';
+                } else if (hasImages && response.status === 400) {
                   fallbackContent = 'Unable to process the image. The image may be too large or in an unsupported format. Please try a different image.';
                 }
                 
