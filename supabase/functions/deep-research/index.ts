@@ -137,18 +137,18 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[Deep Research] Starting Perplexity research for: ${prompt.substring(0, 100)}...`);
+    console.log(`[Deep Research] Starting research for: ${prompt.substring(0, 100)}...`);
 
-    const perplexityApiKey = Deno.env.get('PERPLEXITY_API_KEY');
-    if (!perplexityApiKey) {
-      console.error('[Deep Research] PERPLEXITY_API_KEY not configured');
+    const openrouterApiKey = Deno.env.get('OPENROUTER_API_KEY');
+    if (!openrouterApiKey) {
+      console.error('[Deep Research] OPENROUTER_API_KEY not configured');
       return new Response(
-        JSON.stringify({ error: 'Perplexity API key not configured. Please connect Perplexity in settings.' }),
+        JSON.stringify({ error: 'OpenRouter API key not configured.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Prepare messages for Perplexity
+    // Prepare messages for OpenRouter
     const messages: Message[] = [
       { role: 'system', content: DEEP_RESEARCH_PROMPT },
     ];
@@ -168,27 +168,27 @@ serve(async (req) => {
       content: `Conduct comprehensive deep research on the following topic. Provide a detailed, well-structured response of at least 6000 words with proper citations and sources:\n\n${prompt}`,
     });
 
-    console.log('[Deep Research] Calling Perplexity sonar-deep-research...');
+    console.log('[Deep Research] Calling OpenRouter with perplexity/sonar-deep-research...');
 
-    const response = await fetch('https://api.perplexity.ai/chat/completions', {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${perplexityApiKey}`,
+        'Authorization': `Bearer ${openrouterApiKey}`,
         'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://assist.zebvo.ai',
+        'X-Title': 'Zebvo Deep Research',
       },
       body: JSON.stringify({
-        model: 'sonar-deep-research',
+        model: 'perplexity/sonar-deep-research',
         messages,
-        max_tokens: 32000, // Maximum for comprehensive output
-        temperature: 0.3, // Lower for factual accuracy
-        return_citations: true,
-        return_related_questions: true,
+        max_tokens: 32000,
+        temperature: 0.3,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('[Deep Research] Perplexity API error:', response.status, errorText);
+      console.error('[Deep Research] OpenRouter API error:', response.status, errorText);
       
       if (response.status === 429) {
         return new Response(
@@ -198,7 +198,7 @@ serve(async (req) => {
       }
       if (response.status === 402) {
         return new Response(
-          JSON.stringify({ error: 'Insufficient Perplexity credits. Please check your account.' }),
+          JSON.stringify({ error: 'Insufficient credits. Please check your OpenRouter account.' }),
           { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
@@ -211,7 +211,7 @@ serve(async (req) => {
 
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content || '';
-    const citations = data.citations || [];
+    const citations: string[] = [];
     
     // Calculate word count
     const wordCount = content.split(/\s+/).filter((w: string) => w.length > 0).length;
