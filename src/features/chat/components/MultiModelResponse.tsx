@@ -277,7 +277,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
           <div className="absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
           <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
 
-          <div className="overflow-x-auto scrollbar-hide scroll-smooth pb-2">
+          <div className="overflow-x-auto scroll-smooth pb-2 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             <div
               className={`flex gap-2.5 sm:gap-3 px-3 sm:px-6 ${shouldAnimate ? 'stagger-cards' : ''}`}
               style={{ minWidth: 'min-content' }}
