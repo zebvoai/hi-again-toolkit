@@ -459,6 +459,7 @@ export const useChat = () => {
               isImage: true,
               isImageToImage: !!sourceImage,
               aspectRatio,
+              prompt: content, // Store original prompt for copy/edit
             }
           };
           safeAddMessage(assistantMessage, convId);
@@ -555,7 +556,8 @@ export const useChat = () => {
             metadata: {
               imageUrl: response.imageUrl,
               model: selectedModel,
-              isImageToImage: !!sourceImage
+              isImageToImage: !!sourceImage,
+              prompt: content, // Store original prompt for copy/edit
             }
           };
           
