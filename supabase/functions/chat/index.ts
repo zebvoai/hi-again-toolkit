@@ -403,18 +403,13 @@ async function handleMultiModelRequest(
     }
   }
   
-  // If images are attached, filter to only vision-capable models
+  // If images are attached, we still respond from ALL selected models.
+  // Vision-capable models will receive multimodal content; non-vision models get text + attachment references.
   let effectiveModels = models;
   if (hasImages) {
     const visionModels = models.filter(isVisionCapable);
-    if (visionModels.length === 0) {
-      // No vision-capable models selected - use default vision models (multiple)
-      effectiveModels = selectVisionModels(models);
-      console.log(`[Vision] No vision-capable models selected. Using defaults: ${effectiveModels.join(', ')}`);
-    } else {
-      effectiveModels = visionModels;
-      console.log(`[Vision] Using vision-capable models: ${visionModels.join(', ')}`);
-    }
+    const nonVisionModels = models.filter((m) => !isVisionCapable(m));
+    console.log(`[Vision] Attachments detected. Vision models: ${visionModels.length}, non-vision models: ${nonVisionModels.length}`);
   }
   
   // Helper to create user message content with attachments for vision models
