@@ -267,17 +267,22 @@ export function ChatInterface() {
     setAttachedFiles([]);
   }, [input, attachedFiles, sendMessage]);
 
+  // Handler for when user tries to send (via Enter key or button)
+  // Shows confirmation dialog for deep research mode
+  const handleTrySend = useCallback(() => {
+    if (!input.trim() || isLoading || selectedModels.length === 0) return;
+    
+    if (selectedMode === 'research') {
+      setShowDeepResearchConfirm(true);
+    } else {
+      handleSendMessage();
+    }
+  }, [input, isLoading, selectedModels.length, selectedMode, handleSendMessage]);
+
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
-    if (input.trim() && !isLoading && selectedModels.length > 0) {
-      // Show confirmation for deep research mode
-      if (selectedMode === 'research') {
-        setShowDeepResearchConfirm(true);
-      } else {
-        handleSendMessage();
-      }
-    }
-  }, [input, isLoading, selectedModels.length, handleSendMessage, selectedMode]);
+    handleTrySend();
+  }, [handleTrySend]);
 
   const handleConfirmDeepResearch = useCallback(() => {
     setShowDeepResearchConfirm(false);
@@ -595,7 +600,7 @@ export function ChatInterface() {
                   ref={inputRef}
                   value={input}
                   onChange={handleInputChange}
-                  onSubmit={handleSendMessage}
+                  onSubmit={handleTrySend}
                   placeholder="Ask Zebvo ai"
                   disabled={isCurrentConversationLoading}
                 />
