@@ -3,7 +3,7 @@
  * Max 15 characters, sidebar-friendly
  */
 export const generateConversationTitle = (message: string): string => {
-  const MAX_LENGTH = 15;
+  const MAX_LENGTH = 30;
   
   // Clean the message
   const cleaned = message.trim().replace(/\s+/g, ' ');
