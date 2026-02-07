@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, memo } from 'react';
-import { Square, Menu, Share, Pencil, Trash2, MoreVertical, MessageSquare } from 'lucide-react';
+import { Square, Menu, Share, Pencil, Trash2, MoreVertical, MessageSquare, ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { useChat } from '@/features/chat/hooks/useChat';
 import { useModeStore } from '@/features/modes/store/modeStore';
@@ -23,6 +23,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useModels } from '@/features/chat/hooks/useModels';
 import { useConversations } from '@/features/chat/hooks/useConversations';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { useImagePaste } from '@/hooks/useImagePaste';
 import { useRealtimeMessages } from '@/features/chat/hooks/useRealtimeMessages';
 import { useTabFocusReload } from '@/features/chat/hooks/useTabFocusReload';
 import { triggerHapticFeedback, triggerConfetti, updatePageTitle, smoothScrollTo } from '@/lib/microInteractions';
@@ -91,6 +92,16 @@ export function ChatInterface() {
   // Enable realtime sync for messages across tabs
   useRealtimeMessages();
   useTabFocusReload();
+
+  // Drag-drop and clipboard paste for images
+  const handleImagesAdded = useCallback((files: File[]) => {
+    setAttachedFiles(prev => [...prev, ...files]);
+  }, []);
+  
+  const { isDragging } = useImagePaste({
+    onImagesAdded: handleImagesAdded,
+    enabled: true,
+  });
 
   // Sidebar control
   const {
@@ -321,6 +332,16 @@ export function ChatInterface() {
     }
   };
   return <div className="flex flex-col h-full relative bg-background overflow-hidden">
+      {/* Drag & Drop Overlay */}
+      {isDragging && (
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center pointer-events-none">
+          <div className="flex flex-col items-center gap-4 p-8 rounded-2xl border-2 border-dashed border-primary bg-primary/5 animate-pulse">
+            <ImageIcon className="w-12 h-12 text-primary" />
+            <p className="text-lg font-medium text-primary">Drop images here</p>
+            <p className="text-sm text-muted-foreground">Supports JPG, PNG, GIF, WebP</p>
+          </div>
+        </div>
+      )}
       {/* Model Rail - Fixed at top (text and image modes) */}
       {selectedMode === 'text' && models?.text && <ModelRail models={models.text} selectedModels={selectedModels} onToggle={handleToggleModel} onSelectAll={handleSelectAllModels} onClearAll={handleClearAllModels} sidebarWidth={isMobile ? 0 : isSidebarExpanded ? 256 : 60} />}
       
