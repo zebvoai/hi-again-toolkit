@@ -121,11 +121,14 @@ export const MultiModelImageResponse = ({
     }
   };
 
-  // Smooth horizontal scroll with mouse wheel
+  // Smooth horizontal scroll with mouse wheel - only when multiple models need horizontal scrolling
   useEffect(() => {
     const el = scrollRef.current;
-    if (!el) return;
+    if (!el || models.length <= 1) return;
+    
     const handleWheel = (e: WheelEvent) => {
+      // Only hijack vertical scroll if content actually overflows horizontally
+      if (el.scrollWidth <= el.clientWidth) return;
       if (Math.abs(e.deltaX) < Math.abs(e.deltaY)) {
         e.preventDefault();
         el.scrollLeft += e.deltaY;
@@ -135,7 +138,7 @@ export const MultiModelImageResponse = ({
       passive: false
     });
     return () => el.removeEventListener('wheel', handleWheel);
-  }, []);
+  }, [models.length]);
   const handleDownload = async (url: string, modelName: string) => {
     try {
       const response = await fetch(url);
