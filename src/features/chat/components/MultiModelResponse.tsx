@@ -307,8 +307,6 @@ export const MultiModelResponse = ({
       </div>
       
       {/* Disclaimer section */}
-      <div className="mt-4 mx-3 sm:mx-6 px-3 py-3 rounded-lg bg-muted/50 border border-border/50">
-        
-      </div>
+      
     </div>;
 };
