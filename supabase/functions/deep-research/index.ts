@@ -122,54 +122,11 @@ IMPORTANT:
 - ALWAYS include tables to present comparative data
 - ALWAYS use proper heading hierarchy`;
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+// ─── Provider attempt functions ───
 
+async function tryOpenRouterDeepResearch(messages: Message[], openrouterApiKey: string): Promise<{ content: string; provider: string } | null> {
   try {
-    const { prompt, conversationHistory = [] } = await req.json();
-
-    if (!prompt) {
-      return new Response(
-        JSON.stringify({ error: 'Prompt is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log(`[Deep Research] Starting research for: ${prompt.substring(0, 100)}...`);
-
-    const openrouterApiKey = Deno.env.get('OPENROUTER_API_KEY');
-    if (!openrouterApiKey) {
-      console.error('[Deep Research] OPENROUTER_API_KEY not configured');
-      return new Response(
-        JSON.stringify({ error: 'OpenRouter API key not configured.' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Prepare messages for OpenRouter
-    const messages: Message[] = [
-      { role: 'system', content: DEEP_RESEARCH_PROMPT },
-    ];
-
-    // Add conversation history if any
-    if (conversationHistory.length > 0) {
-      for (const msg of conversationHistory.slice(-4)) { // Last 4 messages for context
-        if (msg.content && typeof msg.content === 'string') {
-          messages.push({ role: msg.role, content: msg.content });
-        }
-      }
-    }
-
-    // Add the main research query
-    messages.push({
-      role: 'user',
-      content: `Conduct comprehensive deep research on the following topic. Provide a detailed, well-structured response of at least 6000 words with proper citations and sources:\n\n${prompt}`,
-    });
-
-    console.log('[Deep Research] Calling OpenRouter with perplexity/sonar-deep-research...');
-
+    console.log('[Deep Research] Attempting OpenRouter perplexity/sonar-deep-research...');
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -188,42 +145,183 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('[Deep Research] OpenRouter API error:', response.status, errorText);
-      
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: 'Insufficient credits. Please check your OpenRouter account.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
-      return new Response(
-        JSON.stringify({ error: `Research failed: ${response.status}` }),
-        { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      console.warn(`[Deep Research] OpenRouter failed (${response.status}): ${errorText.substring(0, 200)}`);
+      return null;
     }
 
     const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || '';
-    const citations: string[] = [];
-    
-    // Calculate word count
-    const wordCount = content.split(/\s+/).filter((w: string) => w.length > 0).length;
-    console.log(`[Deep Research] Response received: ${wordCount} words, ${citations.length} citations`);
+    const content = data.choices?.[0]?.message?.content;
+    if (!content || content.trim().length < 100) {
+      console.warn('[Deep Research] OpenRouter returned empty/short content');
+      return null;
+    }
 
-    // Format citations as clickable sources
+    console.log('[Deep Research] OpenRouter succeeded');
+    return { content, provider: 'openrouter-sonar-deep-research' };
+  } catch (err) {
+    console.warn('[Deep Research] OpenRouter exception:', err);
+    return null;
+  }
+}
+
+async function tryPerplexityDirect(messages: Message[], perplexityApiKey: string): Promise<{ content: string; provider: string } | null> {
+  try {
+    console.log('[Deep Research] Attempting direct Perplexity sonar-pro...');
+    const response = await fetch('https://api.perplexity.ai/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${perplexityApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'sonar-pro',
+        messages,
+        max_tokens: 16000,
+        temperature: 0.3,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.warn(`[Deep Research] Perplexity direct failed (${response.status}): ${errorText.substring(0, 200)}`);
+      return null;
+    }
+
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content;
+    if (!content || content.trim().length < 100) {
+      console.warn('[Deep Research] Perplexity returned empty/short content');
+      return null;
+    }
+
+    console.log('[Deep Research] Perplexity direct succeeded');
+    return { content, provider: 'perplexity-sonar-pro' };
+  } catch (err) {
+    console.warn('[Deep Research] Perplexity exception:', err);
+    return null;
+  }
+}
+
+async function tryGeminiFallback(messages: Message[], lovableApiKey: string): Promise<{ content: string; provider: string } | null> {
+  try {
+    console.log('[Deep Research] Attempting Gemini fallback via Lovable AI...');
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${lovableApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-pro',
+        messages,
+        max_tokens: 32000,
+        temperature: 0.3,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.warn(`[Deep Research] Gemini fallback failed (${response.status}): ${errorText.substring(0, 200)}`);
+      return null;
+    }
+
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content;
+    if (!content || content.trim().length < 100) {
+      console.warn('[Deep Research] Gemini returned empty/short content');
+      return null;
+    }
+
+    console.log('[Deep Research] Gemini fallback succeeded');
+    return { content, provider: 'gemini-2.5-pro' };
+  } catch (err) {
+    console.warn('[Deep Research] Gemini exception:', err);
+    return null;
+  }
+}
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { prompt, conversationHistory = [] } = await req.json();
+
+    if (!prompt) {
+      return new Response(
+        JSON.stringify({ error: 'Prompt is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`[Deep Research] Starting research for: ${prompt.substring(0, 100)}...`);
+
+    // Build messages
+    const messages: Message[] = [
+      { role: 'system', content: DEEP_RESEARCH_PROMPT },
+    ];
+
+    if (conversationHistory.length > 0) {
+      for (const msg of conversationHistory.slice(-4)) {
+        if (msg.content && typeof msg.content === 'string') {
+          messages.push({ role: msg.role, content: msg.content });
+        }
+      }
+    }
+
+    messages.push({
+      role: 'user',
+      content: `Conduct comprehensive deep research on the following topic. Provide a detailed, well-structured response of at least 6000 words with proper citations and sources:\n\n${prompt}`,
+    });
+
+    // ─── Fallback chain: OpenRouter → Perplexity Direct → Gemini ───
+
+    const openrouterApiKey = Deno.env.get('OPENROUTER_API_KEY');
+    const perplexityApiKey = Deno.env.get('PERPLEXITY_API_KEY');
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+
+    let result: { content: string; provider: string } | null = null;
+
+    // 1. Try OpenRouter (sonar-deep-research)
+    if (openrouterApiKey) {
+      result = await tryOpenRouterDeepResearch(messages, openrouterApiKey);
+    } else {
+      console.warn('[Deep Research] OPENROUTER_API_KEY not configured, skipping');
+    }
+
+    // 2. Fallback: Direct Perplexity (sonar-pro)
+    if (!result && perplexityApiKey) {
+      result = await tryPerplexityDirect(messages, perplexityApiKey);
+    } else if (!result) {
+      console.warn('[Deep Research] PERPLEXITY_API_KEY not configured, skipping');
+    }
+
+    // 3. Fallback: Gemini via Lovable AI
+    if (!result && lovableApiKey) {
+      result = await tryGeminiFallback(messages, lovableApiKey);
+    } else if (!result) {
+      console.warn('[Deep Research] LOVABLE_API_KEY not configured, skipping');
+    }
+
+    // If all providers failed
+    if (!result) {
+      console.error('[Deep Research] All providers failed');
+      return new Response(
+        JSON.stringify({ error: 'All research providers are currently unavailable. Please try again later.' }),
+        { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Format the response
+    const content = result.content;
+    const wordCount = content.split(/\s+/).filter((w: string) => w.length > 0).length;
+    console.log(`[Deep Research] Response via ${result.provider}: ${wordCount} words`);
+
     let formattedContent = content;
-    if (citations.length > 0 && !content.includes('## Sources')) {
-      formattedContent += '\n\n## Sources\n\n';
-      citations.forEach((citation: string, index: number) => {
-        formattedContent += `${index + 1}. [Source ${index + 1}](${citation})\n`;
-      });
+    // Append sources section if not present
+    if (!content.includes('## Sources')) {
+      // No additional citations to add from the response
     }
 
     return new Response(
@@ -231,18 +329,18 @@ serve(async (req) => {
         content: formattedContent,
         model: 'Zebvo Deep Research',
         synthesized: true,
-        modelsUsed: ['sonar-deep-research'],
+        modelsUsed: [result.provider],
         wordCount,
-        citationsCount: citations.length,
-        citations,
+        citationsCount: 0,
+        citations: [],
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('[Deep Research] Error:', error);
+    console.error('[Deep Research] Critical error:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error occurred' }),
+      JSON.stringify({ error: 'An unexpected error occurred. Please try again.' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
