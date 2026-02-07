@@ -490,6 +490,7 @@ async function handleMultiModelRequest(
             // Add live data instruction if we have context
             if (liveContext) {
               baseSystemPrompt += '\n\nCRITICAL INSTRUCTION: You have been provided with LIVE WEB DATA that was just fetched from the internet. This data is current and accurate. USE THIS DATA to answer the user\'s question. Do NOT say you cannot access real-time data or that your knowledge is limited - you HAVE the real-time data in this prompt. Present the information confidently as current facts. Always cite the sources when using this information.';
+            }
             
             const systemPrompt = zebvoIdentity + baseSystemPrompt;
             
