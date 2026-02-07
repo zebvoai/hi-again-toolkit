@@ -23,15 +23,11 @@ const TEXT_TO_IMAGE_MAPPING: Record<string, string> = {
   'grok-imagine': 'x-ai/grok-imagine-image/text-to-image',
 };
 
-// Image-to-image model mappings (for when source image is provided)
-const IMAGE_TO_IMAGE_MAPPING: Record<string, string> = {
-  'vidu-q2': 'vidu/img-to-img-q2', // Vidu image-to-image
-  'wan-2.6': 'alibaba/wan-2.6/image-to-image',
-  'nano-banana-pro': 'google/nano-banana-pro/image-to-image',
-  'gpt-image-1.5': 'openai/gpt-image-1.5/image-to-image',
-  'minimax-image-01': 'minimax/subject-driven-image-01', // MiniMax uses subject-driven for img2img
-  'qwen-image': 'wavespeed-ai/qwen-image/image-to-image',
-  'grok-imagine': 'x-ai/grok-imagine-image/image-to-image',
+// Image editing model mappings - only models with actual editing endpoints
+// Models without editing support will fall back to text-to-image
+const IMAGE_EDIT_MAPPING: Record<string, string> = {
+  'qwen-image': 'wavespeed-ai/qwen-image-edit', // Qwen has dedicated edit model
+  'gpt-image-1.5': 'openai/gpt-image-1/edit', // GPT Image 1 edit endpoint
 };
 
 // Model-specific request body configurations - ALL use 1:1 square aspect ratio
@@ -110,36 +106,13 @@ const getTextToImageBody = (modelKey: string, prompt: string) => {
   }
 };
 
-// Image-to-image request body configurations
-const getImageToImageBody = (modelKey: string, prompt: string, sourceImage: string) => {
+// Image editing request body configurations - only for models with edit support
+const getImageEditBody = (modelKey: string, prompt: string, sourceImage: string) => {
   switch (modelKey) {
-    case 'vidu-q2':
+    case 'qwen-image':
       return {
         prompt,
         image: sourceImage,
-        aspect_ratio: '1:1',
-        resolution: '1080p',
-        strength: 0.75, // Controls how much the output deviates from the source
-        seed: -1,
-      };
-    case 'grok-imagine':
-      return {
-        prompt,
-        image: sourceImage,
-        aspect_ratio: '1:1',
-        strength: 0.75,
-        num_images: 1,
-        enable_sync_mode: false,
-        enable_base64_output: false,
-      };
-    case 'nano-banana-pro':
-      return {
-        prompt,
-        image: sourceImage,
-        aspect_ratio: '1:1',
-        resolution: '1k',
-        strength: 0.75,
-        output_format: 'png',
         enable_sync_mode: true,
         enable_base64_output: false,
       };
@@ -148,52 +121,15 @@ const getImageToImageBody = (modelKey: string, prompt: string, sourceImage: stri
         prompt,
         image: sourceImage,
         size: '1024*1024',
-        quality: 'medium',
-        output_format: 'jpeg',
         enable_sync_mode: true,
         enable_base64_output: false,
-      };
-    case 'minimax-image-01':
-      return {
-        prompt,
-        subject_image: sourceImage, // MiniMax uses subject_image for subject-driven
-        aspect_ratio: '1:1',
-        size: '1024*1024',
-        num_images: 1,
-        enable_sync_mode: true,
-        enable_base64_output: false,
-      };
-    case 'qwen-image':
-      return {
-        prompt,
-        image: sourceImage,
-        aspect_ratio: '1:1',
-        size: '1024*1024',
-        strength: 0.75,
-        seed: -1,
-        output_format: 'jpeg',
-        enable_sync_mode: true,
-        enable_base64_output: false,
-      };
-    case 'wan-2.6':
-      return {
-        prompt,
-        image: sourceImage,
-        aspect_ratio: '1:1',
-        size: '1024*1024',
-        strength: 0.75,
-        enable_prompt_expansion: false,
-        seed: -1,
-        enable_sync_mode: true,
       };
     default:
       return {
         prompt,
         image: sourceImage,
-        aspect_ratio: '1:1',
-        size: '1024*1024',
-        strength: 0.75,
         enable_sync_mode: true,
+        enable_base64_output: false,
       };
   }
 };
@@ -221,41 +157,43 @@ serve(async (req) => {
   try {
     const { prompt, model, sourceImage }: ImageRequest = await req.json();
     
-    const isImageToImage = !!sourceImage;
+    const hasSourceImage = !!sourceImage;
     console.log('Image generation request:', { 
       prompt, 
       model, 
-      isImageToImage,
+      hasSourceImage,
       sourceImage: sourceImage ? sourceImage.substring(0, 50) + '...' : null 
     });
     
     // Map display name to API model path
     const modelKey = model?.toLowerCase().replace(/\s+/g, '-') || 'nano-banana-pro';
     
-    // Choose the appropriate model mapping based on whether we have a source image
-    const modelMapping = isImageToImage ? IMAGE_TO_IMAGE_MAPPING : TEXT_TO_IMAGE_MAPPING;
-    const apiModelPath = modelMapping[modelKey];
-    
-    if (!apiModelPath) {
-      // Fall back to text-to-image if no image-to-image model available
-      const fallbackPath = TEXT_TO_IMAGE_MAPPING[modelKey];
-      if (!fallbackPath) {
-        console.error(`Unknown model: ${model} (key: ${modelKey})`);
-        return new Response(
-          JSON.stringify({ 
-            error: `Unknown image model: ${model}. Available models: ${Object.keys(TEXT_TO_IMAGE_MAPPING).join(', ')}`
-          }),
-          { 
-            status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          }
-        );
-      }
-      console.log('No image-to-image support for this model, falling back to text-to-image');
+    // Check if text-to-image model exists
+    const textToImagePath = TEXT_TO_IMAGE_MAPPING[modelKey];
+    if (!textToImagePath) {
+      console.error(`Unknown model: ${model} (key: ${modelKey})`);
+      return new Response(
+        JSON.stringify({ 
+          error: `Unknown image model: ${model}. Available models: ${Object.keys(TEXT_TO_IMAGE_MAPPING).join(', ')}`
+        }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
     }
     
-    const finalApiPath = apiModelPath || TEXT_TO_IMAGE_MAPPING[modelKey];
-    console.log('Using Wavespeed model path:', finalApiPath, isImageToImage ? '(image-to-image)' : '(text-to-image)');
+    // Check if this model has an edit endpoint when source image provided
+    const editPath = hasSourceImage ? IMAGE_EDIT_MAPPING[modelKey] : null;
+    const useEditMode = hasSourceImage && editPath;
+    
+    // If user provided image but model doesn't support editing, fall back to text-to-image
+    if (hasSourceImage && !editPath) {
+      console.log(`Model ${modelKey} doesn't support image editing, using text-to-image with enhanced prompt`);
+    }
+    
+    const finalApiPath = useEditMode ? editPath : textToImagePath;
+    console.log('Using Wavespeed model path:', finalApiPath, useEditMode ? '(image-edit)' : '(text-to-image)');
     
     const wavespeedApiKey = Deno.env.get('WAVESPEED_API_KEY');
     
@@ -268,8 +206,8 @@ serve(async (req) => {
     console.log('Calling Wavespeed API:', apiUrl);
     
     // Get appropriate request body based on mode
-    const requestBody = isImageToImage && apiModelPath
-      ? getImageToImageBody(modelKey, prompt, sourceImage)
+    const requestBody = useEditMode
+      ? getImageEditBody(modelKey, prompt, sourceImage!)
       : getTextToImageBody(modelKey, prompt);
     
     console.log('Request body:', JSON.stringify(requestBody));
@@ -387,7 +325,7 @@ serve(async (req) => {
         imageUrl,
         revisedPrompt: prompt,
         model: model || 'Nano Banana Pro',
-        isImageToImage
+        isImageEdit: useEditMode
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
