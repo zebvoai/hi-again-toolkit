@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { generateConversationTitle } from '@/lib/generateTitle';
 import { useAuth } from '@/hooks/useAuth';
+import { evictFromCache } from '../store/chatStore';
 import type { Message } from '@/types';
 
 export interface Conversation {
@@ -13,23 +14,33 @@ export interface Conversation {
   project_id: string | null;
 }
 
+// ── Debounce helper ──────────────────────────────────────────────
+let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+const DEBOUNCE_MS = 600;
+
 export const useConversations = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
+  const isFetchingRef = useRef(false);
 
-  const fetchConversations = async () => {
+  const fetchConversations = useCallback(async () => {
     if (!user) {
       setConversations([]);
       setIsLoading(false);
       return;
     }
 
+    // Prevent concurrent fetches
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
+
     try {
+      // Only fetch metadata columns — no message content
       const { data, error } = await supabase
         .from('conversations')
-        .select('*')
+        .select('id, title, created_at, updated_at, project_id')
         .eq('user_id', user.id)
         .order('updated_at', { ascending: false });
 
@@ -44,8 +55,17 @@ export const useConversations = () => {
       });
     } finally {
       setIsLoading(false);
+      isFetchingRef.current = false;
     }
-  };
+  }, [user, toast]);
+
+  /** Debounced version — prevents rapid-fire refreshes from realtime events */
+  const debouncedFetch = useCallback(() => {
+    if (debounceTimer) clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      fetchConversations();
+    }, DEBOUNCE_MS);
+  }, [fetchConversations]);
 
   const createConversation = async (firstMessage: string, projectId?: string | null): Promise<string | null> => {
     if (!user) {
@@ -58,27 +78,27 @@ export const useConversations = () => {
     }
 
     try {
-      // Generate a short, meaningful title from first message
       const title = generateConversationTitle(firstMessage);
-      
-      const insertData: { title: string; user_id: string; project_id?: string } = { 
-        title, 
-        user_id: user.id 
+
+      const insertData: { title: string; user_id: string; project_id?: string } = {
+        title,
+        user_id: user.id,
       };
-      
+
       if (projectId) {
         insertData.project_id = projectId;
       }
-      
+
       const { data, error } = await supabase
         .from('conversations')
         .insert(insertData)
-        .select()
+        .select('id, title, created_at, updated_at, project_id')
         .single();
 
       if (error) throw error;
-      
-      await fetchConversations();
+
+      // Optimistically prepend the new conversation
+      setConversations(prev => [data, ...prev]);
       return data.id;
     } catch (error) {
       console.error('Error creating conversation:', error);
@@ -101,39 +121,32 @@ export const useConversations = () => {
 
       if (error) throw error;
 
-      const messages = data.map(msg => ({
+      const messages = (data || []).map(msg => ({
         id: msg.id,
         role: msg.role as 'user' | 'assistant',
-        content: msg.content as any, // Database returns JSONB which can be string or object
+        content: msg.content as any,
         timestamp: new Date(msg.created_at).getTime(),
-        metadata: (msg.metadata as any) || undefined
+        metadata: (msg.metadata as any) || undefined,
       }));
 
-      // Detect and mark interrupted generations:
-      // Any assistant message with generationStatus='generating' that is older than 2 minutes
-      // is almost certainly interrupted (the API call was lost due to refresh/navigation)
+      // Detect and mark interrupted generations
       const TWO_MINUTES_MS = 2 * 60 * 1000;
       const now = Date.now();
-      
+
       for (const msg of messages) {
         if (
-          msg.role === 'assistant' && 
+          msg.role === 'assistant' &&
           msg.metadata?.generationStatus === 'generating' &&
-          (now - msg.timestamp) > TWO_MINUTES_MS
+          now - msg.timestamp > TWO_MINUTES_MS
         ) {
-          msg.metadata = { 
-            ...msg.metadata, 
-            generationStatus: 'interrupted' 
-          };
-          
-          // Also update in DB so it stays interrupted
+          msg.metadata = { ...msg.metadata, generationStatus: 'interrupted' };
+
+          // Fire-and-forget DB update
           supabase.from('messages')
             .update({ metadata: msg.metadata })
             .eq('id', msg.id)
             .eq('conversation_id', conversationId)
-            .then(() => {
-              console.log('[loadConversation] Marked interrupted message:', msg.id);
-            });
+            .then(() => {});
         }
       }
 
@@ -157,18 +170,19 @@ export const useConversations = () => {
           conversation_id: conversationId,
           role: message.role,
           content: message.content,
-          metadata: message.metadata
+          metadata: message.metadata,
         });
 
       if (error) throw error;
 
-      // Update conversation's updated_at
+      // Update conversation timestamp
       await supabase
         .from('conversations')
         .update({ updated_at: new Date().toISOString() })
         .eq('id', conversationId);
 
-      await fetchConversations();
+      // Debounced refresh instead of immediate
+      debouncedFetch();
     } catch (error) {
       console.error('Error saving message:', error);
     }
@@ -183,11 +197,13 @@ export const useConversations = () => {
 
       if (error) throw error;
 
-      await fetchConversations();
-      
-      toast({
-        description: 'Conversation deleted',
-      });
+      // Evict from LRU cache
+      evictFromCache(conversationId);
+
+      // Optimistic removal from list
+      setConversations(prev => prev.filter(c => c.id !== conversationId));
+
+      toast({ description: 'Conversation deleted' });
     } catch (error) {
       console.error('Error deleting conversation:', error);
       toast({
@@ -200,18 +216,20 @@ export const useConversations = () => {
 
   const renameConversation = async (conversationId: string, newTitle: string) => {
     try {
+      const trimmed = newTitle.trim();
       const { error } = await supabase
         .from('conversations')
-        .update({ title: newTitle.trim() })
+        .update({ title: trimmed })
         .eq('id', conversationId);
 
       if (error) throw error;
 
-      await fetchConversations();
-      
-      toast({
-        description: 'Conversation renamed',
-      });
+      // Optimistic local update
+      setConversations(prev =>
+        prev.map(c => c.id === conversationId ? { ...c, title: trimmed } : c)
+      );
+
+      toast({ description: 'Conversation renamed' });
     } catch (error) {
       console.error('Error renaming conversation:', error);
       toast({
@@ -226,10 +244,8 @@ export const useConversations = () => {
     try {
       const shareUrl = `${window.location.origin}/chat/${conversationId}`;
       await navigator.clipboard.writeText(shareUrl);
-      
-      toast({
-        description: 'Link copied to clipboard',
-      });
+
+      toast({ description: 'Link copied to clipboard' });
     } catch (error) {
       console.error('Error sharing conversation:', error);
       toast({
@@ -240,14 +256,15 @@ export const useConversations = () => {
     }
   };
 
+  // Initial fetch
   useEffect(() => {
     fetchConversations();
-  }, [user]);
+  }, [fetchConversations]);
 
+  // Realtime subscription — debounced to prevent rapid re-fetches
   useEffect(() => {
     if (!user) return;
 
-    // Set up realtime subscription to automatically refresh when conversations change
     const channel = supabase
       .channel('conversations-changes')
       .on(
@@ -256,18 +273,19 @@ export const useConversations = () => {
           event: '*',
           schema: 'public',
           table: 'conversations',
-          filter: `user_id=eq.${user.id}`
+          filter: `user_id=eq.${user.id}`,
         },
         () => {
-          fetchConversations();
+          debouncedFetch();
         }
       )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
+      if (debounceTimer) clearTimeout(debounceTimer);
     };
-  }, [user]);
+  }, [user, debouncedFetch]);
 
   return {
     conversations,
@@ -278,6 +296,6 @@ export const useConversations = () => {
     deleteConversation,
     renameConversation,
     shareConversation,
-    refreshConversations: fetchConversations
+    refreshConversations: fetchConversations,
   };
 };

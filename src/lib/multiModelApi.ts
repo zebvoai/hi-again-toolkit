@@ -2,21 +2,25 @@ import type { Mode, Message, MultiModelChatResponse, MultiModelContent } from '@
 
 const API_BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
 
-// Sanitize conversation history for API calls - converts multi-model object content to string
+// Maximum recent messages to send as context
+const MAX_HISTORY_MESSAGES = 20;
+
+// Sanitize & truncate conversation history for API calls
 const sanitizeHistoryForAPI = (history: Message[]): { role: string; content: string }[] => {
-  return history.map(msg => {
+  const recent = history.slice(-MAX_HISTORY_MESSAGES);
+
+  return recent.map(msg => {
     let content: string;
-    
+
     if (typeof msg.content === 'string') {
       content = msg.content;
     } else if (typeof msg.content === 'object' && msg.content !== null && !Array.isArray(msg.content)) {
-      // Multi-model response object - extract first model's response
       const values = Object.values(msg.content);
       content = typeof values[0] === 'string' ? values[0] : '';
     } else {
       content = '';
     }
-    
+
     return { role: msg.role, content };
   });
 };
