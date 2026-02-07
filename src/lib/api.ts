@@ -106,14 +106,14 @@ export const api = {
     return response.json();
   },
   
-  async generateImage(prompt: string, provider?: Provider, model?: string, signal?: AbortSignal, sourceImage?: string): Promise<ImageResponse> {
+  async generateImage(prompt: string, provider?: Provider, model?: string, signal?: AbortSignal, sourceImage?: string, width?: number, height?: number): Promise<ImageResponse> {
     const response = await fetch(`${API_BASE}/image`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`
       },
-      body: JSON.stringify({ prompt, provider, model, sourceImage }),
+      body: JSON.stringify({ prompt, provider, model, sourceImage, width, height }),
       signal
     });
     

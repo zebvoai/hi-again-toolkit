@@ -10,7 +10,54 @@ interface ImageRequest {
   provider?: string;
   model?: string;
   sourceImage?: string; // URL of source image for image-to-image
+  width?: number;
+  height?: number;
 }
+
+// Available dimensions for each model (width x height)
+const AVAILABLE_SIZES = [
+  { w: 512, h: 512 },
+  { w: 768, h: 768 },
+  { w: 1024, h: 1024 },
+  { w: 1280, h: 720 },
+  { w: 720, h: 1280 },
+  { w: 1920, h: 1080 },
+  { w: 1080, h: 1920 },
+  { w: 1536, h: 1024 },
+  { w: 1024, h: 1536 },
+];
+
+// Find closest available size to requested dimensions
+const getClosestSize = (width?: number, height?: number): { w: number; h: number } => {
+  if (!width || !height) {
+    return { w: 1024, h: 1024 }; // Default 1:1
+  }
+  
+  let closest = AVAILABLE_SIZES[0];
+  let minDiff = Infinity;
+  
+  for (const size of AVAILABLE_SIZES) {
+    const diff = Math.abs(size.w - width) + Math.abs(size.h - height);
+    if (diff < minDiff) {
+      minDiff = diff;
+      closest = size;
+    }
+  }
+  
+  return closest;
+};
+
+// Get aspect ratio string from dimensions
+const getAspectRatio = (w: number, h: number): string => {
+  if (w === h) return '1:1';
+  if (w === 1280 && h === 720) return '16:9';
+  if (w === 720 && h === 1280) return '9:16';
+  if (w === 1920 && h === 1080) return '16:9';
+  if (w === 1080 && h === 1920) return '9:16';
+  if (w === 1536 && h === 1024) return '3:2';
+  if (w === 1024 && h === 1536) return '2:3';
+  return '1:1';
+};
 
 // Fixed list of 7 image models with their Wavespeed API paths
 const TEXT_TO_IMAGE_MAPPING: Record<string, string> = {
@@ -34,20 +81,23 @@ const IMAGE_EDIT_MAPPING: Record<string, string> = {
   'qwen-image': 'wavespeed-ai/qwen-image/edit-2511',
 };
 
-// Model-specific request body configurations - ALL use 1:1 square aspect ratio
-const getTextToImageBody = (modelKey: string, prompt: string) => {
+// Model-specific request body configurations - supports custom dimensions
+const getTextToImageBody = (modelKey: string, prompt: string, size: { w: number; h: number }) => {
+  const aspectRatio = getAspectRatio(size.w, size.h);
+  const sizeStr = `${size.w}*${size.h}`;
+  
   switch (modelKey) {
     case 'vidu-q2':
       return {
         prompt,
-        aspect_ratio: '1:1',
+        aspect_ratio: aspectRatio,
         resolution: '1080p',
         seed: -1,
       };
     case 'grok-imagine':
       return {
         prompt,
-        aspect_ratio: '1:1',
+        aspect_ratio: aspectRatio,
         num_images: 1,
         enable_sync_mode: false,
         enable_base64_output: false,
@@ -55,7 +105,7 @@ const getTextToImageBody = (modelKey: string, prompt: string) => {
     case 'nano-banana-pro':
       return {
         prompt,
-        aspect_ratio: '1:1',
+        aspect_ratio: aspectRatio,
         resolution: '1k',
         output_format: 'png',
         enable_sync_mode: true,
@@ -64,8 +114,8 @@ const getTextToImageBody = (modelKey: string, prompt: string) => {
     case 'gpt-image-1.5':
       return {
         prompt,
-        aspect_ratio: '1:1',
-        size: '1024*1024',
+        aspect_ratio: aspectRatio,
+        size: sizeStr,
         quality: 'medium',
         output_format: 'jpeg',
         enable_sync_mode: true,
@@ -74,8 +124,8 @@ const getTextToImageBody = (modelKey: string, prompt: string) => {
     case 'minimax-image-01':
       return {
         prompt,
-        aspect_ratio: '1:1',
-        size: '1024*1024',
+        aspect_ratio: aspectRatio,
+        size: sizeStr,
         num_images: 1,
         prompt_optimizer: false,
         enable_sync_mode: true,
@@ -84,8 +134,8 @@ const getTextToImageBody = (modelKey: string, prompt: string) => {
     case 'qwen-image':
       return {
         prompt,
-        aspect_ratio: '1:1',
-        size: '1024*1024',
+        aspect_ratio: aspectRatio,
+        size: sizeStr,
         seed: -1,
         output_format: 'jpeg',
         enable_sync_mode: true,
@@ -94,8 +144,8 @@ const getTextToImageBody = (modelKey: string, prompt: string) => {
     case 'wan-2.6':
       return {
         prompt,
-        aspect_ratio: '1:1',
-        size: '1024*1024',
+        aspect_ratio: aspectRatio,
+        size: sizeStr,
         enable_prompt_expansion: false,
         seed: -1,
         enable_sync_mode: true,
@@ -103,8 +153,8 @@ const getTextToImageBody = (modelKey: string, prompt: string) => {
     default:
       return {
         prompt,
-        aspect_ratio: '1:1',
-        size: '1024*1024',
+        aspect_ratio: aspectRatio,
+        size: sizeStr,
         enable_sync_mode: true,
       };
   }
@@ -206,13 +256,17 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, model, sourceImage }: ImageRequest = await req.json();
+    const { prompt, model, sourceImage, width, height }: ImageRequest = await req.json();
     
     const hasSourceImage = !!sourceImage;
+    const size = getClosestSize(width, height);
+    
     console.log('Image generation request:', { 
       prompt, 
       model, 
       hasSourceImage,
+      requestedSize: width && height ? `${width}x${height}` : 'default',
+      resolvedSize: `${size.w}x${size.h}`,
       sourceImage: sourceImage ? sourceImage.substring(0, 50) + '...' : null 
     });
     
@@ -259,7 +313,7 @@ serve(async (req) => {
     // Get appropriate request body based on mode
     const requestBody = useEditMode
       ? getImageEditBody(modelKey, prompt, sourceImage!)
-      : getTextToImageBody(modelKey, prompt);
+      : getTextToImageBody(modelKey, prompt, size);
     
     console.log('Request body:', JSON.stringify(requestBody));
     
