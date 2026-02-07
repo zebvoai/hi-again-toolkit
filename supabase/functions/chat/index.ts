@@ -375,6 +375,127 @@ const sanitizeHistory = (history: Message[]): Message[] => {
   });
 };
 
+// Pre-analyze images with a fast vision model so non-vision models can use the description
+async function getVisionProxyDescription(imageUrls: string[], userMessage: string): Promise<string> {
+  // Use Gemini 2.5 Flash (fast & cheap) as the proxy vision model
+  const lovableKey = Deno.env.get('LOVABLE_API_KEY') || '';
+  
+  if (!lovableKey) {
+    console.log('[Vision Proxy] No LOVABLE_API_KEY, trying OpenRouter Claude');
+    // Fallback to Claude via OpenRouter
+    const openrouterKey = Deno.env.get('OPENROUTER_API_KEY') || '';
+    if (!openrouterKey) return '[Image attached but could not be analyzed]';
+    
+    try {
+      const content = createVisionContent(
+        'Describe this image in comprehensive detail. Include all visible text, objects, colors, layout, UI elements, diagrams, charts, or any other notable content. Be thorough and specific.',
+        imageUrls
+      );
+      
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openrouterKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://lovable.dev',
+          'X-Title': 'Lovable AI'
+        },
+        body: JSON.stringify({
+          model: 'anthropic/claude-sonnet-4',
+          messages: [
+            { role: 'system', content: 'You are an image analysis assistant. Provide a detailed, factual description of the image(s).' },
+            { role: 'user', content }
+          ],
+          max_tokens: 1500
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const desc = data.choices?.[0]?.message?.content || '';
+        if (desc) {
+          console.log('[Vision Proxy] Got description via Claude, length:', desc.length);
+          return desc;
+        }
+      }
+    } catch (e) {
+      console.error('[Vision Proxy] Claude fallback failed:', e);
+    }
+    return '[Image attached but could not be analyzed]';
+  }
+  
+  try {
+    const content = createVisionContent(
+      'Describe this image in comprehensive detail. Include all visible text, objects, colors, layout, UI elements, diagrams, charts, or any other notable content. Be thorough and specific.',
+      imageUrls
+    );
+    
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${lovableKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          { role: 'system', content: 'You are an image analysis assistant. Provide a detailed, factual description of the image(s).' },
+          { role: 'user', content }
+        ],
+        max_tokens: 1500
+      })
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      const desc = data.choices?.[0]?.message?.content || '';
+      if (desc) {
+        console.log('[Vision Proxy] Got description via Gemini Flash, length:', desc.length);
+        return desc;
+      }
+    } else {
+      console.error('[Vision Proxy] Gemini Flash failed:', response.status);
+      // Try Claude as fallback
+      const openrouterKey = Deno.env.get('OPENROUTER_API_KEY') || '';
+      if (openrouterKey) {
+        const content2 = createVisionContent(
+          'Describe this image in comprehensive detail.',
+          imageUrls
+        );
+        const resp2 = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openrouterKey}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://lovable.dev',
+            'X-Title': 'Lovable AI'
+          },
+          body: JSON.stringify({
+            model: 'anthropic/claude-sonnet-4',
+            messages: [
+              { role: 'system', content: 'You are an image analysis assistant. Provide a detailed, factual description of the image(s).' },
+              { role: 'user', content: content2 }
+            ],
+            max_tokens: 1500
+          })
+        });
+        if (resp2.ok) {
+          const data2 = await resp2.json();
+          const desc2 = data2.choices?.[0]?.message?.content || '';
+          if (desc2) {
+            console.log('[Vision Proxy] Got description via Claude fallback, length:', desc2.length);
+            return desc2;
+          }
+        }
+      }
+    }
+  } catch (e) {
+    console.error('[Vision Proxy] Error:', e);
+  }
+  
+  return '[Image attached but could not be analyzed]';
+}
+
 // Multi-model request handler with vision support
 async function handleMultiModelRequest(
   message: string,
@@ -403,16 +524,24 @@ async function handleMultiModelRequest(
     }
   }
   
-  // If images are attached, we still respond from ALL selected models.
-  // Vision-capable models will receive multimodal content; non-vision models get text + attachment references.
-  let effectiveModels = models;
+  // For non-vision models with image attachments: pre-analyze images silently
+  // This runs once and the description is reused for all non-vision models
+  let visionProxyDescription = '';
+  const effectiveModels = models;
   if (hasImages) {
     const visionModels = models.filter(isVisionCapable);
     const nonVisionModels = models.filter((m) => !isVisionCapable(m));
-    console.log(`[Vision] Attachments detected. Vision models: ${visionModels.length}, non-vision models: ${nonVisionModels.length}`);
+    console.log(`[Vision] Attachments detected. Vision: ${visionModels.length}, non-vision: ${nonVisionModels.length}`);
+    
+    // Only pre-analyze if there are non-vision models that need the description
+    if (nonVisionModels.length > 0) {
+      console.log('[Vision Proxy] Pre-analyzing images for non-vision models...');
+      visionProxyDescription = await getVisionProxyDescription(imageUrls, message);
+      console.log('[Vision Proxy] Description ready, length:', visionProxyDescription.length);
+    }
   }
   
-  // Helper to create user message content with attachments for vision models
+  // Helper to create user message content with attachments
   const createUserContent = (text: string, fileUrls: string[], isVisionModel: boolean): any => {
     const images = fileUrls.filter(isImageUrl);
     const otherFiles = fileUrls.filter(url => !isImageUrl(url));
@@ -432,7 +561,7 @@ async function handleMultiModelRequest(
       return content;
     }
     
-    // For text-only or non-vision models, use simple string
+    // For text-only or non-vision models with proxy description
     if (fileUrls.length === 0) return enhancedText;
     
     let textContent = enhancedText;
@@ -440,9 +569,9 @@ async function handleMultiModelRequest(
       textContent += `\n\n[Attached file: ${url}]`;
     }
     
-    // Note about images if present but model can't process them
-    if (images.length > 0 && !isVisionModel) {
-      textContent += `\n\n[Note: ${images.length} image(s) attached but this model cannot process images]`;
+    // For non-vision models: inject the pre-analyzed image description instead of raw image URLs
+    if (images.length > 0 && !isVisionModel && visionProxyDescription) {
+      textContent += `\n\n=== IMAGE ANALYSIS ===\nThe following is a detailed description of the ${images.length} attached image(s), analyzed by a vision AI:\n\n${visionProxyDescription}\n=== END IMAGE ANALYSIS ===\n\nPlease use this image description to answer the user's question. Respond as if you can see the image yourself.`;
     }
     
     return textContent;
