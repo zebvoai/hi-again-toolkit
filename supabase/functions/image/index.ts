@@ -147,6 +147,7 @@ const TEXT_TO_IMAGE_MAPPING: Record<string, string> = {
   'minimax-image-01': 'minimax/image-01/text-to-image',
   'qwen-image': 'wavespeed-ai/qwen-image/text-to-image',
   'grok-imagine': 'x-ai/grok-imagine-image/text-to-image',
+  'seedream-v4.5': 'bytedance/seedream-v4.5', // Fallback model
 };
 
 // Image editing model mappings - models with actual editing endpoints
@@ -158,6 +159,12 @@ const IMAGE_EDIT_MAPPING: Record<string, string> = {
   'gpt-image-1.5': 'openai/gpt-image-1.5/edit',
   'minimax-image-01': 'minimax/image-01/image-to-image',
   'qwen-image': 'wavespeed-ai/qwen-image/edit-2511',
+  'seedream-v4.5': 'bytedance/seedream-v4.5/edit', // Fallback model
+};
+
+// Fallback mappings: if a model fails, try this one instead
+const FALLBACK_MODEL: Record<string, string> = {
+  'nano-banana-pro': 'seedream-v4.5',
 };
 
 // Model-specific request body configurations - supports custom dimensions
@@ -228,6 +235,13 @@ const getTextToImageBody = (modelKey: string, prompt: string, size: { w: number;
         enable_prompt_expansion: false,
         seed: -1,
         enable_sync_mode: true,
+      };
+    case 'seedream-v4.5':
+      return {
+        prompt,
+        size: sizeStr,
+        enable_sync_mode: false,
+        enable_base64_output: false,
       };
     default:
       return {
@@ -304,6 +318,13 @@ const getImageEditBody = (modelKey: string, prompt: string, sourceImage: string)
         enable_sync_mode: false,
         enable_base64_output: false,
       };
+    case 'seedream-v4.5':
+      return {
+        prompt,
+        images: [sourceImage],
+        enable_sync_mode: false,
+        enable_base64_output: false,
+      };
     default:
       return {
         prompt,
@@ -329,6 +350,116 @@ const getModelTimeoutConfig = (modelKey: string): { maxAttempts: number; interva
   }
 };
 
+// Core image generation function - returns imageUrl or throws error
+async function generateImage(
+  modelKey: string,
+  prompt: string,
+  size: { w: number; h: number },
+  sourceImage: string | undefined,
+  wavespeedApiKey: string
+): Promise<{ imageUrl: string; usedModel: string }> {
+  const hasSourceImage = !!sourceImage;
+  
+  const textToImagePath = TEXT_TO_IMAGE_MAPPING[modelKey];
+  if (!textToImagePath) {
+    throw new Error(`Unknown model: ${modelKey}`);
+  }
+  
+  const editPath = hasSourceImage ? IMAGE_EDIT_MAPPING[modelKey] : null;
+  const useEditMode = hasSourceImage && editPath;
+  const finalApiPath = useEditMode ? editPath : textToImagePath;
+  
+  console.log(`[${modelKey}] Using path:`, finalApiPath, useEditMode ? '(image-edit)' : '(text-to-image)');
+  
+  const requestBody = useEditMode
+    ? getImageEditBody(modelKey, prompt, sourceImage!)
+    : getTextToImageBody(modelKey, prompt, size);
+  
+  console.log(`[${modelKey}] Request body:`, JSON.stringify(requestBody));
+  
+  const apiUrl = `https://api.wavespeed.ai/api/v3/${finalApiPath}`;
+  const response = await fetch(apiUrl, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${wavespeedApiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(requestBody)
+  });
+  
+  const responseText = await response.text();
+  console.log(`[${modelKey}] Response status:`, response.status);
+  console.log(`[${modelKey}] Response:`, responseText);
+  
+  if (!response.ok) {
+    let errorMessage = `Image generation failed (${response.status})`;
+    try {
+      const errorJson = JSON.parse(responseText);
+      errorMessage = errorJson.message || errorJson.error || errorMessage;
+    } catch {
+      // Use default error message
+    }
+    throw new Error(errorMessage);
+  }
+  
+  const data = JSON.parse(responseText);
+  let imageUrl: string | null = null;
+  
+  // Sync mode: outputs directly in response
+  if (data.data?.outputs && data.data.outputs.length > 0) {
+    imageUrl = data.data.outputs[0];
+  }
+  // Check for immediate failure in response
+  else if (data.data?.status === 'failed') {
+    const errorMsg = data.data?.error || 'Image generation failed';
+    throw new Error(errorMsg);
+  }
+  // Async mode: need to poll for result
+  else if (data.data?.id) {
+    const taskId = data.data.id;
+    console.log(`[${modelKey}] Got task ID, polling:`, taskId);
+    
+    const timeoutConfig = getModelTimeoutConfig(modelKey);
+    for (let attempt = 0; attempt < timeoutConfig.maxAttempts; attempt++) {
+      await new Promise(resolve => setTimeout(resolve, timeoutConfig.interval));
+      
+      const resultResponse = await fetch(
+        `https://api.wavespeed.ai/api/v3/predictions/${taskId}/result`,
+        {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${wavespeedApiKey}` }
+        }
+      );
+      
+      const resultText = await resultResponse.text();
+      console.log(`[${modelKey}] Poll ${attempt + 1}:`, resultText);
+      
+      if (!resultResponse.ok) continue;
+      
+      const resultData = JSON.parse(resultText);
+      
+      if (resultData.data?.status === 'completed' && resultData.data?.outputs?.length > 0) {
+        imageUrl = resultData.data.outputs[0];
+        break;
+      } else if (resultData.data?.status === 'failed') {
+        const errorMsg = resultData.data?.error || 'Image generation failed';
+        throw new Error(errorMsg);
+      }
+    }
+    
+    if (!imageUrl) {
+      throw new Error(`Timeout: ${modelKey} took too long`);
+    }
+  }
+  
+  if (!imageUrl) {
+    throw new Error('No image returned from API');
+  }
+  
+  console.log(`[${modelKey}] Final image URL:`, imageUrl);
+  return { imageUrl, usedModel: modelKey };
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -349,171 +480,58 @@ serve(async (req) => {
       sourceImage: sourceImage ? sourceImage.substring(0, 50) + '...' : null 
     });
     
-    // Map display name to API model path
     const modelKey = model?.toLowerCase().replace(/\s+/g, '-') || 'nano-banana-pro';
     
-    // Check if text-to-image model exists
-    const textToImagePath = TEXT_TO_IMAGE_MAPPING[modelKey];
-    if (!textToImagePath) {
+    // Check if model exists
+    if (!TEXT_TO_IMAGE_MAPPING[modelKey]) {
       console.error(`Unknown model: ${model} (key: ${modelKey})`);
       return new Response(
         JSON.stringify({ 
           error: `Unknown image model: ${model}. Available models: ${Object.keys(TEXT_TO_IMAGE_MAPPING).join(', ')}`
         }),
-        { 
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
     
-    // Check if this model has an edit endpoint when source image provided
-    const editPath = hasSourceImage ? IMAGE_EDIT_MAPPING[modelKey] : null;
-    const useEditMode = hasSourceImage && editPath;
-    
-    // If user provided image but model doesn't support editing, fall back to text-to-image
-    if (hasSourceImage && !editPath) {
-      console.log(`Model ${modelKey} doesn't support image editing, using text-to-image with enhanced prompt`);
-    }
-    
-    const finalApiPath = useEditMode ? editPath : textToImagePath;
-    console.log('Using Wavespeed model path:', finalApiPath, useEditMode ? '(image-edit)' : '(text-to-image)');
-    
     const wavespeedApiKey = Deno.env.get('WAVESPEED_API_KEY');
-    
     if (!wavespeedApiKey) {
       throw new Error('WAVESPEED_API_KEY not configured');
     }
     
-    // Call Wavespeed API for image generation
-    const apiUrl = `https://api.wavespeed.ai/api/v3/${finalApiPath}`;
-    console.log('Calling Wavespeed API:', apiUrl);
+    let result: { imageUrl: string; usedModel: string };
     
-    // Get appropriate request body based on mode
-    const requestBody = useEditMode
-      ? getImageEditBody(modelKey, prompt, sourceImage!)
-      : getTextToImageBody(modelKey, prompt, size);
-    
-    console.log('Request body:', JSON.stringify(requestBody));
-    
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${wavespeedApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody)
-    });
-    
-    const responseText = await response.text();
-    console.log('Wavespeed response status:', response.status);
-    console.log('Wavespeed response:', responseText);
-    
-    if (!response.ok) {
-      console.error('Wavespeed image error:', response.status, responseText);
+    try {
+      // Try primary model
+      result = await generateImage(modelKey, prompt, size, sourceImage, wavespeedApiKey);
+    } catch (primaryError) {
+      const fallbackModelKey = FALLBACK_MODEL[modelKey];
       
-      let errorMessage = `Image generation failed (${response.status})`;
-      try {
-        const errorJson = JSON.parse(responseText);
-        errorMessage = errorJson.message || errorJson.error || errorMessage;
-      } catch {
-        // Use default error message
-      }
-      
-      throw new Error(errorMessage);
-    }
-    
-    const data = JSON.parse(responseText);
-    console.log('Image generation response:', JSON.stringify(data));
-    
-    // Extract image URL from response
-    let imageUrl: string | null = null;
-    
-    // Sync mode: outputs directly in response
-    if (data.data?.outputs && data.data.outputs.length > 0) {
-      imageUrl = data.data.outputs[0];
-    }
-    // Async mode: need to poll for result
-    else if (data.data?.id) {
-      const taskId = data.data.id;
-      console.log('Got task ID, polling for result:', taskId);
-      
-      // Poll for result with model-specific timeout
-      const timeoutConfig = getModelTimeoutConfig(modelKey);
-      const maxAttempts = timeoutConfig.maxAttempts;
-      for (let attempt = 0; attempt < maxAttempts; attempt++) {
-        await new Promise(resolve => setTimeout(resolve, timeoutConfig.interval));
+      if (fallbackModelKey && TEXT_TO_IMAGE_MAPPING[fallbackModelKey]) {
+        console.log(`[${modelKey}] Failed, trying fallback: ${fallbackModelKey}`);
+        console.log(`[${modelKey}] Error was:`, primaryError instanceof Error ? primaryError.message : primaryError);
         
-        const resultResponse = await fetch(
-          `https://api.wavespeed.ai/api/v3/predictions/${taskId}/result`,
-          {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${wavespeedApiKey}`,
-            }
-          }
-        );
-        
-        const resultText = await resultResponse.text();
-        console.log(`Poll attempt ${attempt + 1}:`, resultText);
-        
-        if (!resultResponse.ok) {
-          continue;
+        try {
+          result = await generateImage(fallbackModelKey, prompt, size, sourceImage, wavespeedApiKey);
+          console.log(`[${fallbackModelKey}] Fallback succeeded`);
+        } catch (fallbackError) {
+          console.error(`[${fallbackModelKey}] Fallback also failed:`, fallbackError);
+          // Re-throw the original error since both failed
+          throw primaryError;
         }
-        
-        const resultData = JSON.parse(resultText);
-        
-        if (resultData.data?.status === 'completed' && resultData.data?.outputs?.length > 0) {
-          imageUrl = resultData.data.outputs[0];
-          break;
-        } else if (resultData.data?.status === 'failed') {
-          const errorMsg = resultData.data?.error || 'Image generation failed';
-          throw new Error(errorMsg);
-        }
-      }
-      
-      // If we exhausted all attempts without getting an image
-      if (!imageUrl) {
-        console.error('Polling timeout - model still processing after max attempts');
-        return new Response(
-          JSON.stringify({ 
-            error: `Image generation timed out. The ${model || 'selected'} model is taking longer than expected. Please try again or select a different model.`,
-            errorCode: 'timeout'
-          }),
-          { 
-            status: 504,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          }
-        );
+      } else {
+        // No fallback available, re-throw
+        throw primaryError;
       }
     }
-    
-    if (!imageUrl) {
-      console.error('No image URL in response:', data);
-      return new Response(
-        JSON.stringify({ 
-          error: 'No image returned from API. The model may be experiencing issues. Please try a different model.',
-          errorCode: 'no_output'
-        }),
-        { 
-          status: 502,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
-    }
-    
-    console.log('Final image URL:', imageUrl);
     
     return new Response(
       JSON.stringify({
-        imageUrl,
+        imageUrl: result.imageUrl,
         revisedPrompt: prompt,
-        model: model || 'Nano Banana Pro',
-        isImageEdit: useEditMode
+        model: result.usedModel === modelKey ? (model || 'Nano Banana Pro') : `${result.usedModel} (fallback)`,
+        isImageEdit: !!sourceImage
       }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
     
   } catch (error) {
@@ -522,10 +540,7 @@ serve(async (req) => {
       JSON.stringify({ 
         error: error instanceof Error ? error.message : 'Unknown error' 
       }),
-      { 
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
