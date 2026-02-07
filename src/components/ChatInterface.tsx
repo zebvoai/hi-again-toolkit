@@ -421,7 +421,7 @@ export function ChatInterface() {
         left: isMobile ? 0 : isSidebarExpanded ? 280 : 60
       }}>
         <div className="w-full px-3 sm:px-6 lg:px-8 py-2 sm:py-4">
-          <form onSubmit={handleSubmit} key={selectedMode} className="animate-scale-in">
+          <form onSubmit={handleSubmit}>
             {/* Mode Dropdown */}
             <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-2 sm:mb-3">
               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
