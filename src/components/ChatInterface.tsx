@@ -270,14 +270,14 @@ export function ChatInterface() {
   // Handler for when user tries to send (via Enter key or button)
   // Shows confirmation dialog for deep research mode
   const handleTrySend = useCallback(() => {
-    if (!input.trim() || isLoading || selectedModels.length === 0) return;
+    if (!input.trim() || isCurrentConversationLoading || selectedModels.length === 0) return;
     
     if (selectedMode === 'research') {
       setShowDeepResearchConfirm(true);
     } else {
       handleSendMessage();
     }
-  }, [input, isLoading, selectedModels.length, selectedMode, handleSendMessage]);
+  }, [input, isCurrentConversationLoading, selectedModels.length, selectedMode, handleSendMessage]);
 
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
