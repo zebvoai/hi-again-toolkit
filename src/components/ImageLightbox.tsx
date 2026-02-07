@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { X, Download, ZoomIn, ZoomOut, RotateCw, Maximize2 } from 'lucide-react';
+import { X, Download, ZoomIn, ZoomOut, RotateCw, Maximize2, Copy, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { copyImageToClipboard } from '@/hooks/useImagePaste';
 
 interface ImageLightboxProps {
   src: string;
@@ -14,6 +15,7 @@ export function ImageLightbox({ src, alt, onClose, modelName }: ImageLightboxPro
   const [scale, setScale] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
 
   // Close on escape key
   useEffect(() => {
@@ -54,6 +56,17 @@ export function ImageLightbox({ src, alt, onClose, modelName }: ImageLightboxPro
     }
   }, [src, modelName]);
 
+  const handleCopy = useCallback(async () => {
+    setCopied(true);
+    const success = await copyImageToClipboard(src);
+    if (success) {
+      toast.success('Image copied to clipboard');
+    } else {
+      toast.error('Failed to copy image');
+    }
+    setTimeout(() => setCopied(false), 2000);
+  }, [src]);
+
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
       onClose();
@@ -67,11 +80,11 @@ export function ImageLightbox({ src, alt, onClose, modelName }: ImageLightboxPro
 
   return (
     <div 
-      className="fixed inset-0 z-[100] flex items-center justify-center animate-in fade-in duration-200"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-8 sm:p-12 md:p-16 animate-in fade-in duration-200"
       onClick={handleBackdropClick}
     >
-      {/* Full opaque backdrop */}
-      <div className="absolute inset-0 bg-black" />
+      {/* Blurred backdrop - covers everything including model rail */}
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-xl" />
       
       {/* Model name badge - top left */}
       {modelName && (
@@ -118,6 +131,13 @@ export function ImageLightbox({ src, alt, onClose, modelName }: ImageLightboxPro
           
           <button
             className="w-9 h-9 rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+            onClick={handleCopy}
+            title="Copy to clipboard"
+          >
+            {copied ? <Check className="w-4.5 h-4.5 text-green-400" /> : <Copy className="w-4.5 h-4.5" />}
+          </button>
+          <button
+            className="w-9 h-9 rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 transition-colors"
             onClick={handleDownload}
             title="Download"
           >
@@ -133,8 +153,8 @@ export function ImageLightbox({ src, alt, onClose, modelName }: ImageLightboxPro
         </div>
       </div>
 
-      {/* Image container - centered */}
-      <div className="relative z-10 flex items-center justify-center p-12">
+      {/* Image container - centered with generous padding */}
+      <div className="relative z-10 flex items-center justify-center w-full h-full">
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-10 h-10 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -144,7 +164,7 @@ export function ImageLightbox({ src, alt, onClose, modelName }: ImageLightboxPro
           src={src}
           alt={alt || 'Image preview'}
           className={cn(
-            "max-w-[85vw] max-h-[85vh] object-contain rounded-lg transition-all duration-300 ease-out select-none",
+            "max-w-full max-h-full object-contain rounded-xl shadow-2xl transition-all duration-300 ease-out select-none",
             isLoading ? "opacity-0" : "opacity-100"
           )}
           style={{
