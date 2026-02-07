@@ -21,6 +21,7 @@ export interface Message {
     isImage?: boolean;
     isImageToImage?: boolean;
     attachments?: string[];
+    prompt?: string; // Original prompt for image/video generation
     // Deep Research specific metadata
     researchStatus?: 'searching' | 'reading' | 'reasoning' | 'synthesizing' | 'writing' | 'complete';
     sourcesCount?: number;

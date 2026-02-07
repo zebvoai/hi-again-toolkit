@@ -122,7 +122,13 @@ export const Message = ({
       // Image multi-model - render full width like text multi-model
       return (
         <div className="w-full">
-          <MultiModelImageResponse content={multiContent} models={models} aspectRatio={message.metadata?.aspectRatio} />
+          <MultiModelImageResponse 
+            content={multiContent} 
+            models={models} 
+            aspectRatio={message.metadata?.aspectRatio}
+            prompt={message.metadata?.prompt}
+            onEditPrompt={onEdit ? (prompt) => onEdit(prompt) : undefined}
+          />
         </div>
       );
     }
@@ -302,7 +308,7 @@ export const Message = ({
           
           {/* Actions row */}
           <div className={`flex items-center gap-1 mt-1.5 ${isUser ? 'justify-end' : 'ml-0.5'} opacity-0 group-hover:opacity-100 transition-opacity duration-fast ease-gentle`}>
-            {/* User message: timestamp + edit */}
+            {/* User message: timestamp + copy + edit */}
             {isUser && !isEditing && (
               <>
                 {timeAgo && (
@@ -311,9 +317,16 @@ export const Message = ({
                   </span>
                 )}
                 <button
+                  onClick={copyMessage}
+                  className="w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground/60 hover:bg-accent/60 hover:text-foreground transition-all duration-fast ease-gentle active:scale-press"
+                  title={copied ? 'Copied!' : 'Copy prompt'}
+                >
+                  {copied ? <Check className="w-3 h-3 text-primary" /> : <Copy className="w-3 h-3" />}
+                </button>
+                <button
                   onClick={handleStartEdit}
                   className="w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground/60 hover:bg-accent/60 hover:text-foreground transition-all duration-fast ease-gentle active:scale-press"
-                  title="Edit message"
+                  title="Edit prompt"
                 >
                   <Pencil className="w-3 h-3" />
                 </button>

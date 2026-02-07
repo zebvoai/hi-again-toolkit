@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
-import { Download, AlertCircle, Copy, Check } from 'lucide-react';
+import { Download, AlertCircle, Copy, Check, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ImageLightbox } from '@/components/ImageLightbox';
@@ -13,6 +13,8 @@ interface MultiModelImageResponseProps {
   content: MultiModelContent;
   models: string[];
   aspectRatio?: string;
+  prompt?: string;
+  onEditPrompt?: (prompt: string) => void;
 }
 
 // Aspect ratio to CSS class mapping
@@ -56,12 +58,28 @@ const getModelStyle = (model: string): { bg: string; border: string } => {
   return { bg: 'bg-muted', border: 'border-border' };
 };
 
-export const MultiModelImageResponse = ({ content, models, aspectRatio }: MultiModelImageResponseProps) => {
+export const MultiModelImageResponse = ({ content, models, aspectRatio, prompt, onEditPrompt }: MultiModelImageResponseProps) => {
   const aspectClass = getAspectRatioClass(aspectRatio);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const [lightboxImage, setLightboxImage] = useState<{ url: string; model: string } | null>(null);
   const [copiedModel, setCopiedModel] = useState<string | null>(null);
+  const [copiedPrompt, setCopiedPrompt] = useState(false);
+
+  const handleCopyPrompt = () => {
+    if (prompt) {
+      navigator.clipboard.writeText(prompt);
+      setCopiedPrompt(true);
+      toast({ description: 'Prompt copied to clipboard', duration: 2000 });
+      setTimeout(() => setCopiedPrompt(false), 2000);
+    }
+  };
+
+  const handleEditPrompt = () => {
+    if (prompt && onEditPrompt) {
+      onEditPrompt(prompt);
+    }
+  };
 
   // Smooth horizontal scroll with mouse wheel
   useEffect(() => {
@@ -136,6 +154,35 @@ export const MultiModelImageResponse = ({ content, models, aspectRatio }: MultiM
           onClose={() => setLightboxImage(null)}
         />
       )}
+      {/* Prompt actions bar */}
+      {prompt && (
+        <div className="flex items-center gap-2 mb-3 px-1">
+          <span className="text-xs text-muted-foreground truncate flex-1 max-w-[300px]" title={prompt}>
+            "{prompt}"
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 px-2 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
+            onClick={handleCopyPrompt}
+          >
+            {copiedPrompt ? <Check className="w-3 h-3 text-primary" /> : <Copy className="w-3 h-3" />}
+            Copy
+          </Button>
+          {onEditPrompt && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
+              onClick={handleEditPrompt}
+            >
+              <Pencil className="w-3 h-3" />
+              Edit
+            </Button>
+          )}
+        </div>
+      )}
+      
       {/* Horizontal scroll container - full width, hidden scrollbar */}
       <div 
         ref={scrollRef}
