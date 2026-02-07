@@ -1,4 +1,5 @@
 import type { Message } from '@/types';
+import type { AspectRatio } from './components/AspectRatioSelector';
 
 export interface ChatState {
   messages: Message[];
@@ -8,6 +9,7 @@ export interface ChatState {
   selectedModels: string[];
   currentConversationId: string | null;
   selectedProjectId: string | null; // Track selected project for new chats
+  selectedAspectRatio: AspectRatio; // Track selected aspect ratio for image mode
   staleConversationIds: Set<string>; // Track conversations that need reloading from DB
   addMessage: (message: Message) => void;
   updateMessage: (id: string, updates: Partial<Message>) => void;
@@ -18,6 +20,7 @@ export interface ChatState {
   setMessages: (messages: Message[]) => void;
   setCurrentConversationId: (id: string | null) => void;
   setSelectedProjectId: (id: string | null) => void;
+  setSelectedAspectRatio: (ratio: AspectRatio) => void;
   markConversationStale: (id: string) => void;
   clearStaleConversation: (id: string) => void;
   isConversationStale: (id: string) => boolean;

@@ -122,7 +122,7 @@ export const Message = ({
       // Image multi-model - render full width like text multi-model
       return (
         <div className="w-full">
-          <MultiModelImageResponse content={multiContent} models={models} />
+          <MultiModelImageResponse content={multiContent} models={models} aspectRatio={message.metadata?.aspectRatio} />
         </div>
       );
     }

@@ -13,6 +13,7 @@ interface ImageRequest {
   width?: number;
   height?: number;
   size?: string; // Natural language size like "portrait", "landscape", "wide", "square"
+  aspectRatio?: string; // Explicit aspect ratio like "1:1", "16:9", "9:16", "3:2", "2:3"
 }
 
 // Available dimensions for each model (width x height)
@@ -472,10 +473,20 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, model, sourceImage, width, height, size: sizeStr }: ImageRequest = await req.json();
+    const { prompt, model, sourceImage, width, height, size: sizeStr, aspectRatio }: ImageRequest = await req.json();
     
     const hasSourceImage = !!sourceImage;
-    const size = getClosestSize(width, height, sizeStr);
+    
+    // Map aspect ratio to dimensions if provided
+    const aspectRatioSizeMap: Record<string, string> = {
+      '1:1': 'square',
+      '16:9': 'landscape hd',
+      '9:16': 'portrait hd',
+      '3:2': '3:2',
+      '2:3': '2:3',
+    };
+    const effectiveSizeStr = aspectRatio ? (aspectRatioSizeMap[aspectRatio] || sizeStr) : sizeStr;
+    const size = getClosestSize(width, height, effectiveSizeStr);
     
     console.log('Image generation request:', { 
       prompt, 
