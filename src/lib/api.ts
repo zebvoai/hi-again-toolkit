@@ -106,19 +106,20 @@ export const api = {
     return response.json();
   },
   
-  async generateImage(prompt: string, provider?: Provider, model?: string, signal?: AbortSignal): Promise<ImageResponse> {
+  async generateImage(prompt: string, provider?: Provider, model?: string, signal?: AbortSignal, sourceImage?: string): Promise<ImageResponse> {
     const response = await fetch(`${API_BASE}/image`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`
       },
-      body: JSON.stringify({ prompt, provider, model }),
+      body: JSON.stringify({ prompt, provider, model, sourceImage }),
       signal
     });
     
     if (!response.ok) {
-      throw new Error('Image generation failed');
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Image generation failed');
     }
     
     return response.json();

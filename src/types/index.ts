@@ -18,6 +18,7 @@ export interface Message {
     videoUrl?: string;
     error?: string;
     isImage?: boolean;
+    isImageToImage?: boolean;
     attachments?: string[];
     // Deep Research specific metadata
     researchStatus?: 'searching' | 'reading' | 'reasoning' | 'synthesizing' | 'writing' | 'complete';

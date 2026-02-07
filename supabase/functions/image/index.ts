@@ -9,10 +9,11 @@ interface ImageRequest {
   prompt: string;
   provider?: string;
   model?: string;
+  sourceImage?: string; // URL of source image for image-to-image
 }
 
 // Fixed list of 7 image models with their Wavespeed API paths
-const IMAGE_MODEL_MAPPING: Record<string, string> = {
+const TEXT_TO_IMAGE_MAPPING: Record<string, string> = {
   'vidu-q2': 'vidu/text-to-image-q2',
   'wan-2.6': 'alibaba/wan-2.6/text-to-image',
   'nano-banana-pro': 'google/nano-banana-pro/text-to-image',
@@ -22,8 +23,19 @@ const IMAGE_MODEL_MAPPING: Record<string, string> = {
   'grok-imagine': 'x-ai/grok-imagine-image/text-to-image',
 };
 
+// Image-to-image model mappings (for when source image is provided)
+const IMAGE_TO_IMAGE_MAPPING: Record<string, string> = {
+  'vidu-q2': 'vidu/img-to-img-q2', // Vidu image-to-image
+  'wan-2.6': 'alibaba/wan-2.6/image-to-image',
+  'nano-banana-pro': 'google/nano-banana-pro/image-to-image',
+  'gpt-image-1.5': 'openai/gpt-image-1.5/image-to-image',
+  'minimax-image-01': 'minimax/subject-driven-image-01', // MiniMax uses subject-driven for img2img
+  'qwen-image': 'wavespeed-ai/qwen-image/image-to-image',
+  'grok-imagine': 'x-ai/grok-imagine-image/image-to-image',
+};
+
 // Model-specific request body configurations - ALL use 1:1 square aspect ratio
-const getRequestBody = (modelKey: string, prompt: string) => {
+const getTextToImageBody = (modelKey: string, prompt: string) => {
   switch (modelKey) {
     case 'vidu-q2':
       return {
@@ -98,6 +110,94 @@ const getRequestBody = (modelKey: string, prompt: string) => {
   }
 };
 
+// Image-to-image request body configurations
+const getImageToImageBody = (modelKey: string, prompt: string, sourceImage: string) => {
+  switch (modelKey) {
+    case 'vidu-q2':
+      return {
+        prompt,
+        image: sourceImage,
+        aspect_ratio: '1:1',
+        resolution: '1080p',
+        strength: 0.75, // Controls how much the output deviates from the source
+        seed: -1,
+      };
+    case 'grok-imagine':
+      return {
+        prompt,
+        image: sourceImage,
+        aspect_ratio: '1:1',
+        strength: 0.75,
+        num_images: 1,
+        enable_sync_mode: false,
+        enable_base64_output: false,
+      };
+    case 'nano-banana-pro':
+      return {
+        prompt,
+        image: sourceImage,
+        aspect_ratio: '1:1',
+        resolution: '1k',
+        strength: 0.75,
+        output_format: 'png',
+        enable_sync_mode: true,
+        enable_base64_output: false,
+      };
+    case 'gpt-image-1.5':
+      return {
+        prompt,
+        image: sourceImage,
+        size: '1024*1024',
+        quality: 'medium',
+        output_format: 'jpeg',
+        enable_sync_mode: true,
+        enable_base64_output: false,
+      };
+    case 'minimax-image-01':
+      return {
+        prompt,
+        subject_image: sourceImage, // MiniMax uses subject_image for subject-driven
+        aspect_ratio: '1:1',
+        size: '1024*1024',
+        num_images: 1,
+        enable_sync_mode: true,
+        enable_base64_output: false,
+      };
+    case 'qwen-image':
+      return {
+        prompt,
+        image: sourceImage,
+        aspect_ratio: '1:1',
+        size: '1024*1024',
+        strength: 0.75,
+        seed: -1,
+        output_format: 'jpeg',
+        enable_sync_mode: true,
+        enable_base64_output: false,
+      };
+    case 'wan-2.6':
+      return {
+        prompt,
+        image: sourceImage,
+        aspect_ratio: '1:1',
+        size: '1024*1024',
+        strength: 0.75,
+        enable_prompt_expansion: false,
+        seed: -1,
+        enable_sync_mode: true,
+      };
+    default:
+      return {
+        prompt,
+        image: sourceImage,
+        aspect_ratio: '1:1',
+        size: '1024*1024',
+        strength: 0.75,
+        enable_sync_mode: true,
+      };
+  }
+};
+
 // Get timeout config for each model - some are slower than others
 const getModelTimeoutConfig = (modelKey: string): { maxAttempts: number; interval: number } => {
   switch (modelKey) {
@@ -119,28 +219,43 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, model }: ImageRequest = await req.json();
+    const { prompt, model, sourceImage }: ImageRequest = await req.json();
     
-    console.log('Image generation request:', { prompt, model });
+    const isImageToImage = !!sourceImage;
+    console.log('Image generation request:', { 
+      prompt, 
+      model, 
+      isImageToImage,
+      sourceImage: sourceImage ? sourceImage.substring(0, 50) + '...' : null 
+    });
     
     // Map display name to API model path
     const modelKey = model?.toLowerCase().replace(/\s+/g, '-') || 'nano-banana-pro';
-    const apiModelPath = IMAGE_MODEL_MAPPING[modelKey];
+    
+    // Choose the appropriate model mapping based on whether we have a source image
+    const modelMapping = isImageToImage ? IMAGE_TO_IMAGE_MAPPING : TEXT_TO_IMAGE_MAPPING;
+    const apiModelPath = modelMapping[modelKey];
     
     if (!apiModelPath) {
-      console.error(`Unknown model: ${model} (key: ${modelKey})`);
-      return new Response(
-        JSON.stringify({ 
-          error: `Unknown image model: ${model}. Available models: ${Object.keys(IMAGE_MODEL_MAPPING).join(', ')}`
-        }),
-        { 
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
+      // Fall back to text-to-image if no image-to-image model available
+      const fallbackPath = TEXT_TO_IMAGE_MAPPING[modelKey];
+      if (!fallbackPath) {
+        console.error(`Unknown model: ${model} (key: ${modelKey})`);
+        return new Response(
+          JSON.stringify({ 
+            error: `Unknown image model: ${model}. Available models: ${Object.keys(TEXT_TO_IMAGE_MAPPING).join(', ')}`
+          }),
+          { 
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        );
+      }
+      console.log('No image-to-image support for this model, falling back to text-to-image');
     }
     
-    console.log('Using Wavespeed model path:', apiModelPath);
+    const finalApiPath = apiModelPath || TEXT_TO_IMAGE_MAPPING[modelKey];
+    console.log('Using Wavespeed model path:', finalApiPath, isImageToImage ? '(image-to-image)' : '(text-to-image)');
     
     const wavespeedApiKey = Deno.env.get('WAVESPEED_API_KEY');
     
@@ -149,10 +264,14 @@ serve(async (req) => {
     }
     
     // Call Wavespeed API for image generation
-    const apiUrl = `https://api.wavespeed.ai/api/v3/${apiModelPath}`;
+    const apiUrl = `https://api.wavespeed.ai/api/v3/${finalApiPath}`;
     console.log('Calling Wavespeed API:', apiUrl);
     
-    const requestBody = getRequestBody(modelKey, prompt);
+    // Get appropriate request body based on mode
+    const requestBody = isImageToImage && apiModelPath
+      ? getImageToImageBody(modelKey, prompt, sourceImage)
+      : getTextToImageBody(modelKey, prompt);
+    
     console.log('Request body:', JSON.stringify(requestBody));
     
     const response = await fetch(apiUrl, {
@@ -267,7 +386,8 @@ serve(async (req) => {
       JSON.stringify({
         imageUrl,
         revisedPrompt: prompt,
-        model: model || 'Nano Banana Pro'
+        model: model || 'Nano Banana Pro',
+        isImageToImage
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
