@@ -490,7 +490,7 @@ export function AppSidebar() {
 
             {/* Standalone Chat History (chats not in any project) */}
             {isLoading ? (
-              <div className="text-[13px] text-[#8E8E93] text-center py-6">Loading...</div>
+              <div className="text-[13px] text-[#8E8E93] text-center py-6 animate-fade-in">Loading...</div>
             ) : standaloneConversations.length === 0 ? (
               <div className="text-[13px] text-[#8E8E93] text-center py-6">No standalone chats</div>
             ) : filteredConversations.length === 0 ? (
@@ -502,7 +502,7 @@ export function AppSidebar() {
                     <div className="flex items-center gap-2 px-2.5 py-1 text-[11px] font-semibold text-[#8E8E93] uppercase tracking-wider">
                       <span>{label}</span>
                     </div>
-                    <div className="space-y-0.5 pl-0.5">
+                    <div className="space-y-0.5 pl-0.5 stagger-sidebar">
                       {convs.map((conv) => (
                         <ConversationItem
                           key={conv.id}

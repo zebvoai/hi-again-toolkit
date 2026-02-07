@@ -126,7 +126,7 @@ export function ModelRail({ models, selectedModels, onToggle, onSelectAll, onCle
   return (
     <div 
       ref={railRef}
-      className="fixed top-0 right-0 bg-background/80 backdrop-blur-sm border-b border-border/30 z-10"
+      className="fixed top-0 right-0 bg-background/80 backdrop-blur-sm border-b border-border/30 z-10 animate-slide-down-fade"
       style={{ left: isMobile ? 0 : sidebarWidth + 8 + 48 }}
     >
       <div className={cn(
