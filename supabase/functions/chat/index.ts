@@ -42,12 +42,17 @@ async function fetchLiveContext(query: string): Promise<string | null> {
   
   try {
     console.log('[Live Data] Fetching live context for query:', query);
+    console.log('[Live Data] API Key present:', !!perplexityApiKey, 'Length:', perplexityApiKey.length);
+    
+    // Clean the API key - remove any whitespace or prefix if accidentally included
+    const cleanedApiKey = perplexityApiKey.trim().replace(/^Bearer\s+/i, '');
     
     const response = await fetch('https://api.perplexity.ai/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${perplexityApiKey}`,
+        'Authorization': `Bearer ${cleanedApiKey}`,
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
       body: JSON.stringify({
         model: 'sonar',
@@ -58,7 +63,6 @@ async function fetchLiveContext(query: string): Promise<string | null> {
           },
           { role: 'user', content: query }
         ],
-        search_recency_filter: 'day', // Get the most recent data
         max_tokens: 1000
       }),
     });
@@ -66,7 +70,10 @@ async function fetchLiveContext(query: string): Promise<string | null> {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('[Live Data] Perplexity API error:', response.status, errorText);
-      return null;
+      
+      // If Perplexity direct API fails, try using it via OpenRouter as fallback
+      console.log('[Live Data] Attempting fallback via OpenRouter...');
+      return await fetchLiveContextViaOpenRouter(query);
     }
     
     const data = await response.json();
@@ -82,13 +89,71 @@ async function fetchLiveContext(query: string): Promise<string | null> {
       
       liveContext += '\n=== END LIVE DATA ===\n\n';
       
-      console.log('[Live Data] Successfully fetched live context');
+      console.log('[Live Data] Successfully fetched live context via Perplexity');
       return liveContext;
     }
     
     return null;
   } catch (error) {
     console.error('[Live Data] Error fetching live context:', error);
+    // Fallback to OpenRouter
+    return await fetchLiveContextViaOpenRouter(query);
+  }
+}
+
+// Fallback: Fetch live context via OpenRouter's Perplexity Sonar
+async function fetchLiveContextViaOpenRouter(query: string): Promise<string | null> {
+  const openrouterApiKey = Deno.env.get('OPENROUTER_API_KEY');
+  
+  if (!openrouterApiKey) {
+    console.log('[Live Data Fallback] OPENROUTER_API_KEY not configured');
+    return null;
+  }
+  
+  try {
+    console.log('[Live Data Fallback] Fetching via OpenRouter perplexity/sonar');
+    
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openrouterApiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://lovable.dev',
+        'X-Title': 'Lovable AI'
+      },
+      body: JSON.stringify({
+        model: 'perplexity/sonar',
+        messages: [
+          { 
+            role: 'system', 
+            content: 'You are a search assistant with real-time internet access. Provide factual, up-to-date information with specific data points (numbers, dates, names). Be concise but comprehensive. Include the current date/time context when relevant.'
+          },
+          { role: 'user', content: query }
+        ],
+        max_tokens: 1000
+      }),
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[Live Data Fallback] OpenRouter API error:', response.status, errorText);
+      return null;
+    }
+    
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content;
+    
+    if (content) {
+      let liveContext = `\n\n=== LIVE WEB DATA (fetched just now) ===\n${content}`;
+      liveContext += '\n=== END LIVE DATA ===\n\n';
+      
+      console.log('[Live Data Fallback] Successfully fetched live context via OpenRouter');
+      return liveContext;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('[Live Data Fallback] Error:', error);
     return null;
   }
 }
@@ -424,8 +489,7 @@ async function handleMultiModelRequest(
             
             // Add live data instruction if we have context
             if (liveContext) {
-              baseSystemPrompt += '\n\nIMPORTANT: You have been provided with LIVE WEB DATA that was just fetched from the internet. Use this data to provide accurate, up-to-date responses. Always cite the sources when using this information.';
-            }
+              baseSystemPrompt += '\n\nCRITICAL INSTRUCTION: You have been provided with LIVE WEB DATA that was just fetched from the internet. This data is current and accurate. USE THIS DATA to answer the user\'s question. Do NOT say you cannot access real-time data or that your knowledge is limited - you HAVE the real-time data in this prompt. Present the information confidently as current facts. Always cite the sources when using this information.';
             
             const systemPrompt = zebvoIdentity + baseSystemPrompt;
             
