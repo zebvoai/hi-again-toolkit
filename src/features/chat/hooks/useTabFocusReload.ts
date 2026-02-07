@@ -39,6 +39,9 @@ export const useTabFocusReload = () => {
       const currentId = useChatStore.getState().currentConversationId;
       if (currentId !== conversationId) return;
       
+      const TWO_MINUTES_MS = 2 * 60 * 1000;
+      const now = Date.now();
+      
       const messages: Message[] = (data || []).map(msg => ({
         id: msg.id,
         role: msg.role as 'user' | 'assistant',
@@ -46,6 +49,17 @@ export const useTabFocusReload = () => {
         timestamp: new Date(msg.created_at).getTime(),
         metadata: (msg.metadata as any) || undefined,
       }));
+      
+      // Mark old generating messages as interrupted
+      for (const msg of messages) {
+        if (
+          msg.role === 'assistant' && 
+          msg.metadata?.generationStatus === 'generating' &&
+          (now - msg.timestamp) > TWO_MINUTES_MS
+        ) {
+          msg.metadata = { ...msg.metadata, generationStatus: 'interrupted' };
+        }
+      }
       
       setMessages(messages);
       clearStaleConversation(conversationId);

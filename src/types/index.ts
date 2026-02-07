@@ -27,6 +27,9 @@ export interface Message {
     sourcesCount?: number;
     citations?: Array<{ url: string; title: string; snippet?: string }>;
     isResearch?: boolean;
+    // Generation status tracking for persistence across refresh/navigation
+    generationStatus?: 'generating' | 'interrupted' | 'complete';
+    generationMode?: string; // Which mode was used (text, image, video, research)
   };
 }
 

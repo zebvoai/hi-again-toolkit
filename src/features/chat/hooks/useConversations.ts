@@ -101,13 +101,43 @@ export const useConversations = () => {
 
       if (error) throw error;
 
-      return data.map(msg => ({
+      const messages = data.map(msg => ({
         id: msg.id,
         role: msg.role as 'user' | 'assistant',
         content: msg.content as any, // Database returns JSONB which can be string or object
         timestamp: new Date(msg.created_at).getTime(),
         metadata: (msg.metadata as any) || undefined
       }));
+
+      // Detect and mark interrupted generations:
+      // Any assistant message with generationStatus='generating' that is older than 2 minutes
+      // is almost certainly interrupted (the API call was lost due to refresh/navigation)
+      const TWO_MINUTES_MS = 2 * 60 * 1000;
+      const now = Date.now();
+      
+      for (const msg of messages) {
+        if (
+          msg.role === 'assistant' && 
+          msg.metadata?.generationStatus === 'generating' &&
+          (now - msg.timestamp) > TWO_MINUTES_MS
+        ) {
+          msg.metadata = { 
+            ...msg.metadata, 
+            generationStatus: 'interrupted' 
+          };
+          
+          // Also update in DB so it stays interrupted
+          supabase.from('messages')
+            .update({ metadata: msg.metadata })
+            .eq('id', msg.id)
+            .eq('conversation_id', conversationId)
+            .then(() => {
+              console.log('[loadConversation] Marked interrupted message:', msg.id);
+            });
+        }
+      }
+
+      return messages;
     } catch (error) {
       console.error('Error loading conversation:', error);
       toast({
