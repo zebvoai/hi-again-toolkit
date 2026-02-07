@@ -36,6 +36,13 @@ export const useRealtimeMessages = () => {
             return;
           }
           
+          // Skip generating placeholders - these are managed locally by useChat
+          // and would cause false "interrupted" messages if added via realtime
+          if (newMsg.metadata?.generationStatus === 'generating') {
+            console.log('Skipping generating placeholder from realtime:', newMsg.id);
+            return;
+          }
+          
           // Skip if we recently added a message with similar content and role
           // This catches the case where local messages have different IDs than DB
           const messageTime = new Date(newMsg.created_at).getTime();

@@ -572,15 +572,24 @@ export const useChat = () => {
 
           await Promise.all(imagePromises);
 
+          // Update local state metadata to complete
+          const finalImageMetadata = {
+            models: selectedModels,
+            isImage: true,
+            isImageToImage: !!sourceImage,
+            aspectRatio,
+            prompt: content,
+            generationStatus: 'complete' as const,
+            generationMode: 'image',
+          };
+          safeUpdateMessage(assistantId, { 
+            content: { ...multiModelContent },
+            metadata: finalImageMetadata,
+          }, convId);
+
           // Update completed message in DB
           if (convId) {
-            await updateCompletedMessage(convId, assistantId, multiModelContent, {
-              models: selectedModels,
-              isImage: true,
-              isImageToImage: !!sourceImage,
-              aspectRatio,
-              prompt: content,
-            });
+            await updateCompletedMessage(convId, assistantId, multiModelContent, finalImageMetadata);
           }
 
           toast({
