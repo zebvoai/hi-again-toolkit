@@ -1,9 +1,8 @@
-import { useRef, useCallback, useEffect, memo, forwardRef, useImperativeHandle } from 'react';
+import { useState, useRef, useCallback, memo, forwardRef, useImperativeHandle } from 'react';
 
 interface ChatInputProps {
-  value: string;
-  onChange: (value: string) => void;
-  onSubmit: () => void;
+  onSubmit: (value: string) => void;
+  onContentChange?: (hasContent: boolean) => void;
   placeholder: string;
   disabled: boolean;
   maxLength?: number;
@@ -11,33 +10,47 @@ interface ChatInputProps {
 
 export interface ChatInputHandle {
   focus: () => void;
+  getValue: () => string;
+  clear: () => void;
+  getLength: () => number;
 }
 
 export const ChatInput = memo(forwardRef<ChatInputHandle, ChatInputProps>(
-  ({ value, onChange, onSubmit, placeholder, disabled, maxLength = 4000 }, ref) => {
+  ({ onSubmit, onContentChange, placeholder, disabled, maxLength = 4000 }, ref) => {
+    // Input state is fully internal — typing never re-renders the parent
+    const [value, setValue] = useState('');
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    // Stable refs for callbacks to avoid re-creating handlers
+    const onSubmitRef = useRef(onSubmit);
+    onSubmitRef.current = onSubmit;
+    const onContentChangeRef = useRef(onContentChange);
+    onContentChangeRef.current = onContentChange;
 
     useImperativeHandle(ref, () => ({
       focus: () => textareaRef.current?.focus(),
-    }));
-
-    // Use a ref to track the latest value for the keydown handler
-    // This avoids re-creating the handler on every keystroke
-    const valueRef = useRef(value);
-    valueRef.current = value;
-
-    const onSubmitRef = useRef(onSubmit);
-    onSubmitRef.current = onSubmit;
+      getValue: () => value,
+      clear: () => {
+        setValue('');
+        onContentChangeRef.current?.(false);
+      },
+      getLength: () => value.length,
+    }), [value]);
 
     const handleChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      onChange(e.target.value);
-    }, [onChange]);
+      const newValue = e.target.value;
+      setValue(newValue);
+      // Notify parent only about boolean hasContent — not the full string
+      onContentChangeRef.current?.(newValue.trim().length > 0);
+    }, []);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        if (valueRef.current.trim()) {
-          onSubmitRef.current();
+        const textarea = e.currentTarget;
+        const currentValue = textarea.value;
+        if (currentValue.trim()) {
+          onSubmitRef.current(currentValue);
         }
       }
     }, []);
