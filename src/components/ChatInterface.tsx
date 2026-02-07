@@ -318,7 +318,7 @@ export function ChatInterface() {
       {selectedMode === 'image' && models?.image && <ModelRail models={models.image} selectedModels={selectedModels} onToggle={handleToggleModel} onSelectAll={handleSelectAllModels} onClearAll={handleClearAllModels} sidebarWidth={isMobile ? 0 : isSidebarExpanded ? 256 : 60} />}
 
       {/* Mobile Menu Button */}
-      {isMobile && <button onClick={() => setOpenMobile(true)} className="fixed top-3 left-3 z-50 w-10 h-10 flex items-center justify-center rounded-full bg-card/80 backdrop-blur-sm border border-border/30 shadow-sm md:hidden" aria-label="Open menu">
+      {isMobile && <button onClick={() => setOpenMobile(true)} className="fixed top-0 left-0 z-50 w-10 h-10 flex items-center justify-center rounded-full md:hidden my-2.5 ml-3" aria-label="Open menu">
           <Menu className="w-5 h-5 text-foreground" />
         </button>}
 
