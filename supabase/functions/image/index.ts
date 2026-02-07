@@ -514,6 +514,50 @@ async function generateImage(
   return { imageUrl, usedModel: modelKey };
 }
 
+// Ultimate fallback: generate image using Gemini (Nano Banana) via Lovable AI gateway
+async function generateImageWithGemini(
+  prompt: string,
+  lovableApiKey: string
+): Promise<{ imageUrl: string; usedModel: string } | null> {
+  try {
+    console.log('[Gemini Image Fallback] Attempting image generation via Lovable AI...');
+    
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${lovableApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash-image',
+        messages: [
+          { role: 'user', content: prompt }
+        ],
+        modalities: ['image', 'text'],
+      }),
+    });
+
+    if (!response.ok) {
+      console.warn(`[Gemini Image Fallback] Failed (${response.status})`);
+      return null;
+    }
+
+    const data = await response.json();
+    const imageData = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    
+    if (!imageData) {
+      console.warn('[Gemini Image Fallback] No image in response');
+      return null;
+    }
+
+    console.log('[Gemini Image Fallback] Success');
+    return { imageUrl: imageData, usedModel: 'gemini-image-fallback' };
+  } catch (err) {
+    console.warn('[Gemini Image Fallback] Exception:', err);
+    return null;
+  }
+}
+
 // Enhance user prompt using Gemini to understand intent and create a detailed image prompt
 async function enhancePromptWithGemini(userPrompt: string, googleApiKey: string): Promise<string> {
   try {
@@ -628,30 +672,47 @@ serve(async (req) => {
       throw new Error('WAVESPEED_API_KEY not configured');
     }
     
-    let result: { imageUrl: string; usedModel: string };
+    let result: { imageUrl: string; usedModel: string } | null = null;
     
+    // Layer 1: Try primary model
     try {
-      // Try primary model with enhanced prompt
       result = await generateImage(modelKey, enhancedPrompt, size, sourceImage, wavespeedApiKey);
     } catch (primaryError) {
-      const fallbackModelKey = FALLBACK_MODEL[modelKey];
+      console.warn(`[${modelKey}] Primary failed:`, primaryError instanceof Error ? primaryError.message : primaryError);
       
+      // Layer 2: Try seedream fallback
+      const fallbackModelKey = FALLBACK_MODEL[modelKey];
       if (fallbackModelKey && TEXT_TO_IMAGE_MAPPING[fallbackModelKey]) {
-        console.log(`[${modelKey}] Failed, trying fallback: ${fallbackModelKey}`);
-        console.log(`[${modelKey}] Error was:`, primaryError instanceof Error ? primaryError.message : primaryError);
-        
+        console.log(`[${modelKey}] Trying seedream fallback: ${fallbackModelKey}`);
         try {
           result = await generateImage(fallbackModelKey, enhancedPrompt, size, sourceImage, wavespeedApiKey);
-          console.log(`[${fallbackModelKey}] Fallback succeeded`);
+          console.log(`[${fallbackModelKey}] Seedream fallback succeeded`);
         } catch (fallbackError) {
-          console.error(`[${fallbackModelKey}] Fallback also failed:`, fallbackError);
-          // Re-throw the original error since both failed
-          throw primaryError;
+          console.warn(`[${fallbackModelKey}] Seedream fallback also failed:`, fallbackError);
         }
-      } else {
-        // No fallback available, re-throw
-        throw primaryError;
       }
+    }
+
+    // Layer 3: Ultimate fallback - Gemini image generation via Lovable AI
+    if (!result) {
+      const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+      if (lovableApiKey) {
+        const geminiResult = await generateImageWithGemini(enhancedPrompt, lovableApiKey);
+        if (geminiResult) {
+          result = geminiResult;
+        }
+      }
+    }
+
+    // If absolutely everything failed, return a clear but non-error response
+    if (!result) {
+      console.error('[Image] All providers failed for model:', modelKey);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Image generation temporarily unavailable. Please try again.'
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
     
     return new Response(

@@ -562,7 +562,9 @@ export const useChat = () => {
               
               return { model, url: response.imageUrl };
             } catch (error) {
-              multiModelContent[model] = `Error: ${error instanceof Error ? error.message : 'Unknown error'}`;
+              // Silently mark as empty - no error shown to user
+              console.warn(`[Image] Model ${model} failed silently:`, error);
+              multiModelContent[model] = ''; // Keep as loading/empty, will be hidden
               safeUpdateMessage(assistantId, { 
                 content: { ...multiModelContent } 
               }, convId);
@@ -669,11 +671,12 @@ export const useChat = () => {
               await updateCompletedMessage(convId, assistantId, singleModelContent, finalMetadata);
             }
           } catch (error) {
-            singleModelContent[selectedModel] = `Error: ${error instanceof Error ? error.message : 'Unknown error'}`;
+            // Silently keep as empty - no error shown
+            console.warn('[Image] Single model failed silently:', error);
+            singleModelContent[selectedModel] = '';
             safeUpdateMessage(assistantId, { 
               content: { ...singleModelContent } 
             }, convId);
-            throw error;
           }
           
           toast({
@@ -902,37 +905,52 @@ export const useChat = () => {
       }
       
       const errorMessage = error instanceof Error ? error.message : 'Something went wrong';
-      setError(errorMessage);
       
-      const errorAssistantMessage = {
-        id: assistantId,
-        role: 'assistant' as const,
-        content: 'Sorry, I encountered an error processing your request.',
-        timestamp: Date.now(),
-        metadata: {
-          error: errorMessage,
-          generationStatus: 'interrupted' as const,
-          generationMode: selectedMode,
+      // For image mode, suppress error UI entirely - the image cards handle their own state
+      if (selectedMode === 'image') {
+        console.warn('[useChat] Image generation error suppressed:', errorMessage);
+        // Mark as complete (not interrupted) so no error UI shows
+        if (convId) {
+          await supabase.from('messages')
+            .update({ 
+              metadata: { generationStatus: 'complete', generationMode: 'image' }
+            })
+            .eq('id', assistantId)
+            .eq('conversation_id', convId);
         }
-      };
-      safeAddMessage(errorAssistantMessage, convId);
-      
-      // Update DB placeholder with error
-      if (convId) {
-        await supabase.from('messages')
-          .update({ 
-            content: 'Sorry, I encountered an error processing your request.',
-            metadata: { error: errorMessage, generationStatus: 'interrupted', generationMode: selectedMode }
-          })
-          .eq('id', assistantId)
-          .eq('conversation_id', convId);
+      } else {
+        setError(errorMessage);
+        
+        const errorAssistantMessage = {
+          id: assistantId,
+          role: 'assistant' as const,
+          content: 'Sorry, I encountered an error processing your request.',
+          timestamp: Date.now(),
+          metadata: {
+            error: errorMessage,
+            generationStatus: 'interrupted' as const,
+            generationMode: selectedMode,
+          }
+        };
+        safeAddMessage(errorAssistantMessage, convId);
+        
+        // Update DB placeholder with error
+        if (convId) {
+          await supabase.from('messages')
+            .update({ 
+              content: 'Sorry, I encountered an error processing your request.',
+              metadata: { error: errorMessage, generationStatus: 'interrupted', generationMode: selectedMode }
+            })
+            .eq('id', assistantId)
+            .eq('conversation_id', convId);
+        }
+        
+        toast({
+          title: 'Error',
+          description: errorMessage,
+          variant: 'destructive',
+        });
       }
-      
-      toast({
-        title: 'Error',
-        description: errorMessage,
-        variant: 'destructive',
-      });
     } finally {
       setLoading(false);
       abortControllerRef.current = null;
