@@ -574,6 +574,40 @@ button, a, input, textarea, select,
   animation: scale-in var(--duration-normal) var(--ease-out-expo) both;
 }
 
+/* Card reveal - smooth slide up with scale */
+@keyframes card-reveal {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-card-reveal {
+  animation: card-reveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Image reveal - fade in with subtle scale */
+@keyframes image-reveal {
+  0% {
+    opacity: 0;
+    transform: scale(0.96);
+    filter: blur(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0px);
+  }
+}
+
+.animate-image-reveal {
+  animation: image-reveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 /* Stagger children animations - smoother with longer duration */
 .stagger-children > * {
   animation: fade-in var(--duration-slow) var(--ease-gentle) both;
@@ -586,6 +620,19 @@ button, a, input, textarea, select,
 .stagger-children > *:nth-child(5) { animation-delay: 160ms; }
 .stagger-children > *:nth-child(6) { animation-delay: 200ms; }
 .stagger-children > *:nth-child(n+7) { animation-delay: 240ms; }
+
+/* Stagger cards in horizontal scroll containers */
+.stagger-cards > * {
+  animation: card-reveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.stagger-cards > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-cards > *:nth-child(2) { animation-delay: 80ms; }
+.stagger-cards > *:nth-child(3) { animation-delay: 160ms; }
+.stagger-cards > *:nth-child(4) { animation-delay: 240ms; }
+.stagger-cards > *:nth-child(5) { animation-delay: 320ms; }
+.stagger-cards > *:nth-child(6) { animation-delay: 400ms; }
+.stagger-cards > *:nth-child(n+7) { animation-delay: 480ms; }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {

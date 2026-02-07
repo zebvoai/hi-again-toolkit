@@ -247,7 +247,7 @@ export const MultiModelResponse = ({
         <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
         
         <div className="overflow-x-auto scrollbar-hide scroll-smooth pb-2">
-          <div className="flex gap-2.5 sm:gap-3 px-3 sm:px-6" style={{
+          <div className="flex gap-2.5 sm:gap-3 px-3 sm:px-6 stagger-cards" style={{
           minWidth: 'min-content'
         }}>
             {models.map((model, idx) => {
@@ -283,9 +283,11 @@ export const MultiModelResponse = ({
                           <Skeleton className="h-3.5 w-[80%]" />
                           <Skeleton className="h-3.5 w-[88%]" />
                           <Skeleton className="h-3.5 w-[70%]" />
-                        </div> : <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-                          {response}
-                        </ReactMarkdown>}
+                        </div> : <div className="animate-fade-in">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                            {response}
+                          </ReactMarkdown>
+                        </div>}
                     </div>
                   </div>
 
