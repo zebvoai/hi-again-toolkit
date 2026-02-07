@@ -25,9 +25,13 @@ const TEXT_TO_IMAGE_MAPPING: Record<string, string> = {
 
 // Image editing model mappings - models with actual editing endpoints
 const IMAGE_EDIT_MAPPING: Record<string, string> = {
+  'vidu-q2': 'vidu/reference-to-image-q2',
   'nano-banana-pro': 'google/nano-banana-pro/edit',
   'wan-2.6': 'alibaba/wan-2.6/image-edit',
   'grok-imagine': 'x-ai/grok-imagine-image/edit',
+  'gpt-image-1.5': 'openai/gpt-image-1.5/edit',
+  'minimax-image-01': 'minimax/image-01/image-to-image',
+  'qwen-image': 'wavespeed-ai/qwen-image/edit-2511',
 };
 
 // Model-specific request body configurations - ALL use 1:1 square aspect ratio
@@ -109,10 +113,18 @@ const getTextToImageBody = (modelKey: string, prompt: string) => {
 // Image editing request body configurations - only for models with edit support
 const getImageEditBody = (modelKey: string, prompt: string, sourceImage: string) => {
   switch (modelKey) {
+    case 'vidu-q2':
+      return {
+        prompt,
+        images: [sourceImage],
+        aspect_ratio: '1:1',
+        resolution: '1080p',
+        seed: -1,
+      };
     case 'nano-banana-pro':
       return {
         prompt,
-        images: [sourceImage], // Uses images array
+        images: [sourceImage],
         resolution: '1k',
         output_format: 'png',
         enable_sync_mode: true,
@@ -121,7 +133,7 @@ const getImageEditBody = (modelKey: string, prompt: string, sourceImage: string)
     case 'wan-2.6':
       return {
         prompt,
-        images: [sourceImage], // Uses images array
+        images: [sourceImage],
         enable_prompt_expansion: false,
         seed: -1,
         enable_sync_mode: true,
@@ -129,8 +141,38 @@ const getImageEditBody = (modelKey: string, prompt: string, sourceImage: string)
     case 'grok-imagine':
       return {
         prompt,
+        image: sourceImage,
+        enable_sync_mode: false,
+        enable_base64_output: false,
+      };
+    case 'gpt-image-1.5':
+      return {
+        prompt,
+        images: [sourceImage],
+        size: '1024*1024',
+        quality: 'medium',
+        input_fidelity: 'high',
+        output_format: 'jpeg',
+        enable_sync_mode: false,
+        enable_base64_output: false,
+      };
+    case 'minimax-image-01':
+      return {
+        prompt,
         image: sourceImage, // Uses single image string
-        enable_sync_mode: false, // Grok uses async mode
+        size: '1024*1024',
+        num_images: 1,
+        prompt_optimizer: false,
+        enable_sync_mode: false,
+        enable_base64_output: false,
+      };
+    case 'qwen-image':
+      return {
+        prompt,
+        images: [sourceImage],
+        output_format: 'jpeg',
+        seed: -1,
+        enable_sync_mode: false,
         enable_base64_output: false,
       };
     default:
