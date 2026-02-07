@@ -736,16 +736,9 @@ export const useChat = () => {
           description: 'Your video has been created successfully',
         });
       } else if (selectedModels.length > 1) {
-        // Filter to vision-capable models only if images are attached
-        const hasImages = fileUrls.length > 0;
-        const modelsToUse = hasImages 
-          ? selectedModels.filter(m => VISION_CAPABLE_MODELS.includes(m))
-          : selectedModels;
-        
-        // If no vision models are selected but images are attached, use default vision models
-        const effectiveModels = hasImages && modelsToUse.length === 0 
-          ? VISION_CAPABLE_MODELS 
-          : modelsToUse;
+        // Multi-model mode: ALWAYS use all selected models (even when images are attached)
+        // Vision-capable models will receive multimodal content, others will receive text + attachment references.
+        const effectiveModels = selectedModels;
         
         const multiModelContent: MultiModelContent = {};
         effectiveModels.forEach(model => {
@@ -798,14 +791,9 @@ export const useChat = () => {
           await updateCompletedMessage(convId, assistantId, response.content, finalMetadata);
         }
       } else {
-        // For single model mode, force vision model if images are attached
-        const hasImages = fileUrls.length > 0;
+        // Single-model mode: keep the user's selection even if images are attached.
+        // Non-vision models will receive a note + attachment references.
         let selectedModel = selectedModels[0];
-        
-        // If image attached but selected model isn't vision-capable, switch to first vision model
-        if (hasImages && !VISION_CAPABLE_MODELS.includes(selectedModel)) {
-          selectedModel = VISION_CAPABLE_MODELS[0]; // GPT-5
-        }
         
         const placeholderMetadata = {
           model: selectedModel || 'AI',
