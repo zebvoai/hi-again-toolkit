@@ -188,10 +188,14 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
                   </span>
                 </div>
 
-                {/* Content - fixed height skeleton during generation, auto height when done */}
-                <div className={`bg-card rounded-xl border border-border/30 p-4 shadow-sm transition-all duration-slow ease-gentle ${
-                  isStillGenerating ? 'h-[200px] overflow-hidden' : ''
-                }`}>
+                {/* Content - fixed height skeleton during generation, smooth reveal when done */}
+                <div
+                  className="bg-card rounded-xl border border-border/30 p-4 shadow-sm overflow-hidden"
+                  style={{
+                    height: isStillGenerating ? '220px' : 'auto',
+                    transition: 'height 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+                  }}
+                >
                   {isStillGenerating ? (
                     <div className="space-y-3 py-1">
                       <Skeleton className="h-4 w-[90%]" />
@@ -202,7 +206,12 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
                       <Skeleton className="h-4 w-[70%]" />
                     </div>
                   ) : (
-                    <div className="prose prose-sm max-w-none text-foreground text-[13px] leading-relaxed animate-fade-in">
+                    <div
+                      className="prose prose-sm max-w-none text-foreground text-[13px] leading-relaxed"
+                      style={{
+                        animation: 'fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both',
+                      }}
+                    >
                       <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
                         {currentContent}
                       </ReactMarkdown>
