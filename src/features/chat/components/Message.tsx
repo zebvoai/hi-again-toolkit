@@ -126,21 +126,9 @@ export const Message = ({
     );
   }
 
-  // Handle still-generating placeholders (empty content from DB reload)
-  if (!isUser && message.metadata?.generationStatus === 'generating') {
-    const content = message.content;
-    const isEmpty = content === '' || 
-      (typeof content === 'object' && Object.values(content).every(v => v === ''));
-    
-    if (isEmpty) {
-      return (
-        <InterruptedMessage 
-          mode={message.metadata?.generationMode} 
-          onRetry={onRegenerate}
-        />
-      );
-    }
-  }
+  // Note: 'generating' status messages are handled by loadConversation which
+  // marks stale ones (>2min) as 'interrupted'. We don't show InterruptedMessage
+  // for 'generating' status here to avoid false positives from realtime duplicates.
 
   // Handle multi-model responses - render full width
   if (isMultiModel) {
