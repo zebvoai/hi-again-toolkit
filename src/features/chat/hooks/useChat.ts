@@ -90,21 +90,27 @@ export const useChat = () => {
     return currentId === targetConvId;
   };
   
-  // Safe addMessage - only adds if still on the same conversation
+  // Safe addMessage - only adds if still on the same conversation, marks stale otherwise
   const safeAddMessage = (message: any, targetConvId: string | null) => {
     if (isStillOnSameConversation(targetConvId)) {
       addMessage(message);
     } else {
-      console.log('[useChat] Skipping addMessage - user switched conversations');
+      console.log('[useChat] Skipping addMessage - user switched conversations, marking stale:', targetConvId);
+      if (targetConvId) {
+        useChatStore.getState().markConversationStale(targetConvId);
+      }
     }
   };
   
-  // Safe updateMessage - only updates if still on the same conversation
+  // Safe updateMessage - only updates if still on the same conversation, marks stale otherwise
   const safeUpdateMessage = (messageId: string, updates: any, targetConvId: string | null) => {
     if (isStillOnSameConversation(targetConvId)) {
       updateMessage(messageId, updates);
     } else {
-      console.log('[useChat] Skipping updateMessage - user switched conversations');
+      console.log('[useChat] Skipping updateMessage - user switched conversations, marking stale:', targetConvId);
+      if (targetConvId) {
+        useChatStore.getState().markConversationStale(targetConvId);
+      }
     }
   };
   

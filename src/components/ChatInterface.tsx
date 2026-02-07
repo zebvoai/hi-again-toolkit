@@ -23,6 +23,7 @@ import { useModels } from '@/features/chat/hooks/useModels';
 import { useConversations } from '@/features/chat/hooks/useConversations';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useRealtimeMessages } from '@/features/chat/hooks/useRealtimeMessages';
+import { useTabFocusReload } from '@/features/chat/hooks/useTabFocusReload';
 import { triggerHapticFeedback, triggerConfetti, updatePageTitle, smoothScrollTo } from '@/lib/microInteractions';
 import { exportAsMarkdown, exportAsJSON } from '@/lib/exportConversation';
 import { useSidebar } from '@/components/ui/sidebar';
@@ -86,6 +87,7 @@ export function ChatInterface() {
 
   // Enable realtime sync for messages across tabs
   useRealtimeMessages();
+  useTabFocusReload();
 
   // Sidebar control
   const {

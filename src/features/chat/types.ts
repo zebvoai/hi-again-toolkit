@@ -8,6 +8,7 @@ export interface ChatState {
   selectedModels: string[];
   currentConversationId: string | null;
   selectedProjectId: string | null; // Track selected project for new chats
+  staleConversationIds: Set<string>; // Track conversations that need reloading from DB
   addMessage: (message: Message) => void;
   updateMessage: (id: string, updates: Partial<Message>) => void;
   setLoading: (loading: boolean, conversationId?: string | null) => void;
@@ -17,6 +18,9 @@ export interface ChatState {
   setMessages: (messages: Message[]) => void;
   setCurrentConversationId: (id: string | null) => void;
   setSelectedProjectId: (id: string | null) => void;
+  markConversationStale: (id: string) => void;
+  clearStaleConversation: (id: string) => void;
+  isConversationStale: (id: string) => boolean;
   
   // New actions for editing and regeneration
   editMessage: (id: string, newContent: string) => void;

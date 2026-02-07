@@ -9,6 +9,18 @@ export const useChatStore = create<ChatState>((set, get) => ({
   selectedModels: [], // Will be initialized to all models on first load
   currentConversationId: null,
   selectedProjectId: null,
+  staleConversationIds: new Set<string>(),
+  markConversationStale: (id: string) => set((state) => {
+    const next = new Set(state.staleConversationIds);
+    next.add(id);
+    return { staleConversationIds: next };
+  }),
+  clearStaleConversation: (id: string) => set((state) => {
+    const next = new Set(state.staleConversationIds);
+    next.delete(id);
+    return { staleConversationIds: next };
+  }),
+  isConversationStale: (id: string) => get().staleConversationIds.has(id),
   addMessage: (message) => set((state) => {
     // Prevent adding duplicate messages by checking ID and content
     const exists = state.messages.some(m => 
