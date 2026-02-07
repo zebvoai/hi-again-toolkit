@@ -437,6 +437,9 @@ export const useChat = () => {
           console.log('Image-to-image mode: using source image', sourceImage);
         }
         
+        // Get selected aspect ratio from store
+        const aspectRatio = useChatStore.getState().selectedAspectRatio;
+        
         // Handle multi-model image generation with progressive loading
         if (selectedModels.length > 1) {
           // Initialize with empty content for all models
@@ -454,7 +457,8 @@ export const useChat = () => {
             metadata: {
               models: selectedModels,
               isImage: true,
-              isImageToImage: !!sourceImage
+              isImageToImage: !!sourceImage,
+              aspectRatio,
             }
           };
           safeAddMessage(assistantMessage, convId);
@@ -467,7 +471,11 @@ export const useChat = () => {
                 undefined, 
                 model.toLowerCase().replace(/\s+/g, '-'),
                 abortControllerRef.current?.signal,
-                sourceImage // Pass source image for image-to-image
+                sourceImage,
+                undefined,
+                undefined,
+                undefined,
+                aspectRatio
               );
               
               // Update the message content progressively
@@ -523,7 +531,11 @@ export const useChat = () => {
             undefined, 
             selectedModel.toLowerCase().replace(/\s+/g, '-'),
             abortControllerRef.current?.signal,
-            sourceImage // Pass source image for image-to-image
+            sourceImage,
+            undefined,
+            undefined,
+            undefined,
+            aspectRatio
           );
           
           // Save generated image to library

@@ -12,6 +12,7 @@ import { TextResponseSkeleton } from '@/features/chat/components/TextResponseSke
 import { ImageResponseSkeleton } from '@/features/chat/components/ImageResponseSkeleton';
 import { ModelRail } from '@/features/chat/components/ModelRail';
 import { ModeDropdown } from '@/features/modes/components/ModeDropdown';
+import { AspectRatioSelector } from '@/features/chat/components/AspectRatioSelector';
 import { FeedbackDialog } from '@/components/FeedbackDialog';
 import { RenameDialog } from '@/components/RenameDialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -57,7 +58,9 @@ export function ChatInterface() {
     clearMessages,
     setCurrentConversationId,
     currentConversationId,
-    loadingConversationId
+    loadingConversationId,
+    selectedAspectRatio,
+    setSelectedAspectRatio,
   } = useChatStore();
 
   // Conversation actions
@@ -457,7 +460,15 @@ export function ChatInterface() {
           <form onSubmit={handleSubmit} key={selectedMode} className="animate-scale-in">
             {/* Mode Dropdown */}
             <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-2 sm:mb-3">
-              <ModeDropdown />
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                <ModeDropdown />
+                {selectedMode === 'image' && (
+                  <AspectRatioSelector
+                    selected={selectedAspectRatio}
+                    onChange={setSelectedAspectRatio}
+                  />
+                )}
+              </div>
 
               <TooltipProvider delayDuration={400}>
                 <div className="flex items-center gap-1">

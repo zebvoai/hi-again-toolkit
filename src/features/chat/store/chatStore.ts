@@ -9,6 +9,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   selectedModels: [], // Will be initialized to all models on first load
   currentConversationId: null,
   selectedProjectId: null,
+  selectedAspectRatio: '1:1',
   staleConversationIds: new Set<string>(),
   markConversationStale: (id: string) => set((state) => {
     const next = new Set(state.staleConversationIds);
@@ -50,6 +51,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   setMessages: (messages) => set({ messages }),
   setCurrentConversationId: (id) => set({ currentConversationId: id }),
   setSelectedProjectId: (id) => set({ selectedProjectId: id }),
+  setSelectedAspectRatio: (ratio) => set({ selectedAspectRatio: ratio }),
   
   // New actions for editing and regeneration
   editMessage: (id, newContent) => set((state) => ({
