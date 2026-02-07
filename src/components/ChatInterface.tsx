@@ -8,6 +8,7 @@ import { Message } from '@/features/chat/components/Message';
 import { MessageSkeleton } from '@/features/chat/components/MessageSkeleton';
 import { TypingIndicator } from '@/features/chat/components/TypingIndicator';
 import { DeepResearchInlineLoader } from '@/features/chat/components/DeepResearchInlineLoader';
+import { DeepResearchConfirmDialog } from '@/features/chat/components/DeepResearchConfirmDialog';
 import { TextResponseSkeleton } from '@/features/chat/components/TextResponseSkeleton';
 import { ImageResponseSkeleton } from '@/features/chat/components/ImageResponseSkeleton';
 import { ModelRail } from '@/features/chat/components/ModelRail';
@@ -74,6 +75,7 @@ export function ChatInterface() {
   const [showRenameDialog, setShowRenameDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
+  const [showDeepResearchConfirm, setShowDeepResearchConfirm] = useState(false);
 
   // Get current conversation title
   const currentConversation = conversations.find(c => c.id === currentConversationId);
@@ -268,9 +270,19 @@ export function ChatInterface() {
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim() && !isLoading && selectedModels.length > 0) {
-      handleSendMessage();
+      // Show confirmation for deep research mode
+      if (selectedMode === 'research') {
+        setShowDeepResearchConfirm(true);
+      } else {
+        handleSendMessage();
+      }
     }
-  }, [input, isLoading, selectedModels.length, handleSendMessage]);
+  }, [input, isLoading, selectedModels.length, handleSendMessage, selectedMode]);
+
+  const handleConfirmDeepResearch = useCallback(() => {
+    setShowDeepResearchConfirm(false);
+    handleSendMessage();
+  }, [handleSendMessage]);
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
@@ -358,6 +370,13 @@ export function ChatInterface() {
 
       {/* Rename Dialog */}
       <RenameDialog open={showRenameDialog} onOpenChange={setShowRenameDialog} currentTitle={currentTitle} onRename={handleRenameSubmit} />
+
+      {/* Deep Research Confirmation Dialog */}
+      <DeepResearchConfirmDialog 
+        open={showDeepResearchConfirm} 
+        onOpenChange={setShowDeepResearchConfirm} 
+        onConfirm={handleConfirmDeepResearch} 
+      />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
