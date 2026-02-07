@@ -12,6 +12,7 @@ interface ImageRequest {
   sourceImage?: string; // URL of source image for image-to-image
   width?: number;
   height?: number;
+  size?: string; // Natural language size like "portrait", "landscape", "wide", "square"
 }
 
 // Available dimensions for each model (width x height)
@@ -27,9 +28,87 @@ const AVAILABLE_SIZES = [
   { w: 1024, h: 1536 },
 ];
 
+// Parse natural language size descriptions into dimensions
+const parseSizeDescription = (sizeStr?: string): { w: number; h: number } | null => {
+  if (!sizeStr) return null;
+  
+  const s = sizeStr.toLowerCase().trim();
+  
+  // Check for explicit dimensions like "1920x1080" or "1920*1080"
+  const dimMatch = s.match(/(\d+)\s*[x*×]\s*(\d+)/i);
+  if (dimMatch) {
+    return { w: parseInt(dimMatch[1]), h: parseInt(dimMatch[2]) };
+  }
+  
+  // Portrait orientations (taller than wide)
+  if (/portrait|vertical|tall|story|stories|reel|reels|tiktok|mobile|phone|9:16|9\/16/.test(s)) {
+    if (/full|hd|1080|high/.test(s)) return { w: 1080, h: 1920 };
+    return { w: 720, h: 1280 };
+  }
+  
+  // Landscape orientations (wider than tall)
+  if (/landscape|horizontal|wide|widescreen|cinema|cinematic|movie|film|banner|youtube|thumbnail|16:9|16\/9/.test(s)) {
+    if (/full|hd|1080|high|4k|ultra/.test(s)) return { w: 1920, h: 1080 };
+    return { w: 1280, h: 720 };
+  }
+  
+  // Square
+  if (/square|1:1|1\/1|instagram|insta|profile|avatar|icon/.test(s)) {
+    if (/small|tiny|mini/.test(s)) return { w: 512, h: 512 };
+    if (/medium|mid/.test(s)) return { w: 768, h: 768 };
+    return { w: 1024, h: 1024 };
+  }
+  
+  // Photo/print ratios
+  if (/3:2|3\/2|photo|print|dslr/.test(s)) {
+    return { w: 1536, h: 1024 };
+  }
+  if (/2:3|2\/3/.test(s)) {
+    return { w: 1024, h: 1536 };
+  }
+  
+  // Size qualifiers without orientation
+  if (/4k|ultra|uhd|large|big|huge|max/.test(s)) {
+    return { w: 1920, h: 1080 };
+  }
+  if (/hd|1080p|full/.test(s)) {
+    return { w: 1920, h: 1080 };
+  }
+  if (/720p|small|compact/.test(s)) {
+    return { w: 1280, h: 720 };
+  }
+  if (/tiny|mini|thumb|thumbnail/.test(s) && !/youtube/.test(s)) {
+    return { w: 512, h: 512 };
+  }
+  
+  // Desktop/wallpaper
+  if (/desktop|wallpaper|background|screen/.test(s)) {
+    return { w: 1920, h: 1080 };
+  }
+  
+  // Social media specific
+  if (/twitter|x\s+post|tweet/.test(s)) {
+    return { w: 1280, h: 720 };
+  }
+  if (/facebook|fb/.test(s)) {
+    return { w: 1200, h: 630 }; // Will map to closest
+  }
+  if (/pinterest|pin/.test(s)) {
+    return { w: 1024, h: 1536 };
+  }
+  
+  return null;
+};
+
 // Find closest available size to requested dimensions
-const getClosestSize = (width?: number, height?: number): { w: number; h: number } => {
-  if (!width || !height) {
+const getClosestSize = (width?: number, height?: number, sizeStr?: string): { w: number; h: number } => {
+  // First try to parse natural language size
+  const parsedSize = parseSizeDescription(sizeStr);
+  
+  const targetW = parsedSize?.w || width;
+  const targetH = parsedSize?.h || height;
+  
+  if (!targetW || !targetH) {
     return { w: 1024, h: 1024 }; // Default 1:1
   }
   
@@ -37,7 +116,7 @@ const getClosestSize = (width?: number, height?: number): { w: number; h: number
   let minDiff = Infinity;
   
   for (const size of AVAILABLE_SIZES) {
-    const diff = Math.abs(size.w - width) + Math.abs(size.h - height);
+    const diff = Math.abs(size.w - targetW) + Math.abs(size.h - targetH);
     if (diff < minDiff) {
       minDiff = diff;
       closest = size;
@@ -256,16 +335,16 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, model, sourceImage, width, height }: ImageRequest = await req.json();
+    const { prompt, model, sourceImage, width, height, size: sizeStr }: ImageRequest = await req.json();
     
     const hasSourceImage = !!sourceImage;
-    const size = getClosestSize(width, height);
+    const size = getClosestSize(width, height, sizeStr);
     
     console.log('Image generation request:', { 
       prompt, 
       model, 
       hasSourceImage,
-      requestedSize: width && height ? `${width}x${height}` : 'default',
+      requestedSize: sizeStr || (width && height ? `${width}x${height}` : 'default'),
       resolvedSize: `${size.w}x${size.h}`,
       sourceImage: sourceImage ? sourceImage.substring(0, 50) + '...' : null 
     });
