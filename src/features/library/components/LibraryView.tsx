@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ImageLightbox } from '@/components/ImageLightbox';
 import { useUserImages, UserImage } from '../hooks/useUserImages';
 import { format } from 'date-fns';
 import {
@@ -25,6 +26,7 @@ export function LibraryView({ onClose }: LibraryViewProps) {
   const { images, isLoading, deleteImage } = useUserImages();
   const [selectedImage, setSelectedImage] = useState<UserImage | null>(null);
   const [imageToDelete, setImageToDelete] = useState<UserImage | null>(null);
+  const [lightboxImage, setLightboxImage] = useState<UserImage | null>(null);
   const [filter, setFilter] = useState<'uploaded' | 'generated'>('generated');
 
   const filteredImages = images.filter(img => img.source_type === filter);
@@ -58,6 +60,15 @@ export function LibraryView({ onClose }: LibraryViewProps) {
 
   return (
     <div className="flex flex-col h-full min-h-0 bg-background">
+      {/* Fullscreen Lightbox */}
+      {lightboxImage && (
+        <ImageLightbox
+          src={lightboxImage.url}
+          alt={lightboxImage.filename || 'Image'}
+          modelName={lightboxImage.model || undefined}
+          onClose={() => setLightboxImage(null)}
+        />
+      )}
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-border/30">
         <div className="flex items-center gap-3">
@@ -124,6 +135,7 @@ export function LibraryView({ onClose }: LibraryViewProps) {
                   <div
                     key={image.id}
                     onClick={() => setSelectedImage(image)}
+                    onDoubleClick={() => setLightboxImage(image)}
                     className={cn(
                       "group relative aspect-square rounded-xl overflow-hidden cursor-pointer",
                       "bg-muted/50 border border-border/30",
@@ -131,6 +143,7 @@ export function LibraryView({ onClose }: LibraryViewProps) {
                       selectedImage?.id === image.id &&
                         "ring-2 ring-primary ring-offset-2 ring-offset-background",
                     )}
+                    title="Double-click for fullscreen"
                   >
                     <img
                       src={image.thumbnail_url || image.url}
@@ -207,7 +220,11 @@ export function LibraryView({ onClose }: LibraryViewProps) {
             <ScrollArea className="flex-1 min-h-0 p-4">
               <div className="space-y-4">
                 {/* Preview */}
-                <div className="rounded-xl overflow-hidden border border-border/30">
+                <div 
+                  className="rounded-xl overflow-hidden border border-border/30 cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => setLightboxImage(selectedImage)}
+                  title="Click for fullscreen"
+                >
                   <img
                     src={selectedImage.url}
                     alt={selectedImage.filename || 'Image'}
