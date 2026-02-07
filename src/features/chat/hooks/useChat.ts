@@ -600,8 +600,10 @@ export const useChat = () => {
           const selectedModel = selectedModels[0] || 'DALL-E 3';
           
           const placeholderMetadata = {
-            model: selectedModel,
+            models: [selectedModel],
+            isImage: true,
             isImageToImage: !!sourceImage,
+            aspectRatio,
             prompt: content,
             generationStatus: 'generating' as const,
             generationMode: 'image',
@@ -612,51 +614,71 @@ export const useChat = () => {
             await saveGeneratingPlaceholder(convId, assistantId, placeholderMetadata);
           }
           
-          const response = await api.generateImage(
-            content, 
-            undefined, 
-            selectedModel.toLowerCase().replace(/\s+/g, '-'),
-            abortControllerRef.current?.signal,
-            sourceImage,
-            undefined,
-            undefined,
-            undefined,
-            aspectRatio
-          );
+          // Use same multi-model object format for consistency (single model = object with 1 key)
+          const singleModelContent: MultiModelContent = { [selectedModel]: '' };
           
-          // Save generated image to library
-          await saveImageToLibrary({
-            url: response.imageUrl,
-            source_type: 'generated',
-            prompt: content,
-            model: selectedModel,
-            conversation_id: convId || undefined,
-          });
-          
-          const assistantMessage: Message = {
+          const placeholderMessage: Message = {
             id: assistantId,
             role: 'assistant' as const,
-            content: response.revisedPrompt || content,
+            content: { ...singleModelContent },
             timestamp: Date.now(),
-            metadata: {
-              imageUrl: response.imageUrl,
-              model: selectedModel,
-              isImageToImage: !!sourceImage,
-              prompt: content,
-              generationStatus: 'complete',
-              generationMode: 'image',
-            }
+            metadata: placeholderMetadata,
           };
+          safeAddMessage(placeholderMessage, convId);
           
-          safeAddMessage(assistantMessage, convId);
-          
-          if (convId) {
-            await updateCompletedMessage(convId, assistantId, assistantMessage.content, assistantMessage.metadata || {});
+          try {
+            const response = await api.generateImage(
+              content, 
+              undefined, 
+              selectedModel.toLowerCase().replace(/\s+/g, '-'),
+              abortControllerRef.current?.signal,
+              sourceImage,
+              undefined,
+              undefined,
+              undefined,
+              aspectRatio
+            );
+            
+            // Save generated image to library
+            await saveImageToLibrary({
+              url: response.imageUrl,
+              source_type: 'generated',
+              prompt: content,
+              model: selectedModel,
+              conversation_id: convId || undefined,
+            });
+            
+            singleModelContent[selectedModel] = response.imageUrl;
+            
+            const finalMetadata = {
+              models: [selectedModel],
+              isImage: true,
+              isImageToImage: !!sourceImage,
+              aspectRatio,
+              prompt: content,
+              generationStatus: 'complete' as const,
+              generationMode: 'image',
+            };
+            
+            safeUpdateMessage(assistantId, { 
+              content: { ...singleModelContent },
+              metadata: finalMetadata,
+            }, convId);
+            
+            if (convId) {
+              await updateCompletedMessage(convId, assistantId, singleModelContent, finalMetadata);
+            }
+          } catch (error) {
+            singleModelContent[selectedModel] = `Error: ${error instanceof Error ? error.message : 'Unknown error'}`;
+            safeUpdateMessage(assistantId, { 
+              content: { ...singleModelContent } 
+            }, convId);
+            throw error;
           }
           
           toast({
-            title: 'Image generated',
-            description: 'Your image has been created successfully',
+            title: sourceImage ? 'Image transformed' : 'Image generated',
+            description: `${sourceImage ? 'Transformed' : 'Generated'} image with ${selectedModel}`,
           });
         }
       } else if (selectedMode === 'video') {
