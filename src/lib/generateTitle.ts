@@ -1,9 +1,9 @@
 /**
  * Generates a short, clean, meaningful title from a message
- * Max 30 characters, sidebar-friendly
+ * Max 15 characters, sidebar-friendly
  */
 export const generateConversationTitle = (message: string): string => {
-  const MAX_LENGTH = 30;
+  const MAX_LENGTH = 15;
   
   // Clean the message
   const cleaned = message.trim().replace(/\s+/g, ' ');
