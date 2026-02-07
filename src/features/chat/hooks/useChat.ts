@@ -269,10 +269,27 @@ export const useChat = () => {
     
     abortControllerRef.current = new AbortController();
     
-    // Create conversation if this is the first message
+    // === OPTIMISTIC UI: Show user message IMMEDIATELY with local blob previews ===
+    const localPreviewUrls = files && files.length > 0
+      ? files.map(f => URL.createObjectURL(f))
+      : [];
+    
+    const userMessage: Message = {
+      id: crypto.randomUUID(),
+      role: 'user' as const,
+      content,
+      timestamp: Date.now(),
+      metadata: localPreviewUrls.length > 0 ? { attachments: localPreviewUrls } : undefined,
+    };
+    
+    // Show the blue bubble instantly — no waiting for DB or uploads
+    addMessage(userMessage);
+    setLoading(true);
+    setError(null);
+    
+    // === BACKGROUND: Create conversation if needed ===
     let convId = currentConversationId;
     if (!convId && messages.length === 0) {
-      // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
@@ -314,25 +331,25 @@ export const useChat = () => {
       }
     }
     
-    // Store the conversation ID this request is for - critical for handling chat switches
+    // Store the conversation ID this request is for
     requestConversationIdRef.current = convId;
 
-    // Handle file uploads if present
+    // === BACKGROUND: Upload files in parallel and replace blob URLs with real ones ===
     let fileUrls: string[] = [];
     if (files && files.length > 0) {
       try {
-        for (const file of files) {
+        const uploadPromises = files.map(async (file) => {
           const fileExt = file.name.split('.').pop();
           const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
           const filePath = `${convId || 'temp'}/${fileName}`;
           
-          const { data: uploadData, error: uploadError } = await supabase.storage
+          const { error: uploadError } = await supabase.storage
             .from('chat-attachments')
             .upload(filePath, file);
           
           if (uploadError) {
             console.error('File upload error:', uploadError);
-            continue;
+            return null;
           }
           
           const { data: urlData } = supabase.storage
@@ -340,12 +357,10 @@ export const useChat = () => {
             .getPublicUrl(filePath);
           
           if (urlData?.publicUrl) {
-            fileUrls.push(urlData.publicUrl);
-            
-            // Save images to library
+            // Save images to library (fire-and-forget)
             const isImage = file.type.startsWith('image/');
             if (isImage) {
-              await saveImageToLibrary({
+              saveImageToLibrary({
                 url: urlData.publicUrl,
                 source_type: 'uploaded',
                 filename: file.name,
@@ -354,7 +369,19 @@ export const useChat = () => {
                 conversation_id: convId || undefined,
               });
             }
+            return urlData.publicUrl;
           }
+          return null;
+        });
+        
+        const results = await Promise.all(uploadPromises);
+        fileUrls = results.filter((url): url is string => url !== null);
+        
+        // Update message metadata with real URLs (replace blob previews)
+        if (fileUrls.length > 0) {
+          updateMessage(userMessage.id, { metadata: { ...userMessage.metadata, attachments: fileUrls } });
+          // Revoke blob URLs to free memory
+          localPreviewUrls.forEach(url => URL.revokeObjectURL(url));
         }
       } catch (err) {
         console.error('Error uploading files:', err);
@@ -365,28 +392,15 @@ export const useChat = () => {
         });
       }
     }
-    
-    const userMessage: Message = {
-      id: crypto.randomUUID(),
-      role: 'user' as const,
-      content,
-      timestamp: Date.now(),
-      metadata: fileUrls.length > 0 ? { attachments: fileUrls } : undefined,
-    };
-    
-    // User message is added immediately (before any async operations)
-    addMessage(userMessage);
-    setLoading(true, convId);
-    setError(null);
 
-    // Save user message to database with client-generated ID
+    // Save user message to database with real URLs
     if (convId) {
       await supabase.from('messages').insert({
         id: userMessage.id,
         conversation_id: convId,
         role: userMessage.role,
         content: userMessage.content,
-        metadata: userMessage.metadata
+        metadata: fileUrls.length > 0 ? { attachments: fileUrls } : userMessage.metadata,
       });
     }
     
