@@ -4,11 +4,12 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Copy, Check, RefreshCw, Pencil, X, Save, Download, FileText } from 'lucide-react';
+import { Copy, Check, RefreshCw, Pencil, X, Save, Download, FileText, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { MultiModelResponse } from './MultiModelResponse';
 import { MultiModelImageResponse } from './MultiModelImageResponse';
+import { ResponseFeedbackDialog } from './ResponseFeedbackDialog';
 import { formatModelName } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { exportResearchAsPDF } from '@/lib/pdfExport';
@@ -32,6 +33,8 @@ export const Message = ({
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState('');
+  const [liked, setLiked] = useState<boolean | null>(null);
+  const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
 
   const timeAgo = message.timestamp 
     ? formatDistanceToNow(new Date(message.timestamp), { addSuffix: true })
@@ -336,6 +339,38 @@ export const Message = ({
             {/* AI message actions */}
             {!isUser && (
               <>
+                {/* Like/Dislike buttons */}
+                <div className="flex items-center gap-0.5 mr-1 border-r border-border/30 pr-2">
+                  <button
+                    onClick={() => {
+                      setLiked(true);
+                      toast.success('Thanks for your feedback!');
+                    }}
+                    className={`w-7 h-7 rounded-md flex items-center justify-center transition-all duration-fast ease-gentle active:scale-press ${
+                      liked === true 
+                        ? 'text-primary bg-primary/10' 
+                        : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground'
+                    }`}
+                    title="Good response"
+                  >
+                    <ThumbsUp className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      setLiked(false);
+                      setShowFeedbackDialog(true);
+                    }}
+                    className={`w-7 h-7 rounded-md flex items-center justify-center transition-all duration-fast ease-gentle active:scale-press ${
+                      liked === false 
+                        ? 'text-destructive bg-destructive/10' 
+                        : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground'
+                    }`}
+                    title="Bad response"
+                  >
+                    <ThumbsDown className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
                 <button
                   onClick={copyMessage}
                   className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-all duration-fast ease-gentle active:scale-press"
@@ -386,6 +421,15 @@ export const Message = ({
           </div>
         </div>
       </div>
+
+      {/* Feedback Dialog for dislike */}
+      <ResponseFeedbackDialog
+        open={showFeedbackDialog}
+        onOpenChange={setShowFeedbackDialog}
+        messageId={message.id}
+        messageContent={contentString}
+        model={message.metadata?.model}
+      />
     </div>
   );
 };
