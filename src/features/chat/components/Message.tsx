@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import type { Message as MessageType, MultiModelContent } from '@/types';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -36,6 +36,13 @@ export const Message = ({
   const [editContent, setEditContent] = useState('');
   const [liked, setLiked] = useState<boolean | null>(null);
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
+  const hasAnimatedRef = useRef(false);
+
+  // Only apply entrance animation on first mount, not on re-renders/navigation
+  const shouldAnimate = !hasAnimatedRef.current;
+  if (shouldAnimate) {
+    hasAnimatedRef.current = true;
+  }
 
   const timeAgo = message.timestamp 
     ? formatDistanceToNow(new Date(message.timestamp), { addSuffix: true })
@@ -178,7 +185,7 @@ export const Message = ({
   const isVeryShortMessage = contentString.length < 20;
   
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} appear-smooth`}>
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} ${shouldAnimate ? 'appear-smooth' : ''}`}>
       <div className={`flex ${isUser ? 'flex-row-reverse' : 'flex-row'} ${isUser ? 'max-w-[85%] sm:max-w-[70%]' : 'max-w-[90%] sm:max-w-[75%]'} gap-2 sm:gap-2.5`}>
         {/* Avatar for AI only */}
         {!isUser && (
