@@ -174,10 +174,58 @@ const FALLBACK_MODEL: Record<string, string> = {
   'vidu-q2': 'seedream-v4.5',
 };
 
+// Model-specific allowed sizes - maps aspect ratio to valid size for each model
+const MODEL_SIZE_CONSTRAINTS: Record<string, Record<string, string>> = {
+  'gpt-image-1.5': {
+    '1:1': '1024*1024',
+    '16:9': '1536*1024',
+    '9:16': '1024*1536',
+    '3:2': '1536*1024',
+    '2:3': '1024*1536',
+  },
+  'minimax-image-01': {
+    '1:1': '1024*1024',
+    '16:9': '1280*720',
+    '9:16': '720*1280',
+    '3:2': '1536*1024',
+    '2:3': '1024*1536',
+  },
+  'qwen-image': {
+    '1:1': '1024*1024',
+    '16:9': '1280*720',
+    '9:16': '720*1280',
+    '3:2': '1536*1024',
+    '2:3': '1024*1536',
+  },
+  'wan-2.6': {
+    '1:1': '1024*1024',
+    '16:9': '1280*720',
+    '9:16': '720*1280',
+    '3:2': '1536*1024',
+    '2:3': '1024*1536',
+  },
+  'seedream-v4.5': {
+    '1:1': '1024*1024',
+    '16:9': '1280*720',
+    '9:16': '720*1280',
+    '3:2': '1536*1024',
+    '2:3': '1024*1536',
+  },
+};
+
+// Get the correct size string for a specific model
+const getModelSafeSize = (modelKey: string, aspectRatio: string, fallbackSize: { w: number; h: number }): string => {
+  const constraints = MODEL_SIZE_CONSTRAINTS[modelKey];
+  if (constraints && constraints[aspectRatio]) {
+    return constraints[aspectRatio];
+  }
+  return `${fallbackSize.w}*${fallbackSize.h}`;
+};
+
 // Model-specific request body configurations - supports custom dimensions
 const getTextToImageBody = (modelKey: string, prompt: string, size: { w: number; h: number }) => {
   const aspectRatio = getAspectRatio(size.w, size.h);
-  const sizeStr = `${size.w}*${size.h}`;
+  const sizeStr = getModelSafeSize(modelKey, aspectRatio, size);
   
   switch (modelKey) {
     case 'vidu-q2':
@@ -207,7 +255,6 @@ const getTextToImageBody = (modelKey: string, prompt: string, size: { w: number;
     case 'gpt-image-1.5':
       return {
         prompt,
-        aspect_ratio: aspectRatio,
         size: sizeStr,
         quality: 'medium',
         output_format: 'jpeg',
