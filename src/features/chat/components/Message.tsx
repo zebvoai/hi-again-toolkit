@@ -155,6 +155,23 @@ export const Message = ({
     return <MultiModelResponse content={multiContent} models={models} />;
   }
 
+  // Handle legacy single-model image responses (content is string, imageUrl in metadata)
+  if (!isUser && message.metadata?.imageUrl && typeof message.content === 'string') {
+    const model = message.metadata?.model || 'Image';
+    const legacyContent: MultiModelContent = { [model]: message.metadata.imageUrl };
+    return (
+      <div className="w-full">
+        <MultiModelImageResponse 
+          content={legacyContent} 
+          models={[model]} 
+          aspectRatio={message.metadata?.aspectRatio}
+          prompt={message.metadata?.prompt}
+          onEditPrompt={onEdit ? (prompt) => onEdit(prompt) : undefined}
+        />
+      </div>
+    );
+  }
+
   // Get content as string for user and single AI messages
   const contentString = typeof message.content === 'string' ? message.content : '';
   const isShortMessage = contentString.length < 50;
