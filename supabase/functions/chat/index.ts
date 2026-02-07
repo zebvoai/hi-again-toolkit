@@ -180,12 +180,11 @@ const VISION_CAPABLE_MODELS: Record<string, { apiModel: string; provider: string
   'Kimi VL A3B': { apiModel: 'moonshotai/kimi-vl-a3b', provider: 'openrouter' },
 };
 
-// Default vision models priority order for image analysis
-const DEFAULT_VISION_MODEL_PRIORITY = [
-  'Gemini 3 Pro',  // Best for image understanding and factual grounding
-  'GPT-5',         // Excellent multimodal reasoning
+// Default vision models for image analysis when no vision-capable models are selected
+const DEFAULT_VISION_MODELS = [
+  'GPT-5',           // Excellent multimodal reasoning
   'Claude Opus 4.5', // Strong vision capabilities
-  'Gemini 2.5 Pro',
+  'Gemini 3 Pro',    // Best for image understanding and factual grounding
 ];
 
 // Check if a model is vision capable
@@ -193,23 +192,17 @@ const isVisionCapable = (modelName: string): boolean => {
   return Object.keys(VISION_CAPABLE_MODELS).includes(modelName);
 };
 
-// Get best vision model from selected models, or default
-const selectVisionModel = (selectedModels: string[]): string => {
-  // First, try to find a vision-capable model from user's selection
-  for (const model of selectedModels) {
-    if (isVisionCapable(model)) {
-      return model;
-    }
+// Get vision models from selected models, or defaults
+const selectVisionModels = (selectedModels: string[]): string[] => {
+  // First, filter user's selection to vision-capable models
+  const userVisionModels = selectedModels.filter(isVisionCapable);
+  
+  if (userVisionModels.length > 0) {
+    return userVisionModels;
   }
   
-  // Fall back to default priority
-  for (const model of DEFAULT_VISION_MODEL_PRIORITY) {
-    if (VISION_CAPABLE_MODELS[model]) {
-      return model;
-    }
-  }
-  
-  return 'Gemini 3 Pro'; // Ultimate fallback
+  // Fall back to default vision models (all of them, not just one)
+  return DEFAULT_VISION_MODELS.filter(model => VISION_CAPABLE_MODELS[model]);
 };
 
 // Model mapping helper - supports OpenAI, Anthropic, Lovable (Gemini), and OpenRouter
@@ -415,10 +408,9 @@ async function handleMultiModelRequest(
   if (hasImages) {
     const visionModels = models.filter(isVisionCapable);
     if (visionModels.length === 0) {
-      // No vision-capable models selected - use default vision model
-      const defaultVisionModel = selectVisionModel(models);
-      effectiveModels = [defaultVisionModel];
-      console.log(`[Vision] No vision-capable models selected. Using ${defaultVisionModel} for image analysis.`);
+      // No vision-capable models selected - use default vision models (multiple)
+      effectiveModels = selectVisionModels(models);
+      console.log(`[Vision] No vision-capable models selected. Using defaults: ${effectiveModels.join(', ')}`);
     } else {
       effectiveModels = visionModels;
       console.log(`[Vision] Using vision-capable models: ${visionModels.join(', ')}`);
