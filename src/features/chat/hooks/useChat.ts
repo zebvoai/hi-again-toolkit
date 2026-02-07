@@ -65,6 +65,9 @@ export const useChat = () => {
   const cooldownMs = 2000;
   const abortControllerRef = useRef<AbortController | null>(null);
   
+  // Track which conversation the current request belongs to
+  const requestConversationIdRef = useRef<string | null>(null);
+  
   // Research-specific state
   const [researchStatus, setResearchStatus] = useState<DeepResearchProgress['status']>('researching');
   const [researchPhase, setResearchPhase] = useState<DeepResearchProgress['phase']>('search');
@@ -80,6 +83,30 @@ export const useChat = () => {
       }
     };
   }, []);
+  
+  // Helper to check if we're still on the same conversation
+  const isStillOnSameConversation = (targetConvId: string | null) => {
+    const currentId = useChatStore.getState().currentConversationId;
+    return currentId === targetConvId;
+  };
+  
+  // Safe addMessage - only adds if still on the same conversation
+  const safeAddMessage = (message: any, targetConvId: string | null) => {
+    if (isStillOnSameConversation(targetConvId)) {
+      addMessage(message);
+    } else {
+      console.log('[useChat] Skipping addMessage - user switched conversations');
+    }
+  };
+  
+  // Safe updateMessage - only updates if still on the same conversation
+  const safeUpdateMessage = (messageId: string, updates: any, targetConvId: string | null) => {
+    if (isStillOnSameConversation(targetConvId)) {
+      updateMessage(messageId, updates);
+    } else {
+      console.log('[useChat] Skipping updateMessage - user switched conversations');
+    }
+  };
   
   const cancelGeneration = () => {
     if (abortControllerRef.current) {
@@ -230,6 +257,9 @@ export const useChat = () => {
         });
       }
     }
+    
+    // Store the conversation ID this request is for - critical for handling chat switches
+    requestConversationIdRef.current = convId;
 
     // Handle file uploads if present
     let fileUrls: string[] = [];
@@ -288,8 +318,9 @@ export const useChat = () => {
       metadata: fileUrls.length > 0 ? { attachments: fileUrls } : undefined,
     };
     
+    // User message is added immediately (before any async operations)
     addMessage(userMessage);
-    setLoading(true);
+    setLoading(true, convId);
     setError(null);
 
     // Save user message to database
@@ -359,7 +390,7 @@ export const useChat = () => {
             }
           };
           
-          addMessage(assistantMessage);
+          safeAddMessage(assistantMessage, convId);
           
           if (convId) {
             await supabase.from('messages').insert({
@@ -409,7 +440,7 @@ export const useChat = () => {
               isImage: true
             }
           };
-          addMessage(assistantMessage);
+          safeAddMessage(assistantMessage, convId);
           
           // Generate images progressively - update as each completes
           const imagePromises = selectedModels.map(async (model) => {
@@ -423,9 +454,9 @@ export const useChat = () => {
               
               // Update the message content progressively
               multiModelContent[model] = response.imageUrl;
-              updateMessage(assistantId, { 
+              safeUpdateMessage(assistantId, { 
                 content: { ...multiModelContent } 
-              });
+              }, convId);
               
               // Save generated image to library
               await saveImageToLibrary({
@@ -439,9 +470,9 @@ export const useChat = () => {
               return { model, url: response.imageUrl };
             } catch (error) {
               multiModelContent[model] = `Error: ${error instanceof Error ? error.message : 'Unknown error'}`;
-              updateMessage(assistantId, { 
+              safeUpdateMessage(assistantId, { 
                 content: { ...multiModelContent } 
-              });
+              }, convId);
               return { model, url: null };
             }
           });
@@ -496,7 +527,7 @@ export const useChat = () => {
             }
           };
           
-          addMessage(assistantMessage);
+          safeAddMessage(assistantMessage, convId);
           
           if (convId) {
             await supabase.from('messages').insert({
@@ -544,7 +575,7 @@ export const useChat = () => {
           }
         };
         
-        addMessage(assistantMessage);
+        safeAddMessage(assistantMessage, convId);
         
         if (convId) {
           await supabase.from('messages').insert({
@@ -591,7 +622,7 @@ export const useChat = () => {
             models: effectiveModels
           }
         };
-        addMessage(streamingMessage);
+        safeAddMessage(streamingMessage, convId);
 
         const response = await multiModelApi.sendMessageMultiModel(
           content,
@@ -600,7 +631,7 @@ export const useChat = () => {
           effectiveModels,
           (modelName: string, chunk: string) => {
             multiModelContent[modelName] += chunk;
-            updateMessage(assistantId, { content: { ...multiModelContent } });
+            safeUpdateMessage(assistantId, { content: { ...multiModelContent } }, convId);
           },
           abortControllerRef.current?.signal,
           fileUrls.length > 0 ? fileUrls : undefined
@@ -613,7 +644,7 @@ export const useChat = () => {
             models: response.models
           }
         };
-        updateMessage(assistantId, finalMessage);
+        safeUpdateMessage(assistantId, finalMessage, convId);
         
         if (convId) {
           await supabase.from('messages').insert({
@@ -663,10 +694,10 @@ export const useChat = () => {
                       provider: 'openai'
                     }
                   };
-                  addMessage(streamingMessage);
+                  safeAddMessage(streamingMessage, convId);
                   hasCreatedMessage = true;
                 } else {
-                  updateMessage(assistantId, { content: streamingContent });
+                  safeUpdateMessage(assistantId, { content: streamingContent }, convId);
                 }
               }
             : undefined,
@@ -682,7 +713,7 @@ export const useChat = () => {
               provider: response.provider
             }
           };
-          updateMessage(assistantId, finalMessage);
+          safeUpdateMessage(assistantId, finalMessage, convId);
           
           if (convId) {
             await supabase.from('messages').insert({
@@ -708,7 +739,7 @@ export const useChat = () => {
               provider: response.provider
             }
           };
-          addMessage(assistantMessage);
+          safeAddMessage(assistantMessage, convId);
           
           if (convId) {
             await supabase.from('messages').insert({
@@ -743,7 +774,7 @@ export const useChat = () => {
           error: errorMessage
         }
       };
-      addMessage(errorAssistantMessage);
+      safeAddMessage(errorAssistantMessage, convId);
       
       toast({
         title: 'Error',
