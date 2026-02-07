@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { Square, Menu, Share, Pencil, Trash2, MoreVertical, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 import { useChat } from '@/features/chat/hooks/useChat';
@@ -26,6 +26,8 @@ import { useRealtimeMessages } from '@/features/chat/hooks/useRealtimeMessages';
 import { triggerHapticFeedback, triggerConfetti, updatePageTitle, smoothScrollTo } from '@/lib/microInteractions';
 import { exportAsMarkdown, exportAsJSON } from '@/lib/exportConversation';
 import { useSidebar } from '@/components/ui/sidebar';
+import { ChatInput, type ChatInputHandle } from '@/components/ChatInput';
+
 export function ChatInterface() {
   const [input, setInput] = useState('');
   const [isTemporaryMode, setIsTemporaryMode] = useState(false);
@@ -79,7 +81,7 @@ export function ChatInterface() {
   } = useModels();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const inputRef = useRef<ChatInputHandle>(null);
   const prevMessagesLengthRef = useRef(messages.length);
 
   // Enable realtime sync for messages across tabs
@@ -236,19 +238,23 @@ export function ChatInterface() {
   useEffect(() => {
     smoothScrollTo(messagesEndRef.current);
   }, [messages, isLoading]);
-  const handleSendMessage = () => {
-    // Haptic feedback on mobile
+  const handleInputChange = useCallback((value: string) => {
+    setInput(value);
+  }, []);
+
+  const handleSendMessage = useCallback(() => {
     triggerHapticFeedback('light');
     sendMessage(input, attachedFiles);
     setInput('');
     setAttachedFiles([]);
-  };
-  const handleSubmit = (e: React.FormEvent) => {
+  }, [input, attachedFiles, sendMessage]);
+
+  const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim() && !isLoading && selectedModels.length > 0) {
       handleSendMessage();
     }
-  };
+  }, [input, isLoading, selectedModels.length, handleSendMessage]);
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
@@ -532,16 +538,14 @@ export function ChatInterface() {
 
               {/* Auto-expanding Textarea */}
               <div className="flex-1 min-w-0 flex items-center px-2 sm:px-4">
-              <textarea ref={inputRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  if (input.trim() && selectedModels.length > 0 && !isCurrentConversationLoading) {
-                    handleSubmit(e as unknown as React.FormEvent);
-                  }
-                }
-              }} placeholder="Ask Zebvo ai" disabled={isCurrentConversationLoading} rows={1} className="w-full bg-transparent border-none outline-none focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 text-[15px] sm:text-[17px] font-medium placeholder:text-muted-foreground/70 disabled:opacity-50 text-foreground resize-none overflow-y-auto leading-[1.5] py-[6px] scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent" style={{
-                height: '38px'
-              }} maxLength={4000} />
+                <ChatInput
+                  ref={inputRef}
+                  value={input}
+                  onChange={handleInputChange}
+                  onSubmit={handleSendMessage}
+                  placeholder="Ask Zebvo ai"
+                  disabled={isCurrentConversationLoading}
+                />
               </div>
 
               {/* Character count */}
