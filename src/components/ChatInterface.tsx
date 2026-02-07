@@ -33,7 +33,7 @@ import { useSidebar } from '@/components/ui/sidebar';
 import { ChatInput, type ChatInputHandle } from '@/components/ChatInput';
 
 export function ChatInterface() {
-  const [input, setInput] = useState('');
+  const [hasInputContent, setHasInputContent] = useState(false);
   const [isTemporaryMode, setIsTemporaryMode] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [isFirstResponse, setIsFirstResponse] = useState(true);
@@ -161,14 +161,15 @@ export function ChatInterface() {
   // Keyboard shortcuts
   useKeyboardShortcuts({
     onSend: () => {
-      if (input.trim() && !isCurrentConversationLoading && selectedModels.length > 0) {
-        handleSendMessage();
+      const val = inputRef.current?.getValue() || '';
+      if (val.trim() && !isCurrentConversationLoading && selectedModels.length > 0) {
+        handleSendMessage(val);
       }
     },
     onNewChat: () => {
       clearMessages();
       setCurrentConversationId(null);
-      setInput('');
+      inputRef.current?.clear();
       setIsFirstResponse(true);
       toast.success('New chat started');
     },
@@ -225,23 +226,29 @@ export function ChatInterface() {
     smoothScrollTo(messagesEndRef.current);
   }, [messages, isLoading]);
 
-  const handleInputChange = useCallback((value: string) => setInput(value), []);
+  const handleContentChange = useCallback((hasContent: boolean) => {
+    setHasInputContent(hasContent);
+  }, []);
 
-  const handleSendMessage = useCallback(() => {
+  const handleSendMessage = useCallback((valueOverride?: string) => {
+    const value = valueOverride ?? inputRef.current?.getValue() ?? '';
+    if (!value.trim()) return;
     triggerHapticFeedback('light');
-    sendMessage(input, attachedFiles);
-    setInput('');
+    sendMessage(value, attachedFiles);
+    inputRef.current?.clear();
+    setHasInputContent(false);
     setAttachedFiles([]);
-  }, [input, attachedFiles, sendMessage]);
+  }, [attachedFiles, sendMessage]);
 
-  const handleTrySend = useCallback(() => {
-    if (!input.trim() || isCurrentConversationLoading || selectedModels.length === 0) return;
+  const handleTrySend = useCallback((valueOverride?: string) => {
+    const value = valueOverride ?? inputRef.current?.getValue() ?? '';
+    if (!value.trim() || isCurrentConversationLoading || selectedModels.length === 0) return;
     if (selectedMode === 'research') {
       setShowDeepResearchConfirm(true);
     } else {
-      handleSendMessage();
+      handleSendMessage(value);
     }
-  }, [input, isCurrentConversationLoading, selectedModels.length, selectedMode, handleSendMessage]);
+  }, [isCurrentConversationLoading, selectedModels.length, selectedMode, handleSendMessage]);
 
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
@@ -499,23 +506,15 @@ export function ChatInterface() {
               <div className="flex-1 min-w-0 flex items-center px-2 sm:px-4">
                 <ChatInput
                   ref={inputRef}
-                  value={input}
-                  onChange={handleInputChange}
                   onSubmit={handleTrySend}
+                  onContentChange={handleContentChange}
                   placeholder="Ask Zebvo ai"
                   disabled={isCurrentConversationLoading}
                 />
               </div>
 
-              {/* Character count */}
-              {input.length > 3500 && (
-                <span className={`text-xs mr-2 self-center ${input.length > 3900 ? 'text-destructive' : 'text-muted-foreground'}`}>
-                  {4000 - input.length}
-                </span>
-              )}
-
               {/* Right Send Button */}
-              <button type={isCurrentConversationLoading ? "button" : "submit"} onClick={isCurrentConversationLoading ? cancelGeneration : undefined} disabled={!isCurrentConversationLoading && (!input.trim() || selectedModels.length === 0)} className={`flex-shrink-0 w-[36px] h-[36px] sm:w-[42px] sm:h-[42px] rounded-full flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] ${isCurrentConversationLoading ? 'bg-primary text-primary-foreground hover:bg-primary/80 shadow-lg shadow-primary/25' : !input.trim() || selectedModels.length === 0 ? 'bg-muted text-muted-foreground cursor-not-allowed border border-border/50' : 'bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-110 hover:shadow-lg hover:shadow-primary/25 animate-scale-in'}`}>
+              <button type={isCurrentConversationLoading ? "button" : "submit"} onClick={isCurrentConversationLoading ? cancelGeneration : undefined} disabled={!isCurrentConversationLoading && (!hasInputContent || selectedModels.length === 0)} className={`flex-shrink-0 w-[36px] h-[36px] sm:w-[42px] sm:h-[42px] rounded-full flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] ${isCurrentConversationLoading ? 'bg-primary text-primary-foreground hover:bg-primary/80 shadow-lg shadow-primary/25' : !hasInputContent || selectedModels.length === 0 ? 'bg-muted text-muted-foreground cursor-not-allowed border border-border/50' : 'bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-110 hover:shadow-lg hover:shadow-primary/25 animate-scale-in'}`}>
                 {isCurrentConversationLoading ? <Square className="w-4 h-4 fill-current animate-pulse" /> : <svg width="16" height="16" viewBox="0 0 20 20" fill="none" className="sm:w-[18px] sm:h-[18px] transition-all duration-300">
                     <path d="M3 10L17 10M17 10L11 4M17 10L11 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>}
