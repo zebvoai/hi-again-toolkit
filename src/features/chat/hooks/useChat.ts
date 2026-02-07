@@ -421,6 +421,16 @@ export const useChat = () => {
           throw error;
         }
       } else if (selectedMode === 'image') {
+        // Check if there are image attachments for image-to-image generation
+        const imageAttachments = fileUrls.filter(url => 
+          url.match(/\.(jpg|jpeg|png|gif|webp)$/i) || url.includes('image')
+        );
+        const sourceImage = imageAttachments.length > 0 ? imageAttachments[0] : undefined;
+        
+        if (sourceImage) {
+          console.log('Image-to-image mode: using source image', sourceImage);
+        }
+        
         // Handle multi-model image generation with progressive loading
         if (selectedModels.length > 1) {
           // Initialize with empty content for all models
@@ -437,7 +447,8 @@ export const useChat = () => {
             timestamp: Date.now(),
             metadata: {
               models: selectedModels,
-              isImage: true
+              isImage: true,
+              isImageToImage: !!sourceImage
             }
           };
           safeAddMessage(assistantMessage, convId);
@@ -449,7 +460,8 @@ export const useChat = () => {
                 content, 
                 undefined, 
                 model.toLowerCase().replace(/\s+/g, '-'),
-                abortControllerRef.current?.signal
+                abortControllerRef.current?.signal,
+                sourceImage // Pass source image for image-to-image
               );
               
               // Update the message content progressively
@@ -495,8 +507,8 @@ export const useChat = () => {
           }
 
           toast({
-            title: 'Images generated',
-            description: `Generated images with ${selectedModels.length} models`,
+            title: sourceImage ? 'Images transformed' : 'Images generated',
+            description: `${sourceImage ? 'Transformed' : 'Generated'} images with ${selectedModels.length} models`,
           });
         } else {
           const selectedModel = selectedModels[0] || 'DALL-E 3';
@@ -504,7 +516,8 @@ export const useChat = () => {
             content, 
             undefined, 
             selectedModel.toLowerCase().replace(/\s+/g, '-'),
-            abortControllerRef.current?.signal
+            abortControllerRef.current?.signal,
+            sourceImage // Pass source image for image-to-image
           );
           
           // Save generated image to library
@@ -523,7 +536,8 @@ export const useChat = () => {
             timestamp: Date.now(),
             metadata: {
               imageUrl: response.imageUrl,
-              model: selectedModel
+              model: selectedModel,
+              isImageToImage: !!sourceImage
             }
           };
           
