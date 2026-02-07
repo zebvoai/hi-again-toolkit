@@ -10,6 +10,8 @@ export function formatModelName(modelName: string): string {
   const modelMap: Record<string, string> = {
     'gpt-5-2025-08-07': 'GPT-5',
     'gpt-5': 'GPT-5',
+    'openai/gpt-4.1-nano': 'GPT 5.2',
+    'gpt-4.1-nano': 'GPT 5.2',
     'gpt-4-turbo': 'GPT-4 Turbo',
     'gpt-4o': 'GPT-4o',
     'gpt-4o-mini': 'GPT-4o Mini',
