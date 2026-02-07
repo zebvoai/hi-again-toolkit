@@ -514,6 +514,64 @@ async function generateImage(
   return { imageUrl, usedModel: modelKey };
 }
 
+// Enhance user prompt using Gemini to understand intent and create a detailed image prompt
+async function enhancePromptWithGemini(userPrompt: string, googleApiKey: string): Promise<string> {
+  try {
+    console.log('[Gemini] Enhancing prompt:', userPrompt);
+    
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${googleApiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: `You are an expert image prompt engineer. Your job is to take a user's casual image request and transform it into a detailed, accurate prompt for an AI image generator.
+
+Rules:
+- Understand what the user ACTUALLY wants (e.g., "wadapav" = Vada Pav, a famous Indian street food snack with a spiced potato fritter in a bread bun)
+- Add specific visual details: lighting, style, composition, colors, textures
+- Keep it concise but descriptive (1-3 sentences max)
+- Do NOT add artistic styles unless the user asks for them
+- Focus on accurately depicting the subject
+- If it's a food item, describe it appetizingly with proper presentation
+- If it's a cultural item, ensure cultural accuracy
+- Return ONLY the enhanced prompt text, nothing else — no quotes, no labels
+
+User request: "${userPrompt}"
+
+Enhanced image prompt:`
+            }]
+          }],
+          generationConfig: {
+            maxOutputTokens: 200,
+            temperature: 0.7,
+          }
+        })
+      }
+    );
+    
+    if (!response.ok) {
+      console.error('[Gemini] Enhancement failed:', response.status);
+      return userPrompt;
+    }
+    
+    const data = await response.json();
+    const enhanced = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    
+    if (enhanced && enhanced.length > 5) {
+      console.log('[Gemini] Enhanced prompt:', enhanced);
+      return enhanced;
+    }
+    
+    return userPrompt;
+  } catch (error) {
+    console.error('[Gemini] Enhancement error:', error);
+    return userPrompt;
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -535,8 +593,16 @@ serve(async (req) => {
     const effectiveSizeStr = aspectRatio ? (aspectRatioSizeMap[aspectRatio] || sizeStr) : sizeStr;
     const size = getClosestSize(width, height, effectiveSizeStr);
     
+    // Enhance prompt with Gemini for better accuracy (text-to-image only)
+    const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
+    let enhancedPrompt = prompt;
+    if (googleApiKey && !hasSourceImage) {
+      enhancedPrompt = await enhancePromptWithGemini(prompt, googleApiKey);
+    }
+    
     console.log('Image generation request:', { 
       prompt, 
+      enhancedPrompt,
       model, 
       hasSourceImage,
       requestedSize: sizeStr || (width && height ? `${width}x${height}` : 'default'),
@@ -565,8 +631,8 @@ serve(async (req) => {
     let result: { imageUrl: string; usedModel: string };
     
     try {
-      // Try primary model
-      result = await generateImage(modelKey, prompt, size, sourceImage, wavespeedApiKey);
+      // Try primary model with enhanced prompt
+      result = await generateImage(modelKey, enhancedPrompt, size, sourceImage, wavespeedApiKey);
     } catch (primaryError) {
       const fallbackModelKey = FALLBACK_MODEL[modelKey];
       
@@ -575,7 +641,7 @@ serve(async (req) => {
         console.log(`[${modelKey}] Error was:`, primaryError instanceof Error ? primaryError.message : primaryError);
         
         try {
-          result = await generateImage(fallbackModelKey, prompt, size, sourceImage, wavespeedApiKey);
+          result = await generateImage(fallbackModelKey, enhancedPrompt, size, sourceImage, wavespeedApiKey);
           console.log(`[${fallbackModelKey}] Fallback succeeded`);
         } catch (fallbackError) {
           console.error(`[${fallbackModelKey}] Fallback also failed:`, fallbackError);
@@ -591,7 +657,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         imageUrl: result.imageUrl,
-        revisedPrompt: prompt,
+        revisedPrompt: enhancedPrompt,
         model: model || 'Nano Banana Pro', // Always keep the original display label
         isImageEdit: !!sourceImage
       }),
