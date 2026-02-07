@@ -81,8 +81,11 @@ export function ChatInterface() {
   const currentConversation = conversations.find(c => c.id === currentConversationId);
   const currentTitle = currentConversation?.title || 'Untitled';
 
-  // Only show loading if current conversation is the one loading
-  const isCurrentConversationLoading = isLoading && loadingConversationId === currentConversationId;
+  // Show loading if current conversation is the one loading, OR if it's a new conversation (optimistic)
+  const isCurrentConversationLoading = isLoading && (
+    loadingConversationId === currentConversationId ||
+    loadingConversationId === 'optimistic' && currentConversationId === null
+  );
   const {
     models
   } = useModels();
