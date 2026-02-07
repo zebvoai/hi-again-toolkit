@@ -282,9 +282,9 @@ export const useChat = () => {
       metadata: localPreviewUrls.length > 0 ? { attachments: localPreviewUrls } : undefined,
     };
     
-    // Show the blue bubble instantly — no waiting for DB or uploads
+    // Show the blue bubble AND skeleton loader instantly — no waiting for DB or uploads
     addMessage(userMessage);
-    setLoading(true);
+    setLoading(true, currentConversationId || 'optimistic');
     setError(null);
     
     // === BACKGROUND: Create conversation if needed ===
@@ -333,6 +333,8 @@ export const useChat = () => {
     
     // Store the conversation ID this request is for
     requestConversationIdRef.current = convId;
+    // Update loading state with real conversation ID now that we have it
+    if (convId) setLoading(true, convId);
 
     // === BACKGROUND: Upload files in parallel and replace blob URLs with real ones ===
     let fileUrls: string[] = [];
