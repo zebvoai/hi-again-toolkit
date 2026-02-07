@@ -182,7 +182,7 @@ export const ConversationItem = ({
       </div>
 
       {/* Content area */}
-      <div className="pr-6">
+      <div className="min-w-0 flex-1 pr-6">
         <p
           className={cn(
             "text-[12.5px] truncate leading-snug",
