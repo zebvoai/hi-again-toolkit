@@ -189,7 +189,7 @@ export const ConversationItem = ({
             isActive ? 'font-medium text-primary' : 'text-foreground/90 dark:text-foreground/80'
           )}
         >
-          {title}
+          {title.length > 15 ? `${title.slice(0, 15)}…` : title}
         </p>
         <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
           {timeAgo}
