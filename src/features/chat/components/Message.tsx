@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { MultiModelResponse } from './MultiModelResponse';
 import { MultiModelImageResponse } from './MultiModelImageResponse';
+import { InterruptedMessage } from './InterruptedMessage';
 import { ResponseFeedbackDialog } from './ResponseFeedbackDialog';
 import { formatModelName } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
@@ -114,6 +115,32 @@ export const Message = ({
     setIsEditing(false);
     setEditContent('');
   };
+
+  // Handle interrupted/generating messages
+  if (!isUser && message.metadata?.generationStatus === 'interrupted') {
+    return (
+      <InterruptedMessage 
+        mode={message.metadata?.generationMode} 
+        onRetry={onRegenerate}
+      />
+    );
+  }
+
+  // Handle still-generating placeholders (empty content from DB reload)
+  if (!isUser && message.metadata?.generationStatus === 'generating') {
+    const content = message.content;
+    const isEmpty = content === '' || 
+      (typeof content === 'object' && Object.values(content).every(v => v === ''));
+    
+    if (isEmpty) {
+      return (
+        <InterruptedMessage 
+          mode={message.metadata?.generationMode} 
+          onRetry={onRegenerate}
+        />
+      );
+    }
+  }
 
   // Handle multi-model responses - render full width
   if (isMultiModel) {

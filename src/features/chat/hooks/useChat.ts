@@ -42,6 +42,56 @@ const saveImageToLibrary = async (imageData: {
 // Vision-capable models that can process image attachments
 const VISION_CAPABLE_MODELS = ['GPT-5', 'Claude Opus 4.5', 'Gemini 3 Pro'];
 
+// Helper to save a placeholder "generating" message to DB
+const saveGeneratingPlaceholder = async (
+  convId: string,
+  assistantId: string,
+  metadata: Record<string, any>
+) => {
+  try {
+    await supabase.from('messages').insert({
+      id: assistantId,
+      conversation_id: convId,
+      role: 'assistant',
+      content: '',
+      metadata: {
+        ...metadata,
+        generationStatus: 'generating',
+      },
+    });
+  } catch (error) {
+    console.error('[useChat] Failed to save generating placeholder:', error);
+  }
+};
+
+// Helper to update a completed message in DB (replaces placeholder)
+const updateCompletedMessage = async (
+  convId: string,
+  assistantId: string,
+  content: any,
+  metadata: Record<string, any>
+) => {
+  try {
+    // Remove generationStatus from final metadata (it's complete)
+    const { generationStatus, ...cleanMetadata } = metadata;
+    
+    await supabase.from('messages')
+      .update({
+        content,
+        metadata: { ...cleanMetadata, generationStatus: 'complete' },
+      })
+      .eq('id', assistantId)
+      .eq('conversation_id', convId);
+    
+    await supabase
+      .from('conversations')
+      .update({ updated_at: new Date().toISOString() })
+      .eq('id', convId);
+  } catch (error) {
+    console.error('[useChat] Failed to update completed message:', error);
+  }
+};
+
 export const useChat = () => {
   const { 
     messages, 
@@ -317,7 +367,7 @@ export const useChat = () => {
     }
     
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       role: 'user' as const,
       content,
       timestamp: Date.now(),
@@ -329,9 +379,10 @@ export const useChat = () => {
     setLoading(true, convId);
     setError(null);
 
-    // Save user message to database
+    // Save user message to database with client-generated ID
     if (convId) {
       await supabase.from('messages').insert({
+        id: userMessage.id,
         conversation_id: convId,
         role: userMessage.role,
         content: userMessage.content,
@@ -339,11 +390,25 @@ export const useChat = () => {
       });
     }
     
-    const assistantId = (Date.now() + 1).toString();
+    // Use crypto.randomUUID so assistantId works as DB primary key
+    const assistantId = crypto.randomUUID();
     
     try {
       // Handle Deep Research mode - uses fixed 3-model pipeline
       if (selectedMode === 'research') {
+        const placeholderMetadata = {
+          models: ['Claude', 'Gemini', 'GPT-5'],
+          provider: 'deep-research',
+          isResearch: true,
+          generationStatus: 'generating' as const,
+          generationMode: 'research',
+        };
+        
+        // Save placeholder to DB before starting
+        if (convId) {
+          await saveGeneratingPlaceholder(convId, assistantId, placeholderMetadata);
+        }
+
         // Clear any existing timer first
         if (researchTimerRef.current) {
           clearInterval(researchTimerRef.current);
@@ -393,23 +458,15 @@ export const useChat = () => {
               provider: 'deep-research',
               isResearch: true,
               researchStatus: 'complete',
+              generationStatus: 'complete',
+              generationMode: 'research',
             }
           };
           
           safeAddMessage(assistantMessage, convId);
           
           if (convId) {
-            await supabase.from('messages').insert({
-              conversation_id: convId,
-              role: assistantMessage.role,
-              content: assistantMessage.content,
-              metadata: assistantMessage.metadata
-            });
-            
-            await supabase
-              .from('conversations')
-              .update({ updated_at: new Date().toISOString() })
-              .eq('id', convId);
+            await updateCompletedMessage(convId, assistantId, assistantMessage.content, assistantMessage.metadata || {});
           }
           
           toast({
@@ -448,19 +505,28 @@ export const useChat = () => {
             multiModelContent[model] = ''; // Empty = loading state
           });
           
+          const placeholderMetadata = {
+            models: selectedModels,
+            isImage: true,
+            isImageToImage: !!sourceImage,
+            aspectRatio,
+            prompt: content,
+            generationStatus: 'generating' as const,
+            generationMode: 'image',
+          };
+          
+          // Save placeholder to DB before starting
+          if (convId) {
+            await saveGeneratingPlaceholder(convId, assistantId, placeholderMetadata);
+          }
+          
           // Add placeholder message immediately for progressive rendering
           const assistantMessage: Message = {
             id: assistantId,
             role: 'assistant' as const,
             content: { ...multiModelContent },
             timestamp: Date.now(),
-            metadata: {
-              models: selectedModels,
-              isImage: true,
-              isImageToImage: !!sourceImage,
-              aspectRatio,
-              prompt: content, // Store original prompt for copy/edit
-            }
+            metadata: placeholderMetadata,
           };
           safeAddMessage(assistantMessage, convId);
           
@@ -506,19 +572,15 @@ export const useChat = () => {
 
           await Promise.all(imagePromises);
 
-          // Save final message to database
+          // Update completed message in DB
           if (convId) {
-            await supabase.from('messages').insert({
-              conversation_id: convId,
-              role: assistantMessage.role,
-              content: multiModelContent,
-              metadata: assistantMessage.metadata
+            await updateCompletedMessage(convId, assistantId, multiModelContent, {
+              models: selectedModels,
+              isImage: true,
+              isImageToImage: !!sourceImage,
+              aspectRatio,
+              prompt: content,
             });
-
-            await supabase
-              .from('conversations')
-              .update({ updated_at: new Date().toISOString() })
-              .eq('id', convId);
           }
 
           toast({
@@ -527,6 +589,20 @@ export const useChat = () => {
           });
         } else {
           const selectedModel = selectedModels[0] || 'DALL-E 3';
+          
+          const placeholderMetadata = {
+            model: selectedModel,
+            isImageToImage: !!sourceImage,
+            prompt: content,
+            generationStatus: 'generating' as const,
+            generationMode: 'image',
+          };
+          
+          // Save placeholder to DB before starting
+          if (convId) {
+            await saveGeneratingPlaceholder(convId, assistantId, placeholderMetadata);
+          }
+          
           const response = await api.generateImage(
             content, 
             undefined, 
@@ -557,24 +633,16 @@ export const useChat = () => {
               imageUrl: response.imageUrl,
               model: selectedModel,
               isImageToImage: !!sourceImage,
-              prompt: content, // Store original prompt for copy/edit
+              prompt: content,
+              generationStatus: 'complete',
+              generationMode: 'image',
             }
           };
           
           safeAddMessage(assistantMessage, convId);
           
           if (convId) {
-            await supabase.from('messages').insert({
-              conversation_id: convId,
-              role: assistantMessage.role,
-              content: assistantMessage.content,
-              metadata: assistantMessage.metadata
-            });
-            
-            await supabase
-              .from('conversations')
-              .update({ updated_at: new Date().toISOString() })
-              .eq('id', convId);
+            await updateCompletedMessage(convId, assistantId, assistantMessage.content, assistantMessage.metadata || {});
           }
           
           toast({
@@ -591,6 +659,18 @@ export const useChat = () => {
         }
         
         const selectedModel = filteredModels[0];
+        
+        const placeholderMetadata = {
+          model: selectedModel,
+          generationStatus: 'generating' as const,
+          generationMode: 'video',
+        };
+        
+        // Save placeholder to DB before starting
+        if (convId) {
+          await saveGeneratingPlaceholder(convId, assistantId, placeholderMetadata);
+        }
+        
         const response = await api.generateVideo(
           content,
           undefined,
@@ -605,24 +685,16 @@ export const useChat = () => {
           timestamp: Date.now(),
           metadata: {
             videoUrl: response.videoUrl,
-            model: selectedModel
+            model: selectedModel,
+            generationStatus: 'complete',
+            generationMode: 'video',
           }
         };
         
         safeAddMessage(assistantMessage, convId);
         
         if (convId) {
-          await supabase.from('messages').insert({
-            conversation_id: convId,
-            role: assistantMessage.role,
-            content: assistantMessage.content,
-            metadata: assistantMessage.metadata
-          });
-          
-          await supabase
-            .from('conversations')
-            .update({ updated_at: new Date().toISOString() })
-            .eq('id', convId);
+          await updateCompletedMessage(convId, assistantId, assistantMessage.content, assistantMessage.metadata || {});
         }
         
         toast({
@@ -646,15 +718,24 @@ export const useChat = () => {
           multiModelContent[model] = '';
         });
 
+        const placeholderMetadata = {
+          models: effectiveModels,
+          generationStatus: 'generating' as const,
+          generationMode: 'text',
+        };
+        
+        // Save placeholder to DB before starting
+        if (convId) {
+          await saveGeneratingPlaceholder(convId, assistantId, placeholderMetadata);
+        }
+
         // Add placeholder message immediately for instant feedback
         const streamingMessage: Message = {
           id: assistantId,
           role: 'assistant' as const,
           content: { ...multiModelContent },
           timestamp: Date.now(),
-          metadata: {
-            models: effectiveModels
-          }
+          metadata: placeholderMetadata,
         };
         safeAddMessage(streamingMessage, convId);
 
@@ -672,26 +753,15 @@ export const useChat = () => {
         );
 
         // Update with final content
-        const finalMessage = {
-          content: response.content,
-          metadata: {
-            models: response.models
-          }
+        const finalMetadata = {
+          models: response.models,
+          generationStatus: 'complete' as const,
+          generationMode: 'text',
         };
-        safeUpdateMessage(assistantId, finalMessage, convId);
+        safeUpdateMessage(assistantId, { content: response.content, metadata: finalMetadata }, convId);
         
         if (convId) {
-          await supabase.from('messages').insert({
-            conversation_id: convId,
-            role: 'assistant',
-            content: finalMessage.content,
-            metadata: finalMessage.metadata
-          });
-          
-          await supabase
-            .from('conversations')
-            .update({ updated_at: new Date().toISOString() })
-            .eq('id', convId);
+          await updateCompletedMessage(convId, assistantId, response.content, finalMetadata);
         }
       } else {
         // For single model mode, force vision model if images are attached
@@ -701,6 +771,17 @@ export const useChat = () => {
         // If image attached but selected model isn't vision-capable, switch to first vision model
         if (hasImages && !VISION_CAPABLE_MODELS.includes(selectedModel)) {
           selectedModel = VISION_CAPABLE_MODELS[0]; // GPT-5
+        }
+        
+        const placeholderMetadata = {
+          model: selectedModel || 'AI',
+          generationStatus: 'generating' as const,
+          generationMode: 'text',
+        };
+        
+        // Save placeholder to DB before starting
+        if (convId) {
+          await saveGeneratingPlaceholder(convId, assistantId, placeholderMetadata);
         }
         
         let streamingContent = '';
@@ -725,7 +806,9 @@ export const useChat = () => {
                     timestamp: Date.now(),
                     metadata: {
                       model: selectedModel || 'AI',
-                      provider: 'openai'
+                      provider: 'openai',
+                      generationStatus: 'generating' as const,
+                      generationMode: 'text',
                     }
                   };
                   safeAddMessage(streamingMessage, convId);
@@ -740,27 +823,16 @@ export const useChat = () => {
         );
         
         if (hasCreatedMessage) {
-          const finalMessage = {
-            content: response.content || streamingContent,
-            metadata: {
-              model: response.model,
-              provider: response.provider
-            }
+          const finalMetadata = {
+            model: response.model,
+            provider: response.provider,
+            generationStatus: 'complete' as const,
+            generationMode: 'text',
           };
-          safeUpdateMessage(assistantId, finalMessage, convId);
+          safeUpdateMessage(assistantId, { content: response.content || streamingContent, metadata: finalMetadata }, convId);
           
           if (convId) {
-            await supabase.from('messages').insert({
-              conversation_id: convId,
-              role: 'assistant',
-              content: finalMessage.content,
-              metadata: finalMessage.metadata
-            });
-            
-            await supabase
-              .from('conversations')
-              .update({ updated_at: new Date().toISOString() })
-              .eq('id', convId);
+            await updateCompletedMessage(convId, assistantId, response.content || streamingContent, finalMetadata);
           }
         } else {
           const assistantMessage = {
@@ -770,29 +842,31 @@ export const useChat = () => {
             timestamp: Date.now(),
             metadata: {
               model: response.model,
-              provider: response.provider
+              provider: response.provider,
+              generationStatus: 'complete' as const,
+              generationMode: 'text',
             }
           };
           safeAddMessage(assistantMessage, convId);
           
           if (convId) {
-            await supabase.from('messages').insert({
-              conversation_id: convId,
-              role: assistantMessage.role,
-              content: assistantMessage.content,
-              metadata: assistantMessage.metadata
-            });
-            
-            await supabase
-              .from('conversations')
-              .update({ updated_at: new Date().toISOString() })
-              .eq('id', convId);
+            await updateCompletedMessage(convId, assistantId, assistantMessage.content, assistantMessage.metadata || {});
           }
         }
       }
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
         console.log('Request was cancelled by user');
+        // Update the placeholder in DB to mark as interrupted
+        if (convId) {
+          await supabase.from('messages')
+            .update({ 
+              content: 'Generation was cancelled.',
+              metadata: { generationStatus: 'interrupted', generationMode: selectedMode }
+            })
+            .eq('id', assistantId)
+            .eq('conversation_id', convId);
+        }
         return;
       }
       
@@ -805,10 +879,23 @@ export const useChat = () => {
         content: 'Sorry, I encountered an error processing your request.',
         timestamp: Date.now(),
         metadata: {
-          error: errorMessage
+          error: errorMessage,
+          generationStatus: 'interrupted' as const,
+          generationMode: selectedMode,
         }
       };
       safeAddMessage(errorAssistantMessage, convId);
+      
+      // Update DB placeholder with error
+      if (convId) {
+        await supabase.from('messages')
+          .update({ 
+            content: 'Sorry, I encountered an error processing your request.',
+            metadata: { error: errorMessage, generationStatus: 'interrupted', generationMode: selectedMode }
+          })
+          .eq('id', assistantId)
+          .eq('conversation_id', convId);
+      }
       
       toast({
         title: 'Error',
