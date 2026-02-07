@@ -165,6 +165,12 @@ const IMAGE_EDIT_MAPPING: Record<string, string> = {
 // Fallback mappings: if a model fails, try this one instead
 const FALLBACK_MODEL: Record<string, string> = {
   'nano-banana-pro': 'seedream-v4.5',
+  'gpt-image-1.5': 'seedream-v4.5',
+  'minimax-image-01': 'seedream-v4.5',
+  'qwen-image': 'seedream-v4.5',
+  'grok-imagine': 'seedream-v4.5',
+  'wan-2.6': 'seedream-v4.5',
+  'vidu-q2': 'seedream-v4.5',
 };
 
 // Model-specific request body configurations - supports custom dimensions
@@ -528,7 +534,7 @@ serve(async (req) => {
       JSON.stringify({
         imageUrl: result.imageUrl,
         revisedPrompt: prompt,
-        model: result.usedModel === modelKey ? (model || 'Nano Banana Pro') : `${result.usedModel} (fallback)`,
+        model: model || 'Nano Banana Pro', // Always keep the original display label
         isImageEdit: !!sourceImage
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
