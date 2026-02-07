@@ -196,21 +196,16 @@ export const MultiModelImageResponse = ({
         const isError = typeof imageUrl === 'string' && imageUrl.startsWith('Error:');
         const isLoading = !imageUrl || imageUrl === '';
         const style = getModelStyle(model);
-        return <div key={model} className={cn("flex-shrink-0 w-[280px] sm:w-[320px] md:w-[360px] rounded-xl border-2 overflow-hidden", style.bg, style.border)}>
-              {/* Model header */}
-              <div className="flex items-center justify-between px-3 py-2 border-b border-border/30">
-                <span className="text-sm font-medium text-foreground truncate">
-                  {formatModelName(model)}
-                </span>
-                {!isError && !isLoading && <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-background/50" onClick={() => handleCopyToClipboard(imageUrl, model)} title="Copy to clipboard">
+        return <div key={model} className={cn("flex-shrink-0 w-[280px] sm:w-[320px] md:w-[360px] rounded-xl border-2 overflow-hidden relative group", style.bg, style.border)}>
+              {/* Hover actions */}
+              {!isError && !isLoading && <div className="absolute top-3 right-3 z-10 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button variant="ghost" size="icon" className="h-7 w-7 bg-background/60 backdrop-blur-sm hover:bg-background/80" onClick={() => handleCopyToClipboard(imageUrl, model)} title="Copy to clipboard">
                       {copiedModel === model ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-background/50" onClick={() => handleDownload(imageUrl, model)} title="Download image">
+                    <Button variant="ghost" size="icon" className="h-7 w-7 bg-background/60 backdrop-blur-sm hover:bg-background/80" onClick={() => handleDownload(imageUrl, model)} title="Download image">
                       <Download className="w-4 h-4" />
                     </Button>
                   </div>}
-              </div>
               
               {/* Image content - always square 1:1 */}
               <div className="p-2">
