@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
-import { Download, AlertCircle } from 'lucide-react';
+import { Download, AlertCircle, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ImageLightbox } from '@/components/ImageLightbox';
@@ -7,6 +7,7 @@ import type { MultiModelContent } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { formatModelName } from '@/lib/utils';
 import { cn } from '@/lib/utils';
+import { copyImageToClipboard } from '@/hooks/useImagePaste';
 
 interface MultiModelImageResponseProps {
   content: MultiModelContent;
@@ -60,6 +61,7 @@ export const MultiModelImageResponse = ({ content, models, aspectRatio }: MultiM
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const [lightboxImage, setLightboxImage] = useState<{ url: string; model: string } | null>(null);
+  const [copiedModel, setCopiedModel] = useState<string | null>(null);
 
   // Smooth horizontal scroll with mouse wheel
   useEffect(() => {
@@ -103,6 +105,26 @@ export const MultiModelImageResponse = ({ content, models, aspectRatio }: MultiM
     }
   };
 
+  const handleCopyToClipboard = async (url: string, model: string) => {
+    setCopiedModel(model);
+    const success = await copyImageToClipboard(url);
+    
+    if (success) {
+      toast({
+        description: 'Image copied to clipboard',
+        duration: 2000,
+      });
+    } else {
+      toast({
+        description: 'Failed to copy image',
+        variant: 'destructive',
+        duration: 2000,
+      });
+    }
+    
+    setTimeout(() => setCopiedModel(null), 2000);
+  };
+
   return (
     <div className="w-full">
       {/* Fullscreen Lightbox */}
@@ -141,14 +163,30 @@ export const MultiModelImageResponse = ({ content, models, aspectRatio }: MultiM
                   {formatModelName(model)}
                 </span>
                 {!isError && !isLoading && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 hover:bg-background/50"
-                    onClick={() => handleDownload(imageUrl, model)}
-                  >
-                    <Download className="w-4 h-4" />
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 hover:bg-background/50"
+                      onClick={() => handleCopyToClipboard(imageUrl, model)}
+                      title="Copy to clipboard"
+                    >
+                      {copiedModel === model ? (
+                        <Check className="w-4 h-4 text-green-500" />
+                      ) : (
+                        <Copy className="w-4 h-4" />
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 hover:bg-background/50"
+                      onClick={() => handleDownload(imageUrl, model)}
+                      title="Download image"
+                    >
+                      <Download className="w-4 h-4" />
+                    </Button>
+                  </div>
                 )}
               </div>
               
