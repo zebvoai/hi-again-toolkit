@@ -36,7 +36,7 @@ const getModelStyle = (model: string): { bg: string; text: string; accent: strin
   if (lowerModel.includes('mistral')) {
     return { bg: 'bg-amber-500/10', text: 'text-amber-600', accent: 'border-amber-500/30' };
   }
-  if (lowerModel.includes('llama') || lowerModel.includes('maverick')) {
+  if (lowerModel.includes('llama') || lowerModel.includes('maverick') || lowerModel.includes('meta')) {
     return { bg: 'bg-indigo-500/10', text: 'text-indigo-600', accent: 'border-indigo-500/30' };
   }
   if (lowerModel.includes('minimax')) {
