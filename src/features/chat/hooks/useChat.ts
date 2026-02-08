@@ -913,16 +913,71 @@ export const useChat = () => {
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
         console.log('Request was cancelled by user');
-        // Update the placeholder in DB to mark as interrupted
-        if (convId) {
-          await supabase.from('messages')
-            .update({ 
-              content: 'Generation was cancelled.',
-              metadata: { generationStatus: 'interrupted', generationMode: selectedMode }
-            })
-            .eq('id', assistantId)
-            .eq('conversation_id', convId);
+        
+        // Preserve whatever content was generated before cancellation
+        const currentState = useChatStore.getState();
+        const existingMessage = currentState.messages.find(m => m.id === assistantId);
+        
+        if (existingMessage) {
+          // Check if we have any partial content to preserve
+          const hasPartialContent = typeof existingMessage.content === 'string' 
+            ? existingMessage.content.trim().length > 0
+            : typeof existingMessage.content === 'object' && existingMessage.content !== null
+              ? Object.values(existingMessage.content).some(v => typeof v === 'string' && v.trim().length > 0)
+              : false;
+          
+          if (hasPartialContent) {
+            // Keep the partial content, just mark as interrupted
+            const interruptedMetadata = {
+              ...existingMessage.metadata,
+              generationStatus: 'interrupted' as const,
+              wasStoppedByUser: true,
+            };
+            
+            safeUpdateMessage(assistantId, { metadata: interruptedMetadata }, convId);
+            
+            if (convId) {
+              await supabase.from('messages')
+                .update({ 
+                  content: existingMessage.content,
+                  metadata: interruptedMetadata
+                })
+                .eq('id', assistantId)
+                .eq('conversation_id', convId);
+            }
+            
+            toast({
+              title: 'Generation stopped',
+              description: 'Partial response has been preserved.',
+            });
+          } else {
+            // No content was generated yet, show cancelled message
+            const cancelledContent = 'Generation was cancelled before any content was received.';
+            safeUpdateMessage(assistantId, { 
+              content: cancelledContent,
+              metadata: { generationStatus: 'interrupted', generationMode: selectedMode, wasStoppedByUser: true }
+            }, convId);
+            
+            if (convId) {
+              await supabase.from('messages')
+                .update({ 
+                  content: cancelledContent,
+                  metadata: { generationStatus: 'interrupted', generationMode: selectedMode, wasStoppedByUser: true }
+                })
+                .eq('id', assistantId)
+                .eq('conversation_id', convId);
+            }
+          }
+        } else {
+          // Message wasn't added yet (very early cancellation)
+          if (convId) {
+            await supabase.from('messages')
+              .delete()
+              .eq('id', assistantId)
+              .eq('conversation_id', convId);
+          }
         }
+        
         return;
       }
       
