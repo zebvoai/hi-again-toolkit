@@ -86,7 +86,7 @@ export function ImageLightbox({
       {/* Modal */}
       <div
         className={cn(
-          "relative z-10 w-[min(92vw,760px)] h-[min(80vh,640px)] overflow-hidden rounded-2xl border border-border bg-card shadow-2xl flex flex-col"
+          "relative z-10 w-full max-w-[760px] h-[min(80vh,640px)] overflow-hidden rounded-2xl border border-border bg-card shadow-2xl flex flex-col"
         )}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
