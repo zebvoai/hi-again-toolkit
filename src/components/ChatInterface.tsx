@@ -373,8 +373,8 @@ export function ChatInterface() {
             {/* Loading indicators based on mode */}
             {isCurrentConversationLoading && selectedMode === 'research' && <DeepResearchInlineLoader status={researchStatus} elapsedTime={researchElapsedTime} />}
             
-            {/* Single model text mode: show typing indicator */}
-            {isCurrentConversationLoading && selectedMode === 'text' && selectedModels.length === 1 && (
+            {/* Text mode: show typing indicator with live model name */}
+            {isCurrentConversationLoading && selectedMode === 'text' && (
               <div className="w-full px-4 sm:px-6 lg:px-8">
                 <TypingIndicator models={selectedModels} />
               </div>
