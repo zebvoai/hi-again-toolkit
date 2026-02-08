@@ -612,7 +612,12 @@ async function handleMultiModelRequest(
     const otherFiles = fileUrls.filter(url => !isImageUrl(url));
     
     // Prepend live context to the message if available
-    const enhancedText = liveContext ? `${liveContext}User question: ${text}` : text;
+    // Also add an explicit instruction so models never claim they "can't access" the link.
+    const enhancedText = liveContext
+      ? `${liveContext}INSTRUCTION: The LIVE WEB DATA above already contains the fetched, relevant webpage content and/or up-to-date web results for the URL(s) the user shared. Answer using it. Do NOT say you cannot access links/websites or that you lack browsing.
+
+User question: ${text}`
+      : text;
     
     // For vision models with images, use multimodal format
     if (isVisionModel && images.length > 0) {
@@ -683,7 +688,7 @@ Example correct responses when asked "what model are you?":
             
             // Add live data instruction if we have context
             if (liveContext) {
-              baseSystemPrompt += '\n\nCRITICAL INSTRUCTION: You have been provided with LIVE WEB DATA that was just fetched from the internet. This includes content from any URLs the user shared. This data is current and accurate. USE THIS DATA to answer the user\'s question. Do NOT say you cannot access websites, URLs, or real-time data - you HAVE the actual content from those URLs in this prompt. Present the information confidently as if you visited the website yourself. Always cite the sources when using this information.';
+              baseSystemPrompt += "\n\nCRITICAL WEB ACCESS INSTRUCTION: You have been provided with LIVE WEB DATA (including fetched content from any URLs the user shared). Treat it as the ground-truth content of those pages.\n- Do NOT say you cannot access websites/links or that you do not have browsing.\n- Do NOT ask the user to open the link for you.\n- If the user asks \"did you open it?\", answer: \"I was provided the page content in this chat and used it to answer.\"\n- When referencing it, say \"Based on the provided page content...\" and include sources if present.";
             }
             
             const systemPrompt = modelIdentity + baseSystemPrompt;
@@ -980,7 +985,7 @@ serve(async (req) => {
     
     // Add live data instruction if we have context
     if (liveContext) {
-      baseSystemPrompt += '\n\nIMPORTANT: You have been provided with LIVE WEB DATA that was just fetched from the internet. Use this data to provide accurate, up-to-date responses. Always cite the sources when using this information.';
+      baseSystemPrompt += "\n\nCRITICAL WEB ACCESS INSTRUCTION: You have been provided with LIVE WEB DATA (including fetched content from any URLs the user shared). Treat it as the ground-truth content of those pages.\n- Do NOT say you cannot access websites/links or that you do not have browsing.\n- Do NOT ask the user to open the link for you.\n- If the user asks \"did you open it?\", answer: \"I was provided the page content in this chat and used it to answer.\"\n- When referencing it, say \"Based on the provided page content...\" and include sources if present.";
     }
     
     const systemPrompt = modelIdentity + baseSystemPrompt;
@@ -991,7 +996,12 @@ serve(async (req) => {
       const otherFiles = fileUrls.filter(url => !isImageUrl(url));
       
       // Prepend live context to the message if available
-      const enhancedText = liveContext ? `${liveContext}User question: ${text}` : text;
+      // Also add an explicit instruction so models never claim they "can't access" the link.
+      const enhancedText = liveContext
+        ? `${liveContext}INSTRUCTION: The LIVE WEB DATA above already contains the fetched, relevant webpage content and/or up-to-date web results for the URL(s) the user shared. Answer using it. Do NOT say you cannot access links/websites or that you lack browsing.
+
+User question: ${text}`
+        : text;
       
       // For vision models with images, use multimodal format
       if (modelIsVisionCapable && images.length > 0) {
