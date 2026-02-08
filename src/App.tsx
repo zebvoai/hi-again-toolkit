@@ -32,6 +32,23 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Main layout component that wraps protected content with SidebarProvider
+const MainLayout = () => {
+  return (
+    <SidebarProvider defaultOpen={true}>
+      <div className="flex min-h-screen w-full overflow-hidden">
+        <AppSidebar />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Routes>
+            <Route path="/" element={<ChatInterface />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </div>
+      </div>
+    </SidebarProvider>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -46,19 +63,9 @@ const App = () => (
           <Route path="/chat/:conversationId" element={<SharedChat />} />
           
           {/* Main app with sidebar - protected */}
-          <Route path="*" element={
+          <Route path="/*" element={
             <ProtectedRoute>
-              <SidebarProvider defaultOpen={true}>
-                <div className="flex min-h-screen w-full overflow-hidden">
-                  <AppSidebar />
-                  <div className="flex-1 flex flex-col overflow-hidden">
-                    <Routes>
-                      <Route path="/" element={<ChatInterface />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </div>
-                </div>
-              </SidebarProvider>
+              <MainLayout />
             </ProtectedRoute>
           } />
         </Routes>
