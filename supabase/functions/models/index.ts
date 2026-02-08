@@ -5,41 +5,41 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Curated list of top-quality OpenRouter models with correct API IDs
-// Based on OpenRouter rankings and real usage data
+// Curated list of FASTEST OpenRouter models from each family
+// Prioritizing speed and low latency over maximum capability
 const OPENROUTER_MODELS: { displayName: string; apiId: string }[] = [
-  // X.AI / Grok - flagship only
-  { displayName: 'Grok 4.1 Fast', apiId: 'x-ai/grok-4.1-fast' },
+  // X.AI / Grok - fastest variant
+  { displayName: 'Grok 3 Mini', apiId: 'x-ai/grok-3-mini-beta' },
   
-  // DeepSeek - flagship only
-  { displayName: 'DeepSeek R1', apiId: 'deepseek/deepseek-r1' },
+  // DeepSeek - fastest variant
+  { displayName: 'DeepSeek V3', apiId: 'deepseek/deepseek-chat' },
   
-  // Qwen - flagship only
-  { displayName: 'Qwen 3 32B', apiId: 'qwen/qwen3-32b' },
+  // Qwen - fastest variant
+  { displayName: 'Qwen 3 30B', apiId: 'qwen/qwen3-30b-a3b' },
   
-  // Mistral - flagship only
-  { displayName: 'Mistral Large', apiId: 'mistralai/mistral-large-2411' },
+  // Mistral - fastest variant
+  { displayName: 'Mistral Small', apiId: 'mistralai/mistral-small-2503' },
   
-  // Meta Llama - flagship only
-  { displayName: 'Llama 4 Maverick', apiId: 'meta-llama/llama-4-maverick' },
+  // Meta Llama - fastest variant
+  { displayName: 'Llama 4 Scout', apiId: 'meta-llama/llama-4-scout' },
   
-  // MiniMax
-  { displayName: 'MiniMax M2', apiId: 'minimax/minimax-m2' },
+  // MiniMax - fast variant
+  { displayName: 'MiniMax M1', apiId: 'minimax/minimax-m1' },
   
-  // Cohere - flagship only
-  { displayName: 'Command A', apiId: 'cohere/command-a-03-2025' },
+  // Cohere - fastest variant
+  { displayName: 'Command R', apiId: 'cohere/command-r-08-2024' },
   
-  // Perplexity - flagship only
-  { displayName: 'Perplexity Sonar Pro', apiId: 'perplexity/sonar-pro' },
+  // Perplexity - fastest variant
+  { displayName: 'Perplexity Sonar', apiId: 'perplexity/sonar' },
   
-  // Kimi / Moonshot - flagship only
+  // Kimi / Moonshot - fast variant
   { displayName: 'Kimi K2', apiId: 'moonshotai/kimi-k2' },
   
-  // NVIDIA
-  { displayName: 'Nemotron 70B', apiId: 'nvidia/llama-3.1-nemotron-70b-instruct' },
+  // NVIDIA - optimized variant
+  { displayName: 'Nemotron 49B', apiId: 'nvidia/llama-3.3-nemotron-super-49b-v1' },
   
-  // Google via OpenRouter
-  { displayName: 'Gemma 3 27B', apiId: 'google/gemma-3-27b-it' },
+  // Google via OpenRouter - fastest variant
+  { displayName: 'Gemma 3 12B', apiId: 'google/gemma-3-12b-it' },
 ];
 
 serve(async (req) => {
@@ -48,14 +48,14 @@ serve(async (req) => {
   }
 
   try {
-    // Base models - flagship only
+    // Base models - fastest variants
     const baseModels = [
-      // OpenAI via OpenRouter - fast model (displayed as GPT 5.2)
-      'GPT 5.2',
-      // Anthropic (direct API) - flagship only
-      'Claude Opus 4.5',
-      // Google (via Lovable AI Gateway) - flagship only
-      'Gemini 3 Pro',
+      // OpenAI via OpenRouter - nano model (fastest)
+      'GPT 4.1 Nano',
+      // Anthropic (direct API) - fastest variant
+      'Claude Haiku 3.5',
+      // Google (via Lovable AI Gateway) - flash variant
+      'Gemini 2.5 Flash',
     ];
     
     // Build mapping of display name -> API ID for OpenRouter models
@@ -64,8 +64,9 @@ serve(async (req) => {
       openRouterModelMap[model.displayName] = model.apiId;
     }
     
-    // Add GPT 5.2 to OpenRouter mapping (uses gpt-4.1-nano under the hood)
-    openRouterModelMap['GPT 5.2'] = 'openai/gpt-4.1-nano';
+    // Add base models to OpenRouter mapping
+    openRouterModelMap['GPT 4.1 Nano'] = 'openai/gpt-4.1-nano';
+    openRouterModelMap['Claude Haiku 3.5'] = 'anthropic/claude-3.5-haiku';
     
     // Combine: base models + OpenRouter display names
     const openRouterDisplayNames = OPENROUTER_MODELS.map(m => m.displayName);
