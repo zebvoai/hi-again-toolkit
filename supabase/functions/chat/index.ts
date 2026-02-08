@@ -209,7 +209,8 @@ const selectVisionModels = (selectedModels: string[]): string[] => {
 const getModelMapping = (displayName: string): { apiModel: string, provider: string } => {
   const modelMapping: Record<string, { apiModel: string, provider: string }> = {
     // OpenAI Models (via OpenRouter) - Fast models first
-    'GPT 5.2': { apiModel: 'openai/gpt-4.1-nano', provider: 'openrouter' },  // Display as GPT 5.2, uses gpt-4.1-nano
+    'GPT 4.1 Nano': { apiModel: 'openai/gpt-4.1-nano', provider: 'openrouter' },
+    'GPT 5.2': { apiModel: 'openai/gpt-4.1-nano', provider: 'openrouter' },  // Legacy mapping
     'GPT-4.1 Mini': { apiModel: 'openai/gpt-4.1-mini', provider: 'openrouter' },
     'GPT-4.1': { apiModel: 'openai/gpt-4.1', provider: 'openrouter' },
     'GPT-5': { apiModel: 'openai/gpt-5', provider: 'openrouter' },
@@ -218,72 +219,79 @@ const getModelMapping = (displayName: string): { apiModel: string, provider: str
     'O3': { apiModel: 'openai/o3', provider: 'openrouter' },
     'O4 Mini': { apiModel: 'openai/o4-mini', provider: 'openrouter' },
     
-    // Anthropic Models (via OpenRouter)
+    // Anthropic Models (via OpenRouter) - Fast models first
+    'Claude Haiku 3.5': { apiModel: 'anthropic/claude-3.5-haiku', provider: 'openrouter' },
     'Claude Sonnet 4.5': { apiModel: 'anthropic/claude-sonnet-4.5', provider: 'openrouter' },
     'Claude Haiku 4.5': { apiModel: 'anthropic/claude-haiku-4.5', provider: 'openrouter' },
     'Claude Opus 4.5': { apiModel: 'anthropic/claude-opus-4.5', provider: 'openrouter' },
     'Claude Sonnet 4': { apiModel: 'anthropic/claude-sonnet-4', provider: 'openrouter' },
     'Claude Opus 4': { apiModel: 'anthropic/claude-opus-4', provider: 'openrouter' },
     
-    // Google Models (via Lovable AI Gateway)
-    'Gemini 2.5 Pro': { apiModel: 'google/gemini-2.5-pro', provider: 'lovable' },
-    'Gemini 3 Pro': { apiModel: 'google/gemini-3-pro-preview', provider: 'lovable' },
+    // Google Models (via Lovable AI Gateway) - Fast models first
     'Gemini 2.5 Flash': { apiModel: 'google/gemini-2.5-flash', provider: 'lovable' },
     'Gemini 2.5 Flash Lite': { apiModel: 'google/gemini-2.5-flash-lite', provider: 'lovable' },
+    'Gemini 2.5 Pro': { apiModel: 'google/gemini-2.5-pro', provider: 'lovable' },
+    'Gemini 3 Pro': { apiModel: 'google/gemini-3-pro-preview', provider: 'lovable' },
     'Gemini 2.0 Flash': { apiModel: 'google/gemini-2.5-flash', provider: 'lovable' },
     
-    // OpenRouter Models - Curated top-quality models with correct API IDs
-    // X.AI / Grok
+    // OpenRouter Models - FASTEST variants from each family
+    // X.AI / Grok - fast variants
+    'Grok 3 Mini': { apiModel: 'x-ai/grok-3-mini-beta', provider: 'openrouter' },
     'Grok 4.1 Fast': { apiModel: 'x-ai/grok-4.1-fast', provider: 'openrouter' },
     'Grok 4 Fast': { apiModel: 'x-ai/grok-4-fast', provider: 'openrouter' },
     'Grok Code Fast': { apiModel: 'x-ai/grok-code-fast-1', provider: 'openrouter' },
     'Grok 3 Beta': { apiModel: 'x-ai/grok-3-beta', provider: 'openrouter' },
     
-    // DeepSeek
-    'DeepSeek R1': { apiModel: 'deepseek/deepseek-r1', provider: 'openrouter' },
+    // DeepSeek - fast variants
     'DeepSeek V3': { apiModel: 'deepseek/deepseek-chat', provider: 'openrouter' },
+    'DeepSeek R1': { apiModel: 'deepseek/deepseek-r1', provider: 'openrouter' },
     'DeepSeek R1 Distill Qwen 32B': { apiModel: 'deepseek/deepseek-r1-distill-qwen-32b', provider: 'openrouter' },
     
-    // Qwen
+    // Qwen - fast variants
+    'Qwen 3 30B': { apiModel: 'qwen/qwen3-30b-a3b', provider: 'openrouter' },
     'Qwen 3 32B': { apiModel: 'qwen/qwen3-32b', provider: 'openrouter' },
     'Qwen 2.5 72B': { apiModel: 'qwen/qwen-2.5-72b-instruct', provider: 'openrouter' },
     
-    // Mistral
+    // Mistral - fast variants
+    'Mistral Small': { apiModel: 'mistralai/mistral-small-2503', provider: 'openrouter' },
     'Mistral Large': { apiModel: 'mistralai/mistral-large-2411', provider: 'openrouter' },
     'Mistral Medium': { apiModel: 'mistralai/mistral-medium-3', provider: 'openrouter' },
     'Mistral Nemo': { apiModel: 'mistralai/mistral-nemo', provider: 'openrouter' },
     
-    // Meta Llama
-    'Llama 4 Maverick': { apiModel: 'meta-llama/llama-4-maverick', provider: 'openrouter' },
+    // Meta Llama - fast variants
     'Llama 4 Scout': { apiModel: 'meta-llama/llama-4-scout', provider: 'openrouter' },
+    'Llama 4 Maverick': { apiModel: 'meta-llama/llama-4-maverick', provider: 'openrouter' },
     'Llama 3.3 70B': { apiModel: 'meta-llama/llama-3.3-70b-instruct', provider: 'openrouter' },
     'Llama 3.1 405B': { apiModel: 'meta-llama/llama-3.1-405b-instruct', provider: 'openrouter' },
     
-    // MiniMax
+    // MiniMax - fast variants
+    'MiniMax M1': { apiModel: 'minimax/minimax-m1', provider: 'openrouter' },
     'MiniMax M2': { apiModel: 'minimax/minimax-m2', provider: 'openrouter' },
     
-    // Cohere
-    'Command R+': { apiModel: 'cohere/command-r-plus-08-2024', provider: 'openrouter' },
+    // Cohere - fast variants
     'Command R': { apiModel: 'cohere/command-r-08-2024', provider: 'openrouter' },
+    'Command R+': { apiModel: 'cohere/command-r-plus-08-2024', provider: 'openrouter' },
     'Command A': { apiModel: 'cohere/command-a-03-2025', provider: 'openrouter' },
     
-    // Perplexity
-    'Perplexity Sonar Pro': { apiModel: 'perplexity/sonar-pro', provider: 'openrouter' },
+    // Perplexity - fast variants
     'Perplexity Sonar': { apiModel: 'perplexity/sonar', provider: 'openrouter' },
+    'Perplexity Sonar Pro': { apiModel: 'perplexity/sonar-pro', provider: 'openrouter' },
     
     // Kimi / Moonshot AI
-    'Kimi VL A3B': { apiModel: 'moonshotai/kimi-vl-a3b', provider: 'openrouter' },
     'Kimi K2': { apiModel: 'moonshotai/kimi-k2', provider: 'openrouter' },
+    'Kimi VL A3B': { apiModel: 'moonshotai/kimi-vl-a3b', provider: 'openrouter' },
     'Kimi K1.5': { apiModel: 'moonshotai/kimi-k1.5', provider: 'openrouter' },
     
     // Microsoft
     'Phi 4': { apiModel: 'microsoft/phi-4', provider: 'openrouter' },
     'Phi 4 Reasoning': { apiModel: 'microsoft/phi-4-reasoning-plus:free', provider: 'openrouter' },
     
-    // NVIDIA
+    // NVIDIA - fast variants
+    'Nemotron 49B': { apiModel: 'nvidia/llama-3.3-nemotron-super-49b-v1', provider: 'openrouter' },
     'Nemotron 70B': { apiModel: 'nvidia/llama-3.1-nemotron-70b-instruct', provider: 'openrouter' },
     
-    // Google via OpenRouter
+    // Google via OpenRouter - fast variants
+    'Gemma 3 12B': { apiModel: 'google/gemma-3-12b-it', provider: 'openrouter' },
     'Gemma 3 27B': { apiModel: 'google/gemma-3-27b-it', provider: 'openrouter' },
   };
   
