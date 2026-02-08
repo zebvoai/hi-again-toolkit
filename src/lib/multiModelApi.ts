@@ -95,7 +95,14 @@ export const multiModelApi = {
             }
           }
         }
-      } catch (error) {
+      } catch (error: any) {
+        // If the request was intentionally aborted (Stop button), bubble up an AbortError
+        // so the caller can preserve partial content.
+        if (signal?.aborted) {
+          throw new DOMException('The user aborted a request.', 'AbortError');
+        }
+
+        // Otherwise, this is a real streaming failure.
         throw new Error('Streaming failed');
       }
 
