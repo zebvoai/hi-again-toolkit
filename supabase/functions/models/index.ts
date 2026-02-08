@@ -14,16 +14,16 @@ const OPENROUTER_MODELS: { displayName: string; apiId: string }[] = [
   // DeepSeek - fastest variant
   { displayName: 'DeepSeek V3', apiId: 'deepseek/deepseek-chat' },
   
-  // Qwen - fastest variant
-  { displayName: 'Qwen 3 30B', apiId: 'qwen/qwen3-30b-a3b' },
+  // Qwen - fastest variant (using available model)
+  { displayName: 'Qwen 3 235B', apiId: 'qwen/qwen3-235b-a22b' },
   
-  // Mistral - fastest variant
-  { displayName: 'Mistral Small', apiId: 'mistralai/mistral-small-2503' },
+  // Mistral - fastest variant (using valid ID)
+  { displayName: 'Mistral Small 3.1', apiId: 'mistralai/mistral-small-3.1-24b-instruct' },
   
   // Meta Llama - fastest variant
   { displayName: 'Llama 4 Scout', apiId: 'meta-llama/llama-4-scout' },
   
-  // MiniMax - fast variant
+  // MiniMax - using valid ID
   { displayName: 'MiniMax M1', apiId: 'minimax/minimax-m1' },
   
   // Cohere - fastest variant
@@ -35,11 +35,11 @@ const OPENROUTER_MODELS: { displayName: string; apiId: string }[] = [
   // Kimi / Moonshot - fast variant
   { displayName: 'Kimi K2', apiId: 'moonshotai/kimi-k2' },
   
-  // NVIDIA - optimized variant
-  { displayName: 'Nemotron 49B', apiId: 'nvidia/llama-3.3-nemotron-super-49b-v1' },
+  // NVIDIA - using valid model
+  { displayName: 'Nemotron 70B', apiId: 'nvidia/llama-3.1-nemotron-70b-instruct' },
   
   // Google via OpenRouter - fastest variant
-  { displayName: 'Gemma 3 12B', apiId: 'google/gemma-3-12b-it' },
+  { displayName: 'Gemma 3 27B', apiId: 'google/gemma-3-27b-it' },
 ];
 
 serve(async (req) => {
@@ -67,6 +67,7 @@ serve(async (req) => {
     // Add base models to OpenRouter mapping
     openRouterModelMap['GPT 4.1 Nano'] = 'openai/gpt-4.1-nano';
     openRouterModelMap['Claude Haiku 3.5'] = 'anthropic/claude-3.5-haiku';
+    openRouterModelMap['Gemini 2.5 Flash'] = 'google/gemini-2.5-flash';
     
     // Combine: base models + OpenRouter display names
     const openRouterDisplayNames = OPENROUTER_MODELS.map(m => m.displayName);
