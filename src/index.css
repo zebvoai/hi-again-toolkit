@@ -702,6 +702,388 @@ button, a, input, textarea, select,
   animation: content-fade-in 0.25s ease-out both;
 }
 
+/* ----------------------------------------
+   ENHANCED SMOOTH TRANSITIONS
+   Premium micro-interactions
+   ---------------------------------------- */
+
+/* Dialog/Modal smooth transitions */
+@keyframes dialog-overlay-in {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(8px);
+  }
+}
+
+@keyframes dialog-content-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes dialog-content-out {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.96);
+  }
+}
+
+.animate-dialog-overlay-in {
+  animation: dialog-overlay-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-dialog-content-in {
+  animation: dialog-content-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-dialog-content-out {
+  animation: dialog-content-out 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Dropdown/Popover smooth entrance */
+@keyframes dropdown-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes dropdown-out {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95) translateY(-4px);
+  }
+}
+
+.animate-dropdown-in {
+  animation: dropdown-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-dropdown-out {
+  animation: dropdown-out 0.15s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Skeleton pulse - smoother gradient */
+@keyframes skeleton-pulse {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-smooth {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 0%,
+    hsl(var(--muted) / 0.5) 20%,
+    hsl(var(--muted) / 0.3) 40%,
+    hsl(var(--muted) / 0.5) 60%,
+    hsl(var(--muted)) 100%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-pulse 2s ease-in-out infinite;
+}
+
+/* Message streaming cursor blink */
+@keyframes cursor-blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.animate-cursor-blink {
+  animation: cursor-blink 1s step-end infinite;
+}
+
+/* Smooth content swap - for switching conversations */
+@keyframes content-swap-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes content-swap-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-content-swap-out {
+  animation: content-swap-out 0.15s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+.animate-content-swap-in {
+  animation: content-swap-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Button press ripple effect */
+@keyframes button-press {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.97);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-button-press {
+  animation: button-press 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Toast notification slide */
+@keyframes toast-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(100%) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes toast-slide-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(100%) scale(0.95);
+  }
+}
+
+.animate-toast-in {
+  animation: toast-slide-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-toast-out {
+  animation: toast-slide-out 0.25s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+/* Smooth icon transitions */
+.icon-transition {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              color 0.15s ease,
+              opacity 0.15s ease;
+}
+
+.icon-transition:hover {
+  transform: scale(1.1);
+}
+
+.icon-transition:active {
+  transform: scale(0.9);
+}
+
+/* Avatar hover effect */
+@keyframes avatar-pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1.05); }
+}
+
+.avatar-interactive {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.2s ease;
+}
+
+.avatar-interactive:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px hsl(var(--primary) / 0.2);
+}
+
+/* Input focus transition */
+.input-smooth-focus {
+  transition: border-color 0.2s ease,
+              box-shadow 0.2s ease,
+              background-color 0.2s ease;
+}
+
+.input-smooth-focus:focus {
+  border-color: hsl(var(--ring));
+  box-shadow: 0 0 0 3px hsl(var(--ring) / 0.15);
+}
+
+/* Checkbox/Toggle smooth transition */
+.toggle-smooth {
+  transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.15s ease;
+}
+
+.toggle-smooth::after {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Badge pulse for notifications */
+@keyframes badge-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 hsl(var(--destructive) / 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 6px hsl(var(--destructive) / 0);
+  }
+}
+
+.badge-pulse {
+  animation: badge-pulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Smooth tab indicator */
+@keyframes tab-indicator-slide {
+  from {
+    transform: scaleX(0.8);
+    opacity: 0.5;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+.tab-indicator-smooth {
+  transition: left 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Collapsible smooth animation */
+@keyframes collapsible-down {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: var(--radix-collapsible-content-height);
+    opacity: 1;
+  }
+}
+
+@keyframes collapsible-up {
+  from {
+    height: var(--radix-collapsible-content-height);
+    opacity: 1;
+  }
+  to {
+    height: 0;
+    opacity: 0;
+  }
+}
+
+.animate-collapsible-down {
+  animation: collapsible-down 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-collapsible-up {
+  animation: collapsible-up 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Progress bar smooth fill */
+@keyframes progress-fill {
+  from {
+    width: 0%;
+  }
+}
+
+.progress-smooth {
+  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Typing indicator bounce - refined */
+@keyframes typing-bounce {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  30% {
+    transform: translateY(-6px);
+    opacity: 1;
+  }
+}
+
+.typing-dot {
+  animation: typing-bounce 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.typing-dot:nth-child(1) { animation-delay: 0ms; }
+.typing-dot:nth-child(2) { animation-delay: 150ms; }
+.typing-dot:nth-child(3) { animation-delay: 300ms; }
+
+/* Smooth text streaming */
+@keyframes text-stream {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-text-stream {
+  animation: text-stream 0.1s ease-out both;
+}
+
+/* Loading shimmer for cards */
+@keyframes shimmer-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.shimmer-overlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    hsl(0 0% 100% / 0.4),
+    transparent
+  );
+  animation: shimmer-slide 1.5s ease-in-out infinite;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
