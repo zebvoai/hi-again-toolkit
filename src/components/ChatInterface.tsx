@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, memo } from 'react';
+import { useState, useEffect, useRef, useCallback, memo, useMemo } from 'react';
 import { Square, Menu, Share, Pencil, Trash2, MoreVertical, MessageSquare, ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { useChat } from '@/features/chat/hooks/useChat';
@@ -6,7 +6,6 @@ import { useModeStore } from '@/features/modes/store/modeStore';
 import { useChatStore } from '@/features/chat/store/chatStore';
 import { MessageList } from '@/features/chat/components/MessageList';
 import { MessageSkeleton } from '@/features/chat/components/MessageSkeleton';
-import { TypingIndicator } from '@/features/chat/components/TypingIndicator';
 import { DeepResearchInlineLoader } from '@/features/chat/components/DeepResearchInlineLoader';
 import { DeepResearchConfirmDialog } from '@/features/chat/components/DeepResearchConfirmDialog';
 import { TextResponseSkeleton } from '@/features/chat/components/TextResponseSkeleton';
@@ -31,6 +30,7 @@ import { triggerHapticFeedback, triggerConfetti, updatePageTitle, smoothScrollTo
 import { exportAsMarkdown, exportAsJSON } from '@/lib/exportConversation';
 import { useSidebar } from '@/components/ui/sidebar';
 import { ChatInput, type ChatInputHandle } from '@/components/ChatInput';
+import { formatModelName } from '@/lib/utils';
 
 export function ChatInterface() {
   const [hasInputContent, setHasInputContent] = useState(false);
@@ -62,6 +62,7 @@ export function ChatInterface() {
   const loadingConversationId = useChatStore((s) => s.loadingConversationId);
   const selectedAspectRatio = useChatStore((s) => s.selectedAspectRatio);
   const setSelectedAspectRatio = useChatStore((s) => s.setSelectedAspectRatio);
+  const currentGeneratingModel = useChatStore((s) => s.currentGeneratingModel);
 
   // Conversation actions
   const {
@@ -372,13 +373,6 @@ export function ChatInterface() {
             
             {/* Loading indicators based on mode */}
             {isCurrentConversationLoading && selectedMode === 'research' && <DeepResearchInlineLoader status={researchStatus} elapsedTime={researchElapsedTime} />}
-            
-            {/* Text mode: show typing indicator with live model name */}
-            {isCurrentConversationLoading && selectedMode === 'text' && (
-              <div className="w-full px-4 sm:px-6 lg:px-8">
-                <TypingIndicator models={selectedModels} />
-              </div>
-            )}
           </div>
           <div ref={messagesEndRef} className="h-[136px]" />
         </div>
@@ -508,7 +502,9 @@ export function ChatInterface() {
                   ref={inputRef}
                   onSubmit={handleTrySend}
                   onContentChange={handleContentChange}
-                  placeholder="Ask Zebvo ai"
+                  placeholder={isCurrentConversationLoading && currentGeneratingModel 
+                    ? `Generating with ${formatModelName(currentGeneratingModel)}...` 
+                    : "Ask Zebvo ai"}
                   disabled={isCurrentConversationLoading}
                 />
               </div>
