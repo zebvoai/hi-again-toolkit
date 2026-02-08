@@ -200,10 +200,42 @@ export const MultiModelImageResponse = ({
       {models.map(model => {
         const imageUrl = content[model];
         const isError = typeof imageUrl === 'string' && imageUrl.startsWith('Error:');
+        const isContentFlagged = typeof imageUrl === 'string' && 
+          (imageUrl.includes('IMAGE_CONTENT_FLAGGED') || 
+           imageUrl.toLowerCase().includes('content flagged') ||
+           imageUrl.toLowerCase().includes('sensitive'));
         const isLoading = !imageUrl || imageUrl === '';
         const style = getModelStyle(model);
 
-        // Hide error/failed cards entirely - no errors shown to user
+        // Show content flagged error with specific message
+        if (isContentFlagged) {
+          return (
+            <div 
+              key={model} 
+              className={cn(
+                "flex-shrink-0 w-[280px] sm:w-[320px] md:w-[360px] rounded-xl border-2 overflow-hidden",
+                "bg-destructive/5 border-destructive/30"
+              )}
+            >
+              <div className="flex items-center px-3 py-2 border-b border-destructive/20">
+                <span className="text-sm font-medium text-foreground truncate">
+                  {formatModelName(model)}
+                </span>
+              </div>
+              <div className="p-4 flex flex-col items-center justify-center gap-2 min-h-[200px]">
+                <AlertCircle className="w-8 h-8 text-destructive/60" />
+                <p className="text-sm text-center text-destructive/80 font-medium">
+                  Content flagged as potentially sensitive
+                </p>
+                <p className="text-xs text-center text-muted-foreground">
+                  Please try different prompts or images
+                </p>
+              </div>
+            </div>
+          );
+        }
+
+        // Hide other errors entirely - no general errors shown to user
         if (isError) return null;
 
         return <div key={model} className={cn("flex-shrink-0 w-[280px] sm:w-[320px] md:w-[360px] rounded-xl border-2 overflow-hidden relative group", style.bg, style.border)}>

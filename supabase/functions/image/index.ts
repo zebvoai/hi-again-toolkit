@@ -449,8 +449,23 @@ async function generateImage(
     let errorMessage = `Image generation failed (${response.status})`;
     try {
       const errorJson = JSON.parse(responseText);
-      errorMessage = errorJson.message || errorJson.error || errorMessage;
-    } catch {
+      const rawError = errorJson.message || errorJson.error || '';
+      // Detect content safety flags
+      if (rawError.toLowerCase().includes('safety') || 
+          rawError.toLowerCase().includes('prohibited') ||
+          rawError.toLowerCase().includes('flagged') ||
+          rawError.toLowerCase().includes('content policy') ||
+          rawError.toLowerCase().includes('sensitive') ||
+          rawError.toLowerCase().includes('nsfw') ||
+          rawError.toLowerCase().includes('blocked') ||
+          rawError.toLowerCase().includes('moderation')) {
+        throw new Error('IMAGE_CONTENT_FLAGGED');
+      }
+      errorMessage = rawError || errorMessage;
+    } catch (e) {
+      if (e instanceof Error && e.message === 'IMAGE_CONTENT_FLAGGED') {
+        throw e;
+      }
       // Use default error message
     }
     throw new Error(errorMessage);
@@ -496,8 +511,19 @@ async function generateImage(
         imageUrl = resultData.data.outputs[0];
         break;
       } else if (resultData.data?.status === 'failed') {
-        const errorMsg = resultData.data?.error || 'Image generation failed';
-        throw new Error(errorMsg);
+        const rawError = resultData.data?.error || 'Image generation failed';
+        // Detect content safety flags
+        if (rawError.toLowerCase().includes('safety') || 
+            rawError.toLowerCase().includes('prohibited') ||
+            rawError.toLowerCase().includes('flagged') ||
+            rawError.toLowerCase().includes('content policy') ||
+            rawError.toLowerCase().includes('sensitive') ||
+            rawError.toLowerCase().includes('nsfw') ||
+            rawError.toLowerCase().includes('blocked') ||
+            rawError.toLowerCase().includes('moderation')) {
+          throw new Error('IMAGE_CONTENT_FLAGGED');
+        }
+        throw new Error(rawError);
       }
     }
     
@@ -675,22 +701,45 @@ serve(async (req) => {
     let result: { imageUrl: string; usedModel: string } | null = null;
     
     // Layer 1: Try primary model
+    let contentFlagged = false;
     try {
       result = await generateImage(modelKey, enhancedPrompt, size, sourceImage, wavespeedApiKey);
     } catch (primaryError) {
-      console.warn(`[${modelKey}] Primary failed:`, primaryError instanceof Error ? primaryError.message : primaryError);
+      const errorMsg = primaryError instanceof Error ? primaryError.message : String(primaryError);
+      console.warn(`[${modelKey}] Primary failed:`, errorMsg);
       
-      // Layer 2: Try seedream fallback
-      const fallbackModelKey = FALLBACK_MODEL[modelKey];
-      if (fallbackModelKey && TEXT_TO_IMAGE_MAPPING[fallbackModelKey]) {
-        console.log(`[${modelKey}] Trying seedream fallback: ${fallbackModelKey}`);
-        try {
-          result = await generateImage(fallbackModelKey, enhancedPrompt, size, sourceImage, wavespeedApiKey);
-          console.log(`[${fallbackModelKey}] Seedream fallback succeeded`);
-        } catch (fallbackError) {
-          console.warn(`[${fallbackModelKey}] Seedream fallback also failed:`, fallbackError);
+      // If content was flagged, don't try fallbacks - return immediately
+      if (errorMsg === 'IMAGE_CONTENT_FLAGGED') {
+        contentFlagged = true;
+      }
+      
+      // Layer 2: Try seedream fallback (unless content was flagged)
+      if (!contentFlagged) {
+        const fallbackModelKey = FALLBACK_MODEL[modelKey];
+        if (fallbackModelKey && TEXT_TO_IMAGE_MAPPING[fallbackModelKey]) {
+          console.log(`[${modelKey}] Trying seedream fallback: ${fallbackModelKey}`);
+          try {
+            result = await generateImage(fallbackModelKey, enhancedPrompt, size, sourceImage, wavespeedApiKey);
+            console.log(`[${fallbackModelKey}] Seedream fallback succeeded`);
+          } catch (fallbackError) {
+            const fallbackMsg = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
+            console.warn(`[${fallbackModelKey}] Seedream fallback also failed:`, fallbackMsg);
+            if (fallbackMsg === 'IMAGE_CONTENT_FLAGGED') {
+              contentFlagged = true;
+            }
+          }
         }
       }
+    }
+    
+    // If content was flagged by any model, return specific error
+    if (contentFlagged) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'IMAGE_CONTENT_FLAGGED'
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Layer 3: Ultimate fallback - Gemini image generation via Lovable AI
