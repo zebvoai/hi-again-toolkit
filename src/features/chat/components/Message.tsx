@@ -123,14 +123,26 @@ export const Message = ({
     setEditContent('');
   };
 
-  // Handle interrupted/generating messages
+  // Handle interrupted messages
+  // IMPORTANT: If partial content exists (e.g., user stopped mid-stream), we should still render it.
   if (!isUser && message.metadata?.generationStatus === 'interrupted') {
-    return (
-      <InterruptedMessage 
-        mode={message.metadata?.generationMode} 
-        onRetry={onRegenerate}
-      />
-    );
+    const hasPartialContent =
+      (typeof message.content === 'string' && message.content.trim().length > 0) ||
+      (typeof message.content === 'object' &&
+        message.content !== null &&
+        !Array.isArray(message.content) &&
+        Object.values(message.content).some(
+          (v) => typeof v === 'string' && v.trim().length > 0
+        ));
+
+    if (!hasPartialContent) {
+      return (
+        <InterruptedMessage
+          mode={message.metadata?.generationMode}
+          onRetry={onRegenerate}
+        />
+      );
+    }
   }
 
   // Note: 'generating' status messages are handled by loadConversation which
