@@ -25,9 +25,24 @@ const LIVE_DATA_KEYWORDS = [
   'update', 'status', 'real-time', 'realtime'
 ];
 
+// Extract URLs from a message
+const extractUrls = (message: string): string[] => {
+  const urlRegex = /https?:\/\/[^\s<>"{}|\\^`\[\]]+/gi;
+  const matches = message.match(urlRegex) || [];
+  // Clean up trailing punctuation
+  return matches.map(url => url.replace(/[.,;:!?)]+$/, ''));
+};
+
+// Check if message contains URLs that need fetching
+const containsUrls = (message: string): boolean => {
+  return extractUrls(message).length > 0;
+};
+
 // Check if a query needs live data
 const needsLiveData = (message: string): boolean => {
   const lowerMessage = message.toLowerCase();
+  // Also trigger for URLs since we need to fetch them
+  if (containsUrls(message)) return true;
   return LIVE_DATA_KEYWORDS.some(keyword => lowerMessage.includes(keyword));
 };
 
@@ -41,11 +56,33 @@ async function fetchLiveContext(query: string): Promise<string | null> {
   }
   
   try {
+    // Check if query contains URLs - need to fetch URL content specifically
+    const urls = extractUrls(query);
+    const hasUrls = urls.length > 0;
+    
     console.log('[Live Data] Fetching live context for query:', query);
+    console.log('[Live Data] URLs detected:', urls.length, hasUrls ? urls : '');
     console.log('[Live Data] API Key present:', !!perplexityApiKey, 'Length:', perplexityApiKey.length);
     
     // Clean the API key - remove any whitespace or prefix if accidentally included
     const cleanedApiKey = perplexityApiKey.trim().replace(/^Bearer\s+/i, '');
+    
+    // Build the appropriate system prompt based on whether URLs are present
+    const systemPrompt = hasUrls 
+      ? `You are a web content analyzer with real-time internet access. When given URLs, you MUST:
+1. Actually visit and read the content from those URLs
+2. Provide a comprehensive summary of what is on each page
+3. Extract key information, main topics, and important details
+4. If the URL is a company/product page, describe what they offer
+5. If the URL is an article, summarize the main points
+6. Always confirm you accessed the URL and describe its actual content
+DO NOT say you cannot access URLs - you CAN and MUST fetch and summarize them.`
+      : 'You are a search assistant. Provide factual, up-to-date information with specific data points (numbers, dates, names). Be concise but comprehensive. Include the current date/time context when relevant. Format as bullet points for easy reading.';
+    
+    // Build the user message - emphasize URL fetching if URLs present
+    const userMessage = hasUrls 
+      ? `Please visit and summarize the content from the following URL(s): ${urls.join(', ')}\n\nUser's question: ${query}`
+      : query;
     
     const response = await fetch('https://api.perplexity.ai/chat/completions', {
       method: 'POST',
@@ -55,15 +92,13 @@ async function fetchLiveContext(query: string): Promise<string | null> {
         'Accept': 'application/json',
       },
       body: JSON.stringify({
-        model: 'sonar',
+        model: 'sonar-pro', // Use sonar-pro for better URL fetching
         messages: [
-          { 
-            role: 'system', 
-            content: 'You are a search assistant. Provide factual, up-to-date information with specific data points (numbers, dates, names). Be concise but comprehensive. Include the current date/time context when relevant. Format as bullet points for easy reading.'
-          },
-          { role: 'user', content: query }
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userMessage }
         ],
-        max_tokens: 1000
+        max_tokens: 2000, // More tokens for URL content
+        search_domain_filter: hasUrls ? urls.map(u => new URL(u).hostname) : undefined
       }),
     });
     
@@ -111,7 +146,26 @@ async function fetchLiveContextViaOpenRouter(query: string): Promise<string | nu
   }
   
   try {
-    console.log('[Live Data Fallback] Fetching via OpenRouter perplexity/sonar');
+    // Check for URLs in query
+    const urls = extractUrls(query);
+    const hasUrls = urls.length > 0;
+    
+    console.log('[Live Data Fallback] Fetching via OpenRouter perplexity/sonar-pro');
+    
+    const systemPrompt = hasUrls 
+      ? `You are a web content analyzer with real-time internet access. When given URLs, you MUST:
+1. Actually visit and read the content from those URLs
+2. Provide a comprehensive summary of what is on each page
+3. Extract key information, main topics, and important details
+4. If the URL is a company/product page, describe what they offer
+5. If the URL is an article, summarize the main points
+6. Always confirm you accessed the URL and describe its actual content
+DO NOT say you cannot access URLs - you CAN and MUST fetch and summarize them.`
+      : 'You are a search assistant with real-time internet access. Provide factual, up-to-date information with specific data points (numbers, dates, names). Be concise but comprehensive. Include the current date/time context when relevant.';
+    
+    const userMessage = hasUrls 
+      ? `Please visit and summarize the content from the following URL(s): ${urls.join(', ')}\n\nUser's question: ${query}`
+      : query;
     
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -122,15 +176,12 @@ async function fetchLiveContextViaOpenRouter(query: string): Promise<string | nu
         'X-Title': 'Lovable AI'
       },
       body: JSON.stringify({
-        model: 'perplexity/sonar',
+        model: 'perplexity/sonar-pro',
         messages: [
-          { 
-            role: 'system', 
-            content: 'You are a search assistant with real-time internet access. Provide factual, up-to-date information with specific data points (numbers, dates, names). Be concise but comprehensive. Include the current date/time context when relevant.'
-          },
-          { role: 'user', content: query }
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userMessage }
         ],
-        max_tokens: 1000
+        max_tokens: 2000
       }),
     });
     
@@ -632,7 +683,7 @@ Example correct responses when asked "what model are you?":
             
             // Add live data instruction if we have context
             if (liveContext) {
-              baseSystemPrompt += '\n\nCRITICAL INSTRUCTION: You have been provided with LIVE WEB DATA that was just fetched from the internet. This data is current and accurate. USE THIS DATA to answer the user\'s question. Do NOT say you cannot access real-time data or that your knowledge is limited - you HAVE the real-time data in this prompt. Present the information confidently as current facts. Always cite the sources when using this information.';
+              baseSystemPrompt += '\n\nCRITICAL INSTRUCTION: You have been provided with LIVE WEB DATA that was just fetched from the internet. This includes content from any URLs the user shared. This data is current and accurate. USE THIS DATA to answer the user\'s question. Do NOT say you cannot access websites, URLs, or real-time data - you HAVE the actual content from those URLs in this prompt. Present the information confidently as if you visited the website yourself. Always cite the sources when using this information.';
             }
             
             const systemPrompt = modelIdentity + baseSystemPrompt;
