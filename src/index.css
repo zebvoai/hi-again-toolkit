@@ -2,11 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Default 75% zoom for the entire platform */
-html {
-  zoom: 0.75;
-}
-
 /* Markdown styles */
 .prose {
   @apply text-foreground;
