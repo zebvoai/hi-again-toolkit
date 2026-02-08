@@ -75,12 +75,23 @@ export function ImageLightbox({
     setRotation(0);
   };
   const canPan = scale > 1.01;
-  return <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-150" onClick={handleBackdropClick}>
+  return (
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-150"
+      onClick={handleBackdropClick}
+    >
       {/* Backdrop (nearly opaque, respects theme) */}
       <div className="absolute inset-0 bg-background/95 supports-[backdrop-filter]:bg-background/80 backdrop-blur-xl" />
 
       {/* Modal */}
-      <div className={cn("relative z-10 w-[min(92vw,900px)] overflow-hidden rounded-2xl border-border bg-card shadow-2xl h-[min(82vh,720px)] flex-col border-8 flex items-center justify-start gap-[36px] px-0 pr-0 my-[300px] mx-[300px] pl-0")} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
+      <div
+        className={cn(
+          "relative z-10 w-[min(92vw,760px)] h-[min(80vh,640px)] overflow-hidden rounded-2xl border border-border bg-card shadow-2xl flex flex-col"
+        )}
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+      >
         {/* Header */}
         <div className="flex items-center justify-between gap-3 px-3 sm:px-4 py-2 border-b border-border bg-muted/30">
           <div className="flex items-center gap-2 min-w-0">
@@ -146,5 +157,6 @@ export function ImageLightbox({
             </div>
           </div>}
       </div>
-    </div>;
+    </div>
+  );
 }
