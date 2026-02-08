@@ -8,38 +8,35 @@ const corsHeaders = {
 // Fast models internally, displayed as flagship names to users
 // Maps: Display Name (flagship) -> API ID (fast variant)
 const OPENROUTER_MODELS: { displayName: string; apiId: string }[] = [
-  // X.AI / Grok - display as flagship, use fast variant
-  { displayName: 'Grok 3', apiId: 'x-ai/grok-3-mini-beta' },
+  // X.AI / Grok - display as Grok 4, use fast variant
+  { displayName: 'Grok 4', apiId: 'x-ai/grok-3-mini-beta' },
   
-  // DeepSeek - display as flagship
-  { displayName: 'DeepSeek R1', apiId: 'deepseek/deepseek-chat' },
+  // DeepSeek - display as DeepSeek-R1
+  { displayName: 'DeepSeek-R1', apiId: 'deepseek/deepseek-chat' },
   
-  // Qwen - display as flagship
-  { displayName: 'Qwen 3', apiId: 'qwen/qwen3-235b-a22b' },
+  // Qwen - display as Qwen3-Max
+  { displayName: 'Qwen3-Max', apiId: 'qwen/qwen3-235b-a22b' },
   
-  // Mistral - display as flagship
-  { displayName: 'Mistral Large', apiId: 'mistralai/mistral-small-3.1-24b-instruct' },
+  // Mistral - display as Mistral Large 3
+  { displayName: 'Mistral Large 3', apiId: 'mistralai/mistral-small-3.1-24b-instruct' },
   
-  // Meta Llama - display as flagship
-  { displayName: 'Llama 4', apiId: 'meta-llama/llama-4-scout' },
+  // MiniMax - display as MiniMax M2.1
+  { displayName: 'MiniMax M2.1', apiId: 'minimax/minimax-m1' },
   
-  // MiniMax - display as flagship
-  { displayName: 'MiniMax 01', apiId: 'minimax/minimax-m1' },
+  // Cohere - display as Command A
+  { displayName: 'Command A', apiId: 'cohere/command-r-08-2024' },
   
-  // Cohere - display as flagship
-  { displayName: 'Command R+', apiId: 'cohere/command-r-08-2024' },
+  // Perplexity - display as Perplexity Sonar Pro
+  { displayName: 'Perplexity Sonar Pro', apiId: 'perplexity/sonar' },
   
-  // Perplexity - display as flagship
-  { displayName: 'Perplexity Pro', apiId: 'perplexity/sonar' },
+  // Kimi / Moonshot - display as Kimi K2.5
+  { displayName: 'Kimi K2.5', apiId: 'moonshotai/kimi-k2' },
   
-  // Kimi / Moonshot - display as flagship
-  { displayName: 'Kimi K2', apiId: 'moonshotai/kimi-k2' },
+  // NVIDIA - display as Nemotron 3 Ultra
+  { displayName: 'Nemotron 3 Ultra', apiId: 'nvidia/llama-3.1-nemotron-70b-instruct' },
   
-  // NVIDIA - display as flagship
-  { displayName: 'Nemotron Ultra', apiId: 'nvidia/llama-3.1-nemotron-70b-instruct' },
-  
-  // Google via OpenRouter - display as flagship
-  { displayName: 'Gemma 3', apiId: 'google/gemma-3-27b-it' },
+  // Google Gemma - display as Gemma 3 27B
+  { displayName: 'Gemma 3 27B', apiId: 'google/gemma-3-27b-it' },
 ];
 
 serve(async (req) => {
@@ -50,12 +47,12 @@ serve(async (req) => {
   try {
     // Base models - displayed as flagship names, use fast variants internally
     const baseModels = [
-      // OpenAI - display as GPT-5, use nano internally
-      'GPT-5',
-      // Anthropic - display as Claude Sonnet, use haiku internally
-      'Claude Sonnet 4',
-      // Google - display as Gemini Pro, use flash internally
-      'Gemini 2.5 Pro',
+      // OpenAI - display as GPT 5.2, use nano internally
+      'GPT 5.2',
+      // Anthropic - display as Claude Opus 4.6, use haiku internally
+      'Claude Opus 4.6',
+      // Google - display as Gemini 3 Pro, use flash internally
+      'Gemini 3 Pro',
     ];
     
     // Build mapping of display name -> API ID for OpenRouter models
@@ -65,9 +62,9 @@ serve(async (req) => {
     }
     
     // Add base models - flagship display names map to fast API IDs
-    openRouterModelMap['GPT-5'] = 'openai/gpt-4.1-nano';
-    openRouterModelMap['Claude Sonnet 4'] = 'anthropic/claude-3.5-haiku';
-    openRouterModelMap['Gemini 2.5 Pro'] = 'google/gemini-2.5-flash';
+    openRouterModelMap['GPT 5.2'] = 'openai/gpt-4.1-nano';
+    openRouterModelMap['Claude Opus 4.6'] = 'anthropic/claude-3.5-haiku';
+    openRouterModelMap['Gemini 3 Pro'] = 'google/gemini-2.5-flash';
     
     // Combine: base models + OpenRouter display names
     const openRouterDisplayNames = OPENROUTER_MODELS.map(m => m.displayName);
