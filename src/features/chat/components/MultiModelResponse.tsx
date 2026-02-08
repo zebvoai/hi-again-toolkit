@@ -76,8 +76,11 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
   const { toast } = useToast();
   const isLoading = useChatStore((s) => s.isLoading);
 
-  // Check if any model is still generating (empty or no content yet)
-  const isStillGenerating = isLoading && models.some((m) => !content[m] || content[m].trim() === '');
+  // Helper to check if a specific model is still generating
+  const isModelGenerating = (model: string) => isLoading && (!content[model] || content[model].trim() === '');
+  
+  // Check if ALL models are still generating (used for overall container states)
+  const allModelsGenerating = isLoading && models.every((m) => !content[m] || content[m].trim() === '');
 
   // Only apply entrance animation on first mount
   const shouldAnimate = !hasAnimatedRef.current;
@@ -188,15 +191,15 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
                   </span>
                 </div>
 
-                {/* Content - fixed height skeleton during generation, smooth reveal when done */}
+                {/* Content - shows skeleton only if this specific model hasn't started, otherwise streams live */}
                 <div
                   className="bg-card rounded-xl border border-border/30 p-4 shadow-sm overflow-hidden"
                   style={{
-                    height: isStillGenerating ? '220px' : 'auto',
-                    transition: 'height 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+                    minHeight: isModelGenerating(currentModel) ? '220px' : 'auto',
+                    transition: 'min-height 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
                   }}
                 >
-                  {isStillGenerating ? (
+                  {isModelGenerating(currentModel) ? (
                     <div className="space-y-3 py-1">
                       <Skeleton className="h-4 w-[90%]" />
                       <Skeleton className="h-4 w-[75%]" />
@@ -293,30 +296,36 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
             >
               {models.map((model, idx) => {
                 const response = content[model] || '';
-                const isGenerating = !response || response.trim() === '';
+                const thisModelGenerating = isModelGenerating(model);
+                const hasContent = response && response.trim() !== '';
                 return (
                   <div
                     key={model}
                     className="w-[260px] sm:w-[340px] lg:w-[380px] flex-shrink-0 flex flex-col bg-card rounded-xl border border-border/40 shadow-sm overflow-hidden hover:shadow-md hover:border-border/60 hover:-translate-y-1 transition-all duration-normal ease-spring"
-                    style={{ height: isStillGenerating ? '280px' : undefined, minHeight: '180px', maxHeight: isStillGenerating ? '280px' : '400px' }}
+                    style={{ minHeight: '180px', maxHeight: '400px' }}
                   >
                     {/* Card Header */}
                     <div className="flex-shrink-0 h-11 px-3 border-b border-border/20 bg-muted/20 flex items-center gap-2.5">
-                      <div className={`w-2 h-2 rounded-full bg-gradient-to-br ${getProviderColor(model)}`} />
+                      <div className={`w-2 h-2 rounded-full bg-gradient-to-br ${getProviderColor(model)} ${thisModelGenerating && !hasContent ? 'animate-pulse' : ''}`} />
                       <div className="flex-1 min-w-0">
                         <span className="text-[13px] font-medium text-foreground truncate block">
                           {formatModelName(model)}
                         </span>
                       </div>
+                      {thisModelGenerating && hasContent && (
+                        <span className="text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded animate-pulse">
+                          typing...
+                        </span>
+                      )}
                       <span className="text-[10px] font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
                         #{idx + 1}
                       </span>
                     </div>
 
-                    {/* Response Content - fixed during generation, scrollable when done */}
-                    <div className={`flex-1 p-3 min-h-0 ${isStillGenerating ? 'overflow-hidden' : 'overflow-y-auto'}`}>
+                    {/* Response Content - shows live content as it streams */}
+                    <div className={`flex-1 p-3 min-h-0 overflow-y-auto`}>
                       <div className="text-[13px] leading-[1.6] text-foreground">
-                        {(isGenerating || isStillGenerating) ? (
+                        {!hasContent ? (
                           <div className="space-y-2.5 py-1">
                             <Skeleton className="h-3.5 w-[95%]" />
                             <Skeleton className="h-3.5 w-[80%]" />
@@ -326,7 +335,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
                             <Skeleton className="h-3.5 w-[65%]" />
                           </div>
                         ) : (
-                          <div className="animate-fade-in">
+                          <div className={thisModelGenerating ? '' : 'animate-fade-in'}>
                             <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
                               {response}
                             </ReactMarkdown>
