@@ -287,6 +287,41 @@ export const useConversations = () => {
     };
   }, [user, debouncedFetch]);
 
+  const deleteAllConversations = async () => {
+    if (!user) {
+      toast({
+        title: 'Error',
+        description: 'You must be logged in to delete conversations',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('conversations')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      // Clear all from local state
+      setConversations([]);
+
+      // Evict all from cache
+      conversations.forEach(conv => evictFromCache(conv.id));
+
+      toast({ description: 'All conversations deleted' });
+    } catch (error) {
+      console.error('Error deleting all conversations:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete all conversations',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return {
     conversations,
     isLoading,
@@ -294,6 +329,7 @@ export const useConversations = () => {
     loadConversation,
     saveMessage,
     deleteConversation,
+    deleteAllConversations,
     renameConversation,
     shareConversation,
     refreshConversations: fetchConversations,

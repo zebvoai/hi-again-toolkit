@@ -9,6 +9,16 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import {
   Sidebar,
@@ -47,7 +57,7 @@ export function AppSidebar() {
   const isCollapsed = !isMobile && state === "collapsed";
   const { clearMessages, setCurrentConversationId, currentConversationId, setMessages, selectedProjectId, setSelectedProjectId } =
     useChatStore();
-  const { conversations, isLoading, loadConversation, deleteConversation, renameConversation, shareConversation, refreshConversations } = useConversations();
+  const { conversations, isLoading, loadConversation, deleteConversation, deleteAllConversations, renameConversation, shareConversation, refreshConversations } = useConversations();
   const { projects, isLoading: projectsLoading, createProject, renameProject, deleteProject, duplicateProject } = useProjects();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -79,6 +89,9 @@ export function AppSidebar() {
   
   // Library view
   const [showLibrary, setShowLibrary] = useState(false);
+  
+  // Delete all chats confirmation
+  const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
 
   // Get user initials for avatar
   const getUserInitials = () => {
@@ -571,6 +584,17 @@ export function AppSidebar() {
                 <User className="w-4 h-4 mr-2.5 text-[#8E8E93]" />
                 Account
               </DropdownMenuItem>
+              <div className="h-px bg-border/30 my-1 mx-2" />
+              <DropdownMenuItem 
+                className="rounded-xl px-3 py-2.5 text-[13px] hover:bg-destructive/10 text-destructive transition-colors cursor-pointer"
+                onClick={() => {
+                  setIsProfileDropdownOpen(false);
+                  setShowDeleteAllConfirm(true);
+                }}
+              >
+                <Trash2 className="w-4 h-4 mr-2.5" />
+                Delete All Chats
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         )}
@@ -630,6 +654,31 @@ export function AppSidebar() {
 
       {/* Account Dialog */}
       <AccountDialog open={showAccountDialog} onOpenChange={setShowAccountDialog} />
+
+      {/* Delete All Chats Confirmation */}
+      <AlertDialog open={showDeleteAllConfirm} onOpenChange={setShowDeleteAllConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete All Chats?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete all your conversations. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={async () => {
+                await deleteAllConversations();
+                handleNewChat();
+                setShowDeleteAllConfirm(false);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete All
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Sidebar>
   );
 }
