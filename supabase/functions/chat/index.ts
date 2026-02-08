@@ -247,13 +247,13 @@ const getModelMapping = (displayName: string): { apiModel: string, provider: str
     'DeepSeek R1': { apiModel: 'deepseek/deepseek-r1', provider: 'openrouter' },
     'DeepSeek R1 Distill Qwen 32B': { apiModel: 'deepseek/deepseek-r1-distill-qwen-32b', provider: 'openrouter' },
     
-    // Qwen - fast variants
-    'Qwen 3 30B': { apiModel: 'qwen/qwen3-30b-a3b', provider: 'openrouter' },
+    // Qwen - fast variants (using valid IDs)
+    'Qwen 3 235B': { apiModel: 'qwen/qwen3-235b-a22b', provider: 'openrouter' },
     'Qwen 3 32B': { apiModel: 'qwen/qwen3-32b', provider: 'openrouter' },
     'Qwen 2.5 72B': { apiModel: 'qwen/qwen-2.5-72b-instruct', provider: 'openrouter' },
     
-    // Mistral - fast variants
-    'Mistral Small': { apiModel: 'mistralai/mistral-small-2503', provider: 'openrouter' },
+    // Mistral - fast variants (using valid IDs)
+    'Mistral Small 3.1': { apiModel: 'mistralai/mistral-small-3.1-24b-instruct', provider: 'openrouter' },
     'Mistral Large': { apiModel: 'mistralai/mistral-large-2411', provider: 'openrouter' },
     'Mistral Medium': { apiModel: 'mistralai/mistral-medium-3', provider: 'openrouter' },
     'Mistral Nemo': { apiModel: 'mistralai/mistral-nemo', provider: 'openrouter' },
@@ -264,7 +264,7 @@ const getModelMapping = (displayName: string): { apiModel: string, provider: str
     'Llama 3.3 70B': { apiModel: 'meta-llama/llama-3.3-70b-instruct', provider: 'openrouter' },
     'Llama 3.1 405B': { apiModel: 'meta-llama/llama-3.1-405b-instruct', provider: 'openrouter' },
     
-    // MiniMax - fast variants
+    // MiniMax - using valid IDs
     'MiniMax M1': { apiModel: 'minimax/minimax-m1', provider: 'openrouter' },
     'MiniMax M2': { apiModel: 'minimax/minimax-m2', provider: 'openrouter' },
     
@@ -286,12 +286,10 @@ const getModelMapping = (displayName: string): { apiModel: string, provider: str
     'Phi 4': { apiModel: 'microsoft/phi-4', provider: 'openrouter' },
     'Phi 4 Reasoning': { apiModel: 'microsoft/phi-4-reasoning-plus:free', provider: 'openrouter' },
     
-    // NVIDIA - fast variants
-    'Nemotron 49B': { apiModel: 'nvidia/llama-3.3-nemotron-super-49b-v1', provider: 'openrouter' },
+    // NVIDIA - using valid model
     'Nemotron 70B': { apiModel: 'nvidia/llama-3.1-nemotron-70b-instruct', provider: 'openrouter' },
     
     // Google via OpenRouter - fast variants
-    'Gemma 3 12B': { apiModel: 'google/gemma-3-12b-it', provider: 'openrouter' },
     'Gemma 3 27B': { apiModel: 'google/gemma-3-27b-it', provider: 'openrouter' },
   };
   
@@ -665,10 +663,10 @@ async function handleMultiModelRequest(
             
             // OpenRouter fallback mapping for Gemini models
             const geminiOpenRouterFallback: Record<string, string> = {
-              'google/gemini-3-pro-preview': 'google/gemini-2.5-pro-preview-03-25',
-              'google/gemini-2.5-pro': 'google/gemini-2.5-pro-preview-03-25',
-              'google/gemini-2.5-flash': 'google/gemini-2.5-flash-preview-05-20',
-              'google/gemini-2.5-flash-lite': 'google/gemini-2.5-flash-preview-05-20',
+              'google/gemini-3-pro-preview': 'google/gemini-2.5-pro',
+              'google/gemini-2.5-pro': 'google/gemini-2.5-pro',
+              'google/gemini-2.5-flash': 'google/gemini-2.5-flash',
+              'google/gemini-2.5-flash-lite': 'google/gemini-2.5-flash',
             };
             
             try {
