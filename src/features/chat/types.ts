@@ -5,6 +5,7 @@ export interface ChatState {
   messages: Message[];
   isLoading: boolean;
   loadingConversationId: string | null; // Track which conversation is loading
+  currentGeneratingModel: string | null; // Track which model is currently generating
   error: string | null;
   selectedModels: string[];
   currentConversationId: string | null;
@@ -14,6 +15,7 @@ export interface ChatState {
   addMessage: (message: Message) => void;
   updateMessage: (id: string, updates: Partial<Message>) => void;
   setLoading: (loading: boolean, conversationId?: string | null) => void;
+  setCurrentGeneratingModel: (model: string | null) => void;
   setError: (error: string | null) => void;
   clearMessages: () => void;
   setSelectedModels: (models: string[]) => void;

@@ -4,6 +4,7 @@ export interface DeepResearchProgress {
   status: 'researching' | 'analyzing' | 'writing' | 'complete';
   phase: 'search' | 'analysis' | 'writing' | 'done';
   progress: number;
+  currentModel?: string; // Track which model is currently working
 }
 
 export interface DeepResearchResponse {
@@ -63,25 +64,28 @@ export const deepResearchApi = {
       progressValue += 0.008; // Slower progress for longer research
       
       if (progressValue < 0.35) {
-        // First 35%: searching phase
+        // First 35%: searching phase (Perplexity)
         onProgress?.({
           status: 'researching',
           phase: 'search',
           progress: progressValue,
+          currentModel: 'Perplexity Deep Research',
         });
       } else if (progressValue < 0.65) {
-        // 35-65%: analyzing phase
+        // 35-65%: analyzing phase (Gemini)
         onProgress?.({
           status: 'analyzing',
           phase: 'analysis',
           progress: progressValue,
+          currentModel: 'Gemini 2.5 Pro',
         });
       } else if (progressValue < 0.95) {
-        // 65-95%: writing phase
+        // 65-95%: writing phase (GPT-5)
         onProgress?.({
           status: 'writing',
           phase: 'writing',
           progress: progressValue,
+          currentModel: 'GPT-5',
         });
       }
     }, 500);

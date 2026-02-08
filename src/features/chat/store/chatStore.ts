@@ -48,6 +48,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   messages: [],
   isLoading: false,
   loadingConversationId: null,
+  currentGeneratingModel: null, // Track which model is currently generating
   error: null,
   selectedModels: [],
   currentConversationId: null,
@@ -85,8 +86,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   setLoading: (loading, conversationId) => set((state) => ({
     isLoading: loading,
-    loadingConversationId: loading ? (conversationId ?? state.currentConversationId) : null
+    loadingConversationId: loading ? (conversationId ?? state.currentConversationId) : null,
+    currentGeneratingModel: loading ? state.currentGeneratingModel : null, // Clear model when done
   })),
+
+  setCurrentGeneratingModel: (model) => set({ currentGeneratingModel: model }),
 
   setError: (error) => set({ error }),
 
