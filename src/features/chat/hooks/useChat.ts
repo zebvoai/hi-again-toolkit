@@ -786,6 +786,11 @@ export const useChat = () => {
           metadata: placeholderMetadata,
         };
         safeAddMessage(streamingMessage, convId);
+        
+        // Set initial model indicator (first model in the list)
+        if (effectiveModels.length > 0) {
+          setCurrentGeneratingModel(effectiveModels[0]);
+        }
 
         const response = await multiModelApi.sendMessageMultiModel(
           content,
