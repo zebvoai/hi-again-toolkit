@@ -982,7 +982,7 @@ export const useChat = () => {
       }
       
       const errorMessage = error instanceof Error ? error.message : 'Something went wrong';
-      
+
       // For image mode, suppress error UI entirely - the image cards handle their own state
       if (selectedMode === 'image') {
         console.warn('[useChat] Image generation error suppressed:', errorMessage);
@@ -997,31 +997,58 @@ export const useChat = () => {
         }
       } else {
         setError(errorMessage);
-        
-        const errorAssistantMessage = {
-          id: assistantId,
-          role: 'assistant' as const,
-          content: 'Sorry, I encountered an error processing your request.',
-          timestamp: Date.now(),
-          metadata: {
-            error: errorMessage,
-            generationStatus: 'interrupted' as const,
-            generationMode: selectedMode,
-          }
+
+        // If we already streamed partial content into the placeholder, don't overwrite it.
+        const existingMessage = useChatStore.getState().messages.find(m => m.id === assistantId);
+        const hasPartialContent = existingMessage
+          ? (typeof existingMessage.content === 'string'
+              ? existingMessage.content.trim().length > 0
+              : typeof existingMessage.content === 'object' && existingMessage.content !== null
+                ? Object.values(existingMessage.content).some(v => typeof v === 'string' && v.trim().length > 0)
+                : false)
+          : false;
+
+        const interruptedMetadata = {
+          ...(existingMessage?.metadata || {}),
+          error: errorMessage,
+          generationStatus: 'interrupted' as const,
+          generationMode: selectedMode,
         };
-        safeAddMessage(errorAssistantMessage, convId);
-        
-        // Update DB placeholder with error
-        if (convId) {
-          await supabase.from('messages')
-            .update({ 
-              content: 'Sorry, I encountered an error processing your request.',
-              metadata: { error: errorMessage, generationStatus: 'interrupted', generationMode: selectedMode }
-            })
-            .eq('id', assistantId)
-            .eq('conversation_id', convId);
+
+        if (hasPartialContent) {
+          safeUpdateMessage(assistantId, { metadata: interruptedMetadata }, convId);
+
+          if (convId) {
+            await supabase.from('messages')
+              .update({ 
+                content: existingMessage!.content,
+                metadata: interruptedMetadata,
+              })
+              .eq('id', assistantId)
+              .eq('conversation_id', convId);
+          }
+        } else {
+          const errorAssistantMessage = {
+            id: assistantId,
+            role: 'assistant' as const,
+            content: 'Sorry, I encountered an error processing your request.',
+            timestamp: Date.now(),
+            metadata: interruptedMetadata,
+          };
+          safeAddMessage(errorAssistantMessage, convId);
+
+          // Update DB placeholder with error
+          if (convId) {
+            await supabase.from('messages')
+              .update({ 
+                content: 'Sorry, I encountered an error processing your request.',
+                metadata: interruptedMetadata,
+              })
+              .eq('id', assistantId)
+              .eq('conversation_id', convId);
+          }
         }
-        
+
         toast({
           title: 'Error',
           description: errorMessage,
