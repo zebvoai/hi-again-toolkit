@@ -108,6 +108,7 @@ export const useChat = () => {
     deleteMessage,
     deleteMessagesAfter,
     findUserMessageBefore,
+    setCurrentGeneratingModel,
   } = useChatStore();
   const { selectedMode } = useModeStore();
   const { toast } = useToast();
@@ -453,6 +454,10 @@ export const useChat = () => {
               setResearchStatus(progress.status);
               setResearchPhase(progress.phase);
               setResearchProgress(progress.progress);
+              // Update the generating model indicator
+              if (progress.currentModel) {
+                setCurrentGeneratingModel(progress.currentModel);
+              }
             },
             abortControllerRef.current?.signal
           );
@@ -788,6 +793,8 @@ export const useChat = () => {
           messages,
           effectiveModels,
           (modelName: string, chunk: string) => {
+            // Update the generating model indicator when receiving from a model
+            setCurrentGeneratingModel(modelName);
             multiModelContent[modelName] += chunk;
             safeUpdateMessage(assistantId, { content: { ...multiModelContent } }, convId);
           },
@@ -825,6 +832,11 @@ export const useChat = () => {
         let streamingContent = '';
         let hasCreatedMessage = false;
         const isOpenAIModel = selectedModel?.startsWith('GPT') || selectedModel?.startsWith('O');
+        
+        // Set initial model as generating
+        if (selectedModel) {
+          setCurrentGeneratingModel(selectedModel);
+        }
 
         const response = await api.sendMessage(
           content,
@@ -857,7 +869,8 @@ export const useChat = () => {
               }
             : undefined,
           abortControllerRef.current?.signal,
-          fileUrls.length > 0 ? fileUrls : undefined
+          fileUrls.length > 0 ? fileUrls : undefined,
+          (model: string) => setCurrentGeneratingModel(model) // onModelChange callback
         );
         
         if (hasCreatedMessage) {

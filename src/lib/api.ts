@@ -37,7 +37,8 @@ export const api = {
     model?: string,
     onChunk?: (chunk: string) => void,
     signal?: AbortSignal,
-    attachments?: string[]
+    attachments?: string[],
+    onModelChange?: (model: string) => void
   ): Promise<ChatResponse> {
     const response = await fetch(`${API_BASE}/chat`, {
       method: 'POST',
@@ -89,7 +90,14 @@ export const api = {
                 const parsed = JSON.parse(data);
                 if (parsed.content) {
                   fullContent += parsed.content;
-                  responseModel = parsed.model || responseModel;
+                  
+                  // Track model changes and notify
+                  const newModel = parsed.model || responseModel;
+                  if (newModel && newModel !== responseModel) {
+                    responseModel = newModel;
+                    onModelChange?.(responseModel);
+                  }
+                  
                   responseProvider = parsed.provider || responseProvider;
                   onChunk(parsed.content);
                 }
