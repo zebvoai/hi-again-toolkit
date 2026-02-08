@@ -5,41 +5,41 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Curated list of FASTEST OpenRouter models from each family
-// Prioritizing speed and low latency over maximum capability
+// Fast models internally, displayed as flagship names to users
+// Maps: Display Name (flagship) -> API ID (fast variant)
 const OPENROUTER_MODELS: { displayName: string; apiId: string }[] = [
-  // X.AI / Grok - fastest variant
-  { displayName: 'Grok 3 Mini', apiId: 'x-ai/grok-3-mini-beta' },
+  // X.AI / Grok - display as flagship, use fast variant
+  { displayName: 'Grok 3', apiId: 'x-ai/grok-3-mini-beta' },
   
-  // DeepSeek - fastest variant
-  { displayName: 'DeepSeek V3', apiId: 'deepseek/deepseek-chat' },
+  // DeepSeek - display as flagship
+  { displayName: 'DeepSeek R1', apiId: 'deepseek/deepseek-chat' },
   
-  // Qwen - fastest variant (using available model)
-  { displayName: 'Qwen 3 235B', apiId: 'qwen/qwen3-235b-a22b' },
+  // Qwen - display as flagship
+  { displayName: 'Qwen 3', apiId: 'qwen/qwen3-235b-a22b' },
   
-  // Mistral - fastest variant (using valid ID)
-  { displayName: 'Mistral Small 3.1', apiId: 'mistralai/mistral-small-3.1-24b-instruct' },
+  // Mistral - display as flagship
+  { displayName: 'Mistral Large', apiId: 'mistralai/mistral-small-3.1-24b-instruct' },
   
-  // Meta Llama - fastest variant
-  { displayName: 'Llama 4 Scout', apiId: 'meta-llama/llama-4-scout' },
+  // Meta Llama - display as flagship
+  { displayName: 'Llama 4', apiId: 'meta-llama/llama-4-scout' },
   
-  // MiniMax - using valid ID
-  { displayName: 'MiniMax M1', apiId: 'minimax/minimax-m1' },
+  // MiniMax - display as flagship
+  { displayName: 'MiniMax 01', apiId: 'minimax/minimax-m1' },
   
-  // Cohere - fastest variant
-  { displayName: 'Command R', apiId: 'cohere/command-r-08-2024' },
+  // Cohere - display as flagship
+  { displayName: 'Command R+', apiId: 'cohere/command-r-08-2024' },
   
-  // Perplexity - fastest variant
-  { displayName: 'Perplexity Sonar', apiId: 'perplexity/sonar' },
+  // Perplexity - display as flagship
+  { displayName: 'Perplexity Pro', apiId: 'perplexity/sonar' },
   
-  // Kimi / Moonshot - fast variant
+  // Kimi / Moonshot - display as flagship
   { displayName: 'Kimi K2', apiId: 'moonshotai/kimi-k2' },
   
-  // NVIDIA - using valid model
-  { displayName: 'Nemotron 70B', apiId: 'nvidia/llama-3.1-nemotron-70b-instruct' },
+  // NVIDIA - display as flagship
+  { displayName: 'Nemotron Ultra', apiId: 'nvidia/llama-3.1-nemotron-70b-instruct' },
   
-  // Google via OpenRouter - fastest variant
-  { displayName: 'Gemma 3 27B', apiId: 'google/gemma-3-27b-it' },
+  // Google via OpenRouter - display as flagship
+  { displayName: 'Gemma 3', apiId: 'google/gemma-3-27b-it' },
 ];
 
 serve(async (req) => {
@@ -48,14 +48,14 @@ serve(async (req) => {
   }
 
   try {
-    // Base models - fastest variants
+    // Base models - displayed as flagship names, use fast variants internally
     const baseModels = [
-      // OpenAI via OpenRouter - nano model (fastest)
-      'GPT 4.1 Nano',
-      // Anthropic (direct API) - fastest variant
-      'Claude Haiku 3.5',
-      // Google (via Lovable AI Gateway) - flash variant
-      'Gemini 2.5 Flash',
+      // OpenAI - display as GPT-5, use nano internally
+      'GPT-5',
+      // Anthropic - display as Claude Sonnet, use haiku internally
+      'Claude Sonnet 4',
+      // Google - display as Gemini Pro, use flash internally
+      'Gemini 2.5 Pro',
     ];
     
     // Build mapping of display name -> API ID for OpenRouter models
@@ -64,10 +64,10 @@ serve(async (req) => {
       openRouterModelMap[model.displayName] = model.apiId;
     }
     
-    // Add base models to OpenRouter mapping
-    openRouterModelMap['GPT 4.1 Nano'] = 'openai/gpt-4.1-nano';
-    openRouterModelMap['Claude Haiku 3.5'] = 'anthropic/claude-3.5-haiku';
-    openRouterModelMap['Gemini 2.5 Flash'] = 'google/gemini-2.5-flash';
+    // Add base models - flagship display names map to fast API IDs
+    openRouterModelMap['GPT-5'] = 'openai/gpt-4.1-nano';
+    openRouterModelMap['Claude Sonnet 4'] = 'anthropic/claude-3.5-haiku';
+    openRouterModelMap['Gemini 2.5 Pro'] = 'google/gemini-2.5-flash';
     
     // Combine: base models + OpenRouter display names
     const openRouterDisplayNames = OPENROUTER_MODELS.map(m => m.displayName);
