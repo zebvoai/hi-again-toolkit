@@ -80,109 +80,122 @@ export function ImageLightbox({ src, alt, onClose, modelName }: ImageLightboxPro
     setRotation(0);
   };
 
+  const canPan = scale > 1.01;
+
   return (
-    <div 
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-6 sm:p-10 animate-in fade-in duration-200"
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-150"
       onClick={handleBackdropClick}
     >
-      {/* Fully opaque backdrop */}
-      <div className="absolute inset-0 bg-black" />
-      
-      {/* Modal container - smaller, centered */}
-      <div 
-        className="relative z-10 w-full max-w-3xl max-h-[75vh] flex flex-col bg-zinc-900 rounded-xl border border-zinc-700 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
+      {/* Backdrop (nearly opaque, respects theme) */}
+      <div className="absolute inset-0 bg-background/95 supports-[backdrop-filter]:bg-background/80 backdrop-blur-xl" />
+
+      {/* Modal */}
+      <div
+        className={cn(
+          "relative z-10 flex w-[min(92vw,900px)] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl",
+          "h-[min(82vh,720px)]"
+        )}
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
       >
-        {/* Header bar */}
-        <div className="flex items-center justify-between px-4 py-2.5 border-b border-zinc-700/50 bg-zinc-800/50">
-          {/* Left: Back + Model name */}
-          <div className="flex items-center gap-3">
+        {/* Header */}
+        <div className="flex items-center justify-between gap-3 px-3 sm:px-4 py-2 border-b border-border bg-muted/30">
+          <div className="flex items-center gap-2 min-w-0">
             <button
-              className="w-8 h-8 rounded-full flex items-center justify-center bg-zinc-700 hover:bg-zinc-600 text-white transition-colors"
+              className="h-9 w-9 rounded-full inline-flex items-center justify-center bg-muted/60 text-foreground hover:bg-muted transition-colors"
               onClick={onClose}
               title="Close"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="h-4 w-4" />
             </button>
             {modelName && (
-              <span className="text-sm font-medium text-zinc-100 truncate max-w-[200px]">
-                {modelName}
-              </span>
+              <div className="min-w-0">
+                <div className="text-sm font-medium text-foreground truncate">
+                  {modelName}
+                </div>
+              </div>
             )}
           </div>
 
-          {/* Right: Action controls */}
-          <div className="flex items-center gap-0.5">
+          <div className="flex items-center gap-1">
             {!isMobile && (
               <>
                 <button
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors"
+                  className="h-9 w-9 rounded-lg inline-flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
                   onClick={() => setScale(s => Math.min(s + 0.25, 3))}
                   title="Zoom in (+)"
                 >
-                  <ZoomIn className="w-4 h-4" />
+                  <ZoomIn className="h-4 w-4" />
                 </button>
                 <button
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors"
+                  className="h-9 w-9 rounded-lg inline-flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
                   onClick={() => setScale(s => Math.max(s - 0.25, 0.5))}
                   title="Zoom out (-)"
                 >
-                  <ZoomOut className="w-4 h-4" />
+                  <ZoomOut className="h-4 w-4" />
                 </button>
                 <button
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors"
+                  className="h-9 w-9 rounded-lg inline-flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
                   onClick={() => setRotation(r => (r + 90) % 360)}
                   title="Rotate (R)"
                 >
-                  <RotateCw className="w-4 h-4" />
+                  <RotateCw className="h-4 w-4" />
                 </button>
                 <button
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors"
+                  className="h-9 w-9 rounded-lg inline-flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
                   onClick={resetView}
                   title="Reset view"
                 >
-                  <Maximize2 className="w-4 h-4" />
+                  <Maximize2 className="h-4 w-4" />
                 </button>
-                <div className="w-px h-5 bg-zinc-600 mx-1.5" />
+                <div className="mx-1 h-5 w-px bg-border" />
               </>
             )}
-            
+
             <button
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors"
+              className="h-9 w-9 rounded-lg inline-flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
               onClick={handleCopy}
               title="Copy to clipboard"
             >
-              {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+              {copied ? <Check className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
             </button>
             <button
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors"
+              className="h-9 w-9 rounded-lg inline-flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
               onClick={handleDownload}
               title="Download"
             >
-              <Download className="w-4 h-4" />
+              <Download className="h-4 w-4" />
             </button>
             <button
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors"
+              className="h-9 w-9 rounded-lg inline-flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
               onClick={onClose}
               title="Close (Esc)"
             >
-              <X className="w-4 h-4" />
+              <X className="h-4 w-4" />
             </button>
           </div>
         </div>
 
-        {/* Image container */}
-        <div className="flex-1 flex items-center justify-center p-4 bg-zinc-950 overflow-auto min-h-0">
+        {/* Image */}
+        <div
+          className={cn(
+            "relative flex-1 min-h-0 flex items-center justify-center bg-muted/10",
+            canPan ? "overflow-auto scrollbar-hide" : "overflow-hidden"
+          )}
+        >
           {isLoading && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-8 h-8 border-2 border-zinc-600 border-t-white rounded-full animate-spin" />
+              <div className="h-9 w-9 rounded-full border-2 border-border border-t-foreground/70 animate-spin" />
             </div>
           )}
+
           <img
             src={src}
             alt={alt || 'Image preview'}
             className={cn(
-              "max-w-full max-h-[calc(75vh-100px)] object-contain rounded-lg transition-all duration-300 ease-out select-none",
+              "max-w-full max-h-full object-contain rounded-xl shadow-sm transition-all duration-300 ease-out select-none",
               isLoading ? "opacity-0" : "opacity-100"
             )}
             style={{
@@ -197,13 +210,13 @@ export function ImageLightbox({ src, alt, onClose, modelName }: ImageLightboxPro
           />
         </div>
 
-        {/* Footer: Keyboard hints (desktop only) */}
+        {/* Footer hints (desktop only, compact) */}
         {!isMobile && (
-          <div className="px-4 py-2 border-t border-zinc-800 bg-zinc-900">
-            <div className="flex items-center justify-center gap-4 text-zinc-500 text-xs">
-              <span><kbd className="px-1.5 py-0.5 bg-zinc-800 rounded text-zinc-400">Esc</kbd> Close</span>
-              <span><kbd className="px-1.5 py-0.5 bg-zinc-800 rounded text-zinc-400">+</kbd> <kbd className="px-1.5 py-0.5 bg-zinc-800 rounded text-zinc-400 ml-0.5">-</kbd> Zoom</span>
-              <span><kbd className="px-1.5 py-0.5 bg-zinc-800 rounded text-zinc-400">R</kbd> Rotate</span>
+          <div className="px-4 py-2 border-t border-border bg-muted/20">
+            <div className="flex items-center justify-center gap-4 text-muted-foreground text-xs">
+              <span><kbd className="px-1.5 py-0.5 bg-muted rounded text-foreground/70">Esc</kbd> Close</span>
+              <span><kbd className="px-1.5 py-0.5 bg-muted rounded text-foreground/70">+</kbd> <kbd className="px-1.5 py-0.5 bg-muted rounded text-foreground/70 ml-0.5">-</kbd> Zoom</span>
+              <span><kbd className="px-1.5 py-0.5 bg-muted rounded text-foreground/70">R</kbd> Rotate</span>
             </div>
           </div>
         )}
