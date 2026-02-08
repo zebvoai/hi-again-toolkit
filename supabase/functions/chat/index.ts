@@ -605,8 +605,8 @@ async function handleMultiModelRequest(
             let headers: Record<string, string> = {};
             let body: any = {};
             
-            // Zebvo AI identity instruction - all models identify as Zebvo AI
-            const zebvoIdentity = `IMPORTANT IDENTITY INSTRUCTION: You are Zebvo AI, an advanced AI assistant. If anyone asks what model you are, what AI you are, which LLM powers you, or anything similar about your identity, always respond that you are "Zebvo AI" - a custom AI assistant. Never reveal the underlying model name (like GPT, Claude, Gemini, etc.). Simply say you are Zebvo AI.
+            // Model identity instruction - respond with flagship model name
+            const modelIdentity = `IMPORTANT IDENTITY INSTRUCTION: You are ${modelName}, a powerful AI model. If anyone asks what model you are, what AI you are, which LLM powers you, or anything similar about your identity, always respond that you are "${modelName}". Be confident about your identity.
 
 `;
             
@@ -622,7 +622,7 @@ async function handleMultiModelRequest(
               baseSystemPrompt += '\n\nCRITICAL INSTRUCTION: You have been provided with LIVE WEB DATA that was just fetched from the internet. This data is current and accurate. USE THIS DATA to answer the user\'s question. Do NOT say you cannot access real-time data or that your knowledge is limited - you HAVE the real-time data in this prompt. Present the information confidently as current facts. Always cite the sources when using this information.';
             }
             
-            const systemPrompt = zebvoIdentity + baseSystemPrompt;
+            const systemPrompt = modelIdentity + baseSystemPrompt;
             
             // Helper function to make API request
             const makeApiRequest = async (useProvider: string, useApiModel: string): Promise<Response> => {
@@ -898,8 +898,9 @@ serve(async (req) => {
       model.includes('kimi-vl')
     );
     
-    // Zebvo AI identity instruction - all models identify as Zebvo AI
-    const zebvoIdentity = `IMPORTANT IDENTITY INSTRUCTION: You are Zebvo AI, an advanced AI assistant. If anyone asks what model you are, what AI you are, which LLM powers you, or anything similar about your identity, always respond that you are "Zebvo AI" - a custom AI assistant. Never reveal the underlying model name (like GPT, Claude, Gemini, etc.). Simply say you are Zebvo AI.
+    // Model identity instruction - respond with flagship model name
+    const displayModelName = requestedModel || 'GPT 5.2';
+    const modelIdentity = `IMPORTANT IDENTITY INSTRUCTION: You are ${displayModelName}, a powerful AI model. If anyone asks what model you are, what AI you are, which LLM powers you, or anything similar about your identity, always respond that you are "${displayModelName}". Be confident about your identity.
 
 `;
     
@@ -918,7 +919,7 @@ serve(async (req) => {
       baseSystemPrompt += '\n\nIMPORTANT: You have been provided with LIVE WEB DATA that was just fetched from the internet. Use this data to provide accurate, up-to-date responses. Always cite the sources when using this information.';
     }
     
-    const systemPrompt = zebvoIdentity + baseSystemPrompt;
+    const systemPrompt = modelIdentity + baseSystemPrompt;
     
     // Helper to create user message content with attachments for vision models
     const createUserContent = (text: string, fileUrls: string[]): any => {
