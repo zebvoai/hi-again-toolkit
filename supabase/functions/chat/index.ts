@@ -573,112 +573,127 @@ async function getVisionProxyDescription(imageUrls: string[], userMessage: strin
   return '[Image attached but could not be analyzed]';
 }
 
-// Extract text content from PDF using vision model
+// Extract text content from PDF by downloading bytes and using Gemini document understanding.
+// IMPORTANT: We do NOT store PDFs anywhere; we only fetch bytes transiently and return extracted text.
 async function extractPdfContent(pdfUrls: string[], userMessage: string): Promise<string> {
-  const lovableKey = Deno.env.get('LOVABLE_API_KEY') || '';
-  const openrouterKey = Deno.env.get('OPENROUTER_API_KEY') || '';
-  
-  console.log(`[PDF Extraction] Processing ${pdfUrls.length} PDF(s)`);
-  
-  // For PDFs, we need to use a model that can handle document URLs
-  // Gemini models can process PDFs directly via their file API workaround
-  // We'll use Claude or GPT for PDF analysis as they handle document URLs better
-  
-  const extractionPrompt = `You are a document analysis assistant. Please analyze the following PDF document(s) thoroughly and provide:
+  const googleApiKey = (Deno.env.get('GOOGLE_API_KEY') || '').trim();
 
-1. **Complete text extraction**: Extract ALL text content from the document(s), preserving structure and formatting as much as possible.
-2. **Summary**: Provide a brief summary of what the document is about.
-3. **Key sections**: Identify and list major sections/headings.
-4. **Important data**: Extract any tables, figures, or data points.
+  // Only process a small number of PDFs to avoid timeouts/memory spikes
+  const urls = pdfUrls.slice(0, 2);
+  console.log(`[PDF Extraction] Processing ${urls.length} PDF(s)`);
 
-Be thorough and comprehensive. This extraction will be used to answer user questions about the document.
+  if (!googleApiKey) {
+    console.warn('[PDF Extraction] GOOGLE_API_KEY not configured; cannot extract PDF bytes');
+    return `[PDF document attached: ${urls.join(', ')}. PDF extraction is not configured.]`;
+  }
 
-User's question about the document: ${userMessage}
+  const extractionPrompt = `Extract and return the document text from the provided PDF(s). Preserve headings and bullet structure when possible.
 
-Document URL(s): ${pdfUrls.join(', ')}`;
+After extraction, provide a short 3-6 bullet summary.
 
-  // Try with Claude first (via OpenRouter) - Claude handles document analysis well
-  if (openrouterKey) {
+User question: ${userMessage}`;
+
+  const extractedParts: string[] = [];
+
+  for (const url of urls) {
     try {
-      console.log('[PDF Extraction] Attempting extraction via Claude...');
-      
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openrouterKey}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://lovable.dev',
-          'X-Title': 'Lovable AI'
-        },
-        body: JSON.stringify({
-          model: 'anthropic/claude-sonnet-4',
-          messages: [
-            { 
-              role: 'system', 
-              content: 'You are an expert document analysis assistant. Extract and summarize document content comprehensively. When given a PDF URL, analyze its contents thoroughly.' 
-            },
-            { role: 'user', content: extractionPrompt }
-          ],
-          max_tokens: 4000
-        })
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        const content = data.choices?.[0]?.message?.content || '';
-        if (content && content.length > 100) {
-          console.log('[PDF Extraction] Success via Claude, length:', content.length);
-          return content;
-        }
-      } else {
-        console.log('[PDF Extraction] Claude failed, status:', response.status);
+      // Basic safety: avoid huge downloads
+      let contentLength = 0;
+      try {
+        const headResp = await fetch(url, { method: 'HEAD' });
+        const len = headResp.headers.get('content-length');
+        contentLength = len ? Number(len) : 0;
+      } catch {
+        // HEAD may fail on some URLs; proceed to GET with a hard cap.
       }
+
+      const MAX_BYTES = 12 * 1024 * 1024; // 12MB
+      if (contentLength && contentLength > MAX_BYTES) {
+        console.warn('[PDF Extraction] PDF too large, skipping:', { url, contentLength });
+        extractedParts.push(`=== PDF (${url}) ===\n[Skipped: PDF is larger than 12MB]\n`);
+        continue;
+      }
+
+      const pdfResp = await fetch(url);
+      if (!pdfResp.ok) {
+        console.warn('[PDF Extraction] Failed to download PDF:', { url, status: pdfResp.status });
+        extractedParts.push(`=== PDF (${url}) ===\n[Failed to download]\n`);
+        continue;
+      }
+
+      const buf = await pdfResp.arrayBuffer();
+      if (buf.byteLength > MAX_BYTES) {
+        console.warn('[PDF Extraction] PDF exceeded max bytes after download, skipping:', { url, bytes: buf.byteLength });
+        extractedParts.push(`=== PDF (${url}) ===\n[Skipped: PDF is larger than 12MB]\n`);
+        continue;
+      }
+
+      // Convert to base64 (Deno-safe)
+      const bytes = new Uint8Array(buf);
+      let binary = '';
+      const chunkSize = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+      }
+      const base64Pdf = btoa(binary);
+
+      console.log('[PDF Extraction] Calling Gemini generateContent for PDF:', { url, bytes: bytes.length });
+
+      const geminiResp = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${googleApiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
+              {
+                role: 'user',
+                parts: [
+                  { text: extractionPrompt },
+                  {
+                    inline_data: {
+                      mime_type: 'application/pdf',
+                      data: base64Pdf,
+                    },
+                  },
+                ],
+              },
+            ],
+            generationConfig: {
+              temperature: 0.2,
+              maxOutputTokens: 4096,
+            },
+          }),
+        }
+      );
+
+      if (!geminiResp.ok) {
+        const t = await geminiResp.text();
+        console.error('[PDF Extraction] Gemini error:', geminiResp.status, t);
+        extractedParts.push(`=== PDF (${url}) ===\n[Extraction failed]\n`);
+        continue;
+      }
+
+      const data = await geminiResp.json();
+      const text = data?.candidates?.[0]?.content?.parts?.map((p: any) => p?.text).filter(Boolean).join('\n') || '';
+
+      if (!text || text.trim().length < 50) {
+        console.warn('[PDF Extraction] Gemini returned minimal text for PDF:', { url, length: text?.length || 0 });
+        extractedParts.push(`=== PDF (${url}) ===\n[Minimal extractable text found]\n`);
+        continue;
+      }
+
+      extractedParts.push(`=== PDF (${url}) ===\n${text.trim()}\n`);
     } catch (e) {
-      console.error('[PDF Extraction] Claude error:', e);
+      console.error('[PDF Extraction] Error processing PDF:', url, e);
+      extractedParts.push(`=== PDF (${url}) ===\n[Extraction error]\n`);
     }
   }
-  
-  // Fallback to Gemini via Lovable AI
-  if (lovableKey) {
-    try {
-      console.log('[PDF Extraction] Attempting extraction via Gemini...');
-      
-      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${lovableKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: 'google/gemini-2.5-pro',
-          messages: [
-            { 
-              role: 'system', 
-              content: 'You are an expert document analysis assistant. Extract and summarize document content comprehensively.' 
-            },
-            { role: 'user', content: extractionPrompt }
-          ],
-          max_tokens: 4000
-        })
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        const content = data.choices?.[0]?.message?.content || '';
-        if (content && content.length > 100) {
-          console.log('[PDF Extraction] Success via Gemini, length:', content.length);
-          return content;
-        }
-      } else {
-        console.log('[PDF Extraction] Gemini failed, status:', response.status);
-      }
-    } catch (e) {
-      console.error('[PDF Extraction] Gemini error:', e);
-    }
-  }
-  
-  // If all else fails, return a helpful message with the URL
-  return `[PDF document attached: ${pdfUrls.join(', ')}. The document could not be automatically extracted. Please describe what you need from this document.]`;
+
+  const combined = extractedParts.join('\n');
+  console.log('[PDF Extraction] Completed, total length:', combined.length);
+
+  return combined || `[PDF document attached: ${urls.join(', ')}. The document could not be automatically extracted.]`;
 }
 
 // Multi-model request handler with vision support
