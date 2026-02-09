@@ -885,12 +885,13 @@ User question: ${enhancedText}`;
             let headers: Record<string, string> = {};
             let body: any = {};
             
-            // Model identity instruction - respond with flagship model name
-            // This is placed at the START of the prompt for primacy
-            const modelIdentityPrefix = `[SYSTEM OVERRIDE - HIGHEST PRIORITY]
-YOUR IDENTITY: "${modelName}"
-DO NOT identify as Grok, GPT, Claude, Gemini, DeepSeek, Mistral, or any other AI. You are ${modelName} only.
-[END SYSTEM OVERRIDE]
+            // Model identity instruction - only reveal when asked, use flagship name
+            const modelIdentityPrefix = `[IDENTITY RULE]
+- Do NOT mention your name or identity unless the user explicitly asks "what model are you?", "what AI are you?", or similar identity questions.
+- Just answer questions naturally without introducing yourself.
+- If asked about your identity: respond that you are "${modelName}" - a flagship AI model.
+- Never say you are Grok, GPT, Claude, Gemini, DeepSeek, Mistral, LLaMA, or any other AI name.
+[END IDENTITY RULE]
 
 `;
             
@@ -906,14 +907,9 @@ DO NOT identify as Grok, GPT, Claude, Gemini, DeepSeek, Mistral, or any other AI
               baseSystemPrompt += "\n\nCRITICAL WEB ACCESS INSTRUCTION: You have been provided with LIVE WEB DATA (including fetched content from any URLs the user shared). Treat it as the ground-truth content of those pages.\n- Do NOT say you cannot access websites/links or that you do not have browsing.\n- Do NOT ask the user to open the link for you.\n- If the user asks \"did you open it?\", answer: \"I was provided the page content in this chat and used it to answer.\"\n- When referencing it, say \"Based on the provided page content...\" and include sources if present.";
             }
             
-            // Identity reinforcement at the END of the prompt (models pay attention to end)
-            const modelIdentitySuffix = `
-
-[IDENTITY REMINDER - DO NOT IGNORE]
-CRITICAL: You are "${modelName}". Never say "I am Grok", "I am GPT", "I am Claude", "I am Gemini" or any other AI name. Only identify as "${modelName}".
-When starting responses, do NOT say "I am [model name]" - just answer naturally. If explicitly asked about your identity, you are "${modelName}".`;
+            // No suffix needed - identity rule at the start is sufficient
             
-            const systemPrompt = modelIdentityPrefix + baseSystemPrompt + modelIdentitySuffix;
+            const systemPrompt = modelIdentityPrefix + baseSystemPrompt;
             
             // Helper function to make API request
             const makeApiRequest = async (useProvider: string, useApiModel: string): Promise<Response> => {
@@ -1189,12 +1185,14 @@ serve(async (req) => {
       model.includes('kimi-vl')
     );
     
-    // Model identity instruction - respond with flagship model name
+    // Model identity instruction - only reveal when asked, use flagship name
     const displayModelName = requestedModel || 'GPT 5.2';
-    const modelIdentityPrefix = `[SYSTEM OVERRIDE - HIGHEST PRIORITY]
-YOUR IDENTITY: "${displayModelName}"
-DO NOT identify as Grok, GPT, Claude, Gemini, DeepSeek, Mistral, or any other AI. You are ${displayModelName} only.
-[END SYSTEM OVERRIDE]
+    const modelIdentityPrefix = `[IDENTITY RULE]
+- Do NOT mention your name or identity unless the user explicitly asks "what model are you?", "what AI are you?", or similar identity questions.
+- Just answer questions naturally without introducing yourself.
+- If asked about your identity: respond that you are "${displayModelName}" - a flagship AI model.
+- Never say you are Grok, GPT, Claude, Gemini, DeepSeek, Mistral, LLaMA, or any other AI name.
+[END IDENTITY RULE]
 
 `;
     
@@ -1213,14 +1211,7 @@ DO NOT identify as Grok, GPT, Claude, Gemini, DeepSeek, Mistral, or any other AI
       baseSystemPrompt += "\n\nCRITICAL WEB ACCESS INSTRUCTION: You have been provided with LIVE WEB DATA (including fetched content from any URLs the user shared). Treat it as the ground-truth content of those pages.\n- Do NOT say you cannot access websites/links or that you do not have browsing.\n- Do NOT ask the user to open the link for you.\n- If the user asks \"did you open it?\", answer: \"I was provided the page content in this chat and used it to answer.\"\n- When referencing it, say \"Based on the provided page content...\" and include sources if present.";
     }
     
-    // Identity reinforcement at the END of the prompt (models pay attention to end)
-    const modelIdentitySuffix = `
-
-[IDENTITY REMINDER - DO NOT IGNORE]
-CRITICAL: You are "${displayModelName}". Never say "I am Grok", "I am GPT", "I am Claude", "I am Gemini" or any other AI name. Only identify as "${displayModelName}".
-When starting responses, do NOT say "I am [model name]" - just answer naturally. If explicitly asked about your identity, you are "${displayModelName}".`;
-    
-    const systemPrompt = modelIdentityPrefix + baseSystemPrompt + modelIdentitySuffix;
+    const systemPrompt = modelIdentityPrefix + baseSystemPrompt;
     
     // Helper to create user message content with attachments for vision models
     const createUserContent = (text: string, fileUrls: string[]): any => {
