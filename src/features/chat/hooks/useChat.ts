@@ -583,9 +583,10 @@ export const useChat = () => {
               
               return { model, url: response.imageUrl };
             } catch (error) {
-              // Silently mark as empty - no error shown to user
-              console.warn(`[Image] Model ${model} failed silently:`, error);
-              multiModelContent[model] = ''; // Keep as loading/empty, will be hidden
+              // Show error message to user
+              const errorMsg = error instanceof Error ? error.message : 'Generation failed';
+              console.warn(`[Image] Model ${model} failed:`, errorMsg);
+              multiModelContent[model] = `Error: ${errorMsg}`;
               safeUpdateMessage(assistantId, { 
                 content: { ...multiModelContent } 
               }, convId);
