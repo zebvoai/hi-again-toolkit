@@ -784,10 +784,12 @@ async function handleMultiModelRequest(
   // Fetch live context if query needs real-time data
   // SKIP live data fetch if PDFs are attached - the user wants document analysis, not web search
   let liveContext = '';
+  let didSearchWeb = false; // Track if we actually searched the web
   if (!hasPdfs && !hasImages && needsLiveData(message)) {
     const fetchedContext = await fetchLiveContext(message);
     if (fetchedContext) {
       liveContext = fetchedContext;
+      didSearchWeb = true; // Mark that web search was performed
       console.log('[Live Data] Injecting live context into prompts');
     }
   } else if (hasPdfs || hasImages) {
@@ -883,6 +885,16 @@ User question: ${enhancedText}`;
     const streamBody = new ReadableStream({
       async start(controller) {
         try {
+          // Send activity events first (before model responses start)
+          // This lets the frontend know what activities are happening
+          if (didSearchWeb) {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ activity: 'searching_web' })}\n\n`));
+          } else if (hasPdfs) {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ activity: 'analyzing_pdf' })}\n\n`));
+          } else if (hasImages) {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ activity: 'analyzing_image' })}\n\n`));
+          }
+          
           await Promise.all(effectiveModels.map(async (modelName) => {
             const mapping = getModelMapping(modelName);
             const { apiModel, provider } = mapping;
@@ -1149,10 +1161,14 @@ serve(async (req) => {
     
     // Fetch live context if query needs real-time data
     let liveContext = '';
-    if (needsLiveData(message)) {
+    let didSearchWebSingle = false; // Track if web search was performed for single model
+    const hasPdfsSingle = attachments.some(isPdfUrl);
+    
+    if (!hasPdfsSingle && !hasImages && needsLiveData(message)) {
       const fetchedContext = await fetchLiveContext(message);
       if (fetchedContext) {
         liveContext = fetchedContext;
+        didSearchWebSingle = true;
         console.log('[Live Data] Injecting live context into single model prompt');
       }
     }
@@ -1335,6 +1351,15 @@ User question: ${text}`
       const encoder = new TextEncoder();
       const readable = new ReadableStream({
         async start(controller) {
+          // Send activity events first
+          if (didSearchWebSingle) {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ activity: 'searching_web' })}\n\n`));
+          } else if (hasPdfsSingle) {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ activity: 'analyzing_pdf' })}\n\n`));
+          } else if (hasImages) {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ activity: 'analyzing_image' })}\n\n`));
+          }
+          
           const reader = response.body?.getReader();
           if (!reader) {
             controller.close();

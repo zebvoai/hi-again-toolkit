@@ -38,7 +38,8 @@ export const api = {
     onChunk?: (chunk: string) => void,
     signal?: AbortSignal,
     attachments?: string[],
-    onModelChange?: (model: string) => void
+    onModelChange?: (model: string) => void,
+    onActivity?: (activity: 'searching_web' | 'analyzing_image' | 'analyzing_pdf' | 'generating') => void
   ): Promise<ChatResponse> {
     const response = await fetch(`${API_BASE}/chat`, {
       method: 'POST',
@@ -88,7 +89,12 @@ export const api = {
               
               try {
                 const parsed = JSON.parse(data);
-                if (parsed.content) {
+                // Handle activity events from backend
+                if (parsed.activity && onActivity) {
+                  onActivity(parsed.activity);
+                }
+                // Handle content chunks
+                else if (parsed.content) {
                   fullContent += parsed.content;
                   
                   // Track model changes and notify
