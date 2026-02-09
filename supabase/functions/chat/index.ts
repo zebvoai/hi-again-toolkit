@@ -782,13 +782,16 @@ async function handleMultiModelRequest(
   const hasPdfs = pdfUrls.length > 0;
   
   // Fetch live context if query needs real-time data
+  // SKIP live data fetch if PDFs are attached - the user wants document analysis, not web search
   let liveContext = '';
-  if (needsLiveData(message)) {
+  if (!hasPdfs && !hasImages && needsLiveData(message)) {
     const fetchedContext = await fetchLiveContext(message);
     if (fetchedContext) {
       liveContext = fetchedContext;
       console.log('[Live Data] Injecting live context into prompts');
     }
+  } else if (hasPdfs || hasImages) {
+    console.log('[Live Data] Skipped - document/image attachments present, focusing on file analysis');
   }
   
   // For PDFs: extract content once and share with all models
@@ -830,15 +833,20 @@ async function handleMultiModelRequest(
 User question: ${text}`
       : text;
     
-    // Inject PDF extracted content if available
+    // Inject PDF extracted content if available - this takes priority over everything else
     if (pdfExtractedContent && pdfs.length > 0) {
-      enhancedText = `=== PDF DOCUMENT CONTENT ===
-The following is the extracted content from ${pdfs.length} attached PDF document(s):
+      enhancedText = `[CRITICAL: A PDF DOCUMENT HAS BEEN ATTACHED AND FULLY EXTRACTED BELOW]
 
+=== EXTRACTED PDF DOCUMENT CONTENT (${pdfs.length} file(s)) ===
 ${pdfExtractedContent}
 === END PDF CONTENT ===
 
-INSTRUCTION: The PDF content above has been extracted and provided to you. Use this content to answer the user's question. Do NOT say you cannot read PDFs or access documents.
+MANDATORY INSTRUCTIONS:
+1. The PDF content above has been successfully extracted and is now available to you.
+2. You MUST analyze and use this content to answer the user's question.
+3. Do NOT say you cannot read PDFs, access documents, or that no file was uploaded.
+4. The user's question "what is this" refers to the PDF document content shown above.
+5. Summarize and explain what the document contains.
 
 User question: ${enhancedText}`;
     }
