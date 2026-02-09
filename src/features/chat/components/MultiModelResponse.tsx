@@ -193,7 +193,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
 
                 {/* Content - shows skeleton only if this specific model hasn't started, otherwise streams live */}
                 <div
-                  className="bg-card rounded-xl border border-border/30 p-4 shadow-sm overflow-hidden"
+                  className="bg-card rounded-xl border border-border/30 p-4 shadow-sm"
                   style={{
                     minHeight: isModelGenerating(currentModel) ? '220px' : 'auto',
                     transition: 'min-height 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
@@ -210,7 +210,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
                     </div>
                   ) : (
                     <div
-                      className="prose prose-sm max-w-none text-foreground text-[13px] leading-relaxed"
+                      className="prose prose-sm max-w-none text-foreground text-[13px] leading-relaxed overflow-x-auto"
                       style={{
                         animation: 'fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both',
                       }}
