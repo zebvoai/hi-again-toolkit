@@ -273,7 +273,7 @@ export const MultiModelImageResponse = ({
           );
         }
 
-        // Show error message for failed models
+        // Show error message for failed models - assume sensitive content rejection
         if (isError) {
           return (
             <div 
@@ -291,10 +291,10 @@ export const MultiModelImageResponse = ({
               <div className="p-4 flex flex-col items-center justify-center gap-2 min-h-[200px]">
                 <AlertCircle className="w-8 h-8 text-destructive/60" />
                 <p className="text-sm text-center text-destructive/80 font-medium">
-                  Model could not generate the image
+                  Model found your prompt sensitive and rejected it
                 </p>
                 <p className="text-xs text-center text-muted-foreground">
-                  Please try a different prompt or select another model
+                  Please try a different prompt
                 </p>
               </div>
             </div>
