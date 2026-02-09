@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, memo, useMemo } from 'react';
-import { Square, Menu, Share, Pencil, Trash2, MoreVertical, MessageSquare, ImageIcon } from 'lucide-react';
+import { Square, Menu, Share, Pencil, Trash2, MoreVertical, MessageSquare, ImageIcon, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useChat } from '@/features/chat/hooks/useChat';
 import { useModeStore } from '@/features/modes/store/modeStore';
@@ -427,6 +427,31 @@ export function ChatInterface() {
 
               <TooltipProvider delayDuration={400}>
                 <div className="flex items-center gap-1">
+                  {/* New Chat Button - Mobile Only */}
+                  {isMobile && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => {
+                            clearMessages();
+                            setCurrentConversationId(null);
+                            inputRef.current?.clear();
+                            setIsFirstResponse(true);
+                            toast.success('New chat started');
+                          }} 
+                          className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl hover:bg-accent/80" 
+                          aria-label="New Chat"
+                        >
+                          <Plus className="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top"><p>New Chat</p></TooltipContent>
+                    </Tooltip>
+                  )}
+
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button type="button" variant="ghost" size="icon" onClick={() => setShowFeedbackDialog(true)} className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl hover:bg-accent/80" aria-label="Feedback">
