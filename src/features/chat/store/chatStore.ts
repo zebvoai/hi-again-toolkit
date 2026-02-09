@@ -49,6 +49,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   isLoading: false,
   loadingConversationId: null,
   currentGeneratingModel: null, // Track which model is currently generating
+  generationActivityType: null, // Track what activity is happening (searching, analyzing, etc.)
   error: null,
   selectedModels: [],
   currentConversationId: null,
@@ -88,9 +89,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
     isLoading: loading,
     loadingConversationId: loading ? (conversationId ?? state.currentConversationId) : null,
     currentGeneratingModel: loading ? state.currentGeneratingModel : null, // Clear model when done
+    generationActivityType: loading ? state.generationActivityType : null, // Clear activity when done
   })),
 
   setCurrentGeneratingModel: (model) => set({ currentGeneratingModel: model }),
+
+  setGenerationActivityType: (activity) => set({ generationActivityType: activity }),
 
   setError: (error) => set({ error }),
 
