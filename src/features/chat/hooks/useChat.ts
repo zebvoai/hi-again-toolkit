@@ -798,28 +798,8 @@ export const useChat = () => {
           setCurrentGeneratingModel(effectiveModels[0]);
         }
         
-        // Determine activity type based on attachments
-        if (fileUrls.length > 0) {
-          const hasPdf = fileUrls.some(url => url.toLowerCase().endsWith('.pdf'));
-          const hasImage = fileUrls.some(url => 
-            url.match(/\.(jpg|jpeg|png|gif|webp)$/i) || url.includes('image')
-          );
-          if (hasPdf) {
-            setGenerationActivityType('analyzing_pdf');
-          } else if (hasImage) {
-            setGenerationActivityType('analyzing_image');
-          } else {
-            setGenerationActivityType('generating');
-          }
-        } else {
-          // Check if the model or query suggests web search
-          const isWebSearch = effectiveModels.some(m => 
-            m.toLowerCase().includes('perplexity') || 
-            m.toLowerCase().includes('sonar') ||
-            m.toLowerCase().includes('zebvo')
-          );
-          setGenerationActivityType(isWebSearch ? 'searching_web' : 'generating');
-        }
+        // Always start with 'generating' - backend will send activity events if web search or file analysis happens
+        setGenerationActivityType('generating');
 
         const response = await multiModelApi.sendMessageMultiModel(
           content,
@@ -833,7 +813,9 @@ export const useChat = () => {
             safeUpdateMessage(assistantId, { content: { ...multiModelContent } }, convId);
           },
           abortControllerRef.current?.signal,
-          fileUrls.length > 0 ? fileUrls : undefined
+          fileUrls.length > 0 ? fileUrls : undefined,
+          // Activity callback - update the activity type when backend signals it
+          (activity) => setGenerationActivityType(activity)
         );
 
         // Update with final content
@@ -872,28 +854,8 @@ export const useChat = () => {
           setCurrentGeneratingModel(selectedModel);
         }
         
-        // Determine activity type based on attachments (single-model)
-        if (fileUrls.length > 0) {
-          const hasPdf = fileUrls.some(url => url.toLowerCase().endsWith('.pdf'));
-          const hasImage = fileUrls.some(url => 
-            url.match(/\.(jpg|jpeg|png|gif|webp)$/i) || url.includes('image')
-          );
-          if (hasPdf) {
-            setGenerationActivityType('analyzing_pdf');
-          } else if (hasImage) {
-            setGenerationActivityType('analyzing_image');
-          } else {
-            setGenerationActivityType('generating');
-          }
-        } else {
-          // Check if the model suggests web search
-          const isWebSearch = selectedModel && (
-            selectedModel.toLowerCase().includes('perplexity') || 
-            selectedModel.toLowerCase().includes('sonar') ||
-            selectedModel.toLowerCase().includes('zebvo')
-          );
-          setGenerationActivityType(isWebSearch ? 'searching_web' : 'generating');
-        }
+        // Always start with 'generating' - backend will send activity events if needed
+        setGenerationActivityType('generating');
 
         const response = await api.sendMessage(
           content,
@@ -927,7 +889,8 @@ export const useChat = () => {
             : undefined,
           abortControllerRef.current?.signal,
           fileUrls.length > 0 ? fileUrls : undefined,
-          (model: string) => setCurrentGeneratingModel(model) // onModelChange callback
+          (model: string) => setCurrentGeneratingModel(model), // onModelChange callback
+          (activity) => setGenerationActivityType(activity) // onActivity callback
         );
         
         if (hasCreatedMessage) {

@@ -33,7 +33,8 @@ export const multiModelApi = {
     models: string[],
     onProgress?: (modelName: string, chunk: string) => void,
     signal?: AbortSignal,
-    attachments?: string[]
+    attachments?: string[],
+    onActivity?: (activity: 'searching_web' | 'analyzing_image' | 'analyzing_pdf' | 'generating') => void
   ): Promise<MultiModelChatResponse> {
     // Send request to backend with multiple models
     const response = await fetch(`${API_BASE}/chat`, {
@@ -85,7 +86,12 @@ export const multiModelApi = {
 
               try {
                 const parsed = JSON.parse(data);
-                if (parsed.model && parsed.content) {
+                // Handle activity events from backend
+                if (parsed.activity && onActivity) {
+                  onActivity(parsed.activity);
+                }
+                // Handle content chunks
+                else if (parsed.model && parsed.content) {
                   fullContents[parsed.model] += parsed.content;
                   onProgress(parsed.model, parsed.content);
                 }
