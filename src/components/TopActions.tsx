@@ -1,4 +1,4 @@
-import { Users, Glasses, MoreVertical, MessageSquare } from 'lucide-react';
+import { Users, Glasses, MoreVertical, MessageSquare, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { TestRunner } from '@/components/TestRunnerSimple';
 import { FeedbackDialog } from '@/components/FeedbackDialog';
@@ -7,16 +7,20 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface TopActionsProps {
   isTemporaryMode: boolean;
   onTemporaryModeToggle: () => void;
+  onNewChat?: () => void;
 }
 
 export function TopActions({
   isTemporaryMode,
-  onTemporaryModeToggle
+  onTemporaryModeToggle,
+  onNewChat
 }: TopActionsProps) {
+  const isMobile = useIsMobile();
   const [showGroupDialog, setShowGroupDialog] = useState(false);
   const [showTempConfirm, setShowTempConfirm] = useState(false);
   const [showTestRunner, setShowTestRunner] = useState(false);
@@ -46,6 +50,22 @@ export function TopActions({
   return (
     <>
       <div className="fixed top-3 right-3 sm:top-5 sm:right-6 z-50 flex items-center gap-2 sm:gap-3">
+        {/* New Chat Button - Mobile Only */}
+        {isMobile && onNewChat && (
+          <TooltipProvider delayDuration={400}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" onClick={onNewChat} className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-transparent hover:bg-accent/80 hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(0,0,0,0.08)] active:scale-[0.92] active:transition-[transform] active:duration-100 transition-all duration-[220ms] ease-[cubic-bezier(0.34,1.56,0.64,1)]" aria-label="New Chat">
+                  <Plus className="w-5 h-5 text-muted-foreground" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p>New Chat</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+
         {/* Feedback Icon */}
         <TooltipProvider delayDuration={400}>
           <Tooltip>
