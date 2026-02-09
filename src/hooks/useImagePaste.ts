@@ -1,6 +1,11 @@
 import { useEffect, useCallback, useState } from 'react';
 import { toast } from 'sonner';
 
+// Supported file types for drag and drop
+const SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+const SUPPORTED_DOCUMENT_TYPES = ['application/pdf'];
+const ALL_SUPPORTED_TYPES = [...SUPPORTED_IMAGE_TYPES, ...SUPPORTED_DOCUMENT_TYPES];
+
 interface UseImagePasteOptions {
   onImagesAdded: (files: File[]) => void;
   enabled?: boolean;
@@ -9,6 +14,25 @@ interface UseImagePasteOptions {
 export const useImagePaste = ({ onImagesAdded, enabled = true }: UseImagePasteOptions) => {
   const [isDragging, setIsDragging] = useState(false);
 
+  // Check if a file is a supported type
+  const isSupportedFile = (file: File): boolean => {
+    // Check by MIME type
+    if (ALL_SUPPORTED_TYPES.includes(file.type)) return true;
+    // Fallback: check by extension for PDFs (some systems may not set MIME correctly)
+    if (file.name.toLowerCase().endsWith('.pdf')) return true;
+    // Check for image extensions as fallback
+    if (/\.(jpg|jpeg|png|gif|webp|svg)$/i.test(file.name)) return true;
+    return false;
+  };
+
+  const isImageFile = (file: File): boolean => {
+    return SUPPORTED_IMAGE_TYPES.includes(file.type) || /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(file.name);
+  };
+
+  const isPdfFile = (file: File): boolean => {
+    return file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+  };
+
   // Handle paste from clipboard
   const handlePaste = useCallback((e: ClipboardEvent) => {
     if (!enabled) return;
@@ -16,22 +40,24 @@ export const useImagePaste = ({ onImagesAdded, enabled = true }: UseImagePasteOp
     const items = e.clipboardData?.items;
     if (!items) return;
 
-    const imageFiles: File[] = [];
+    const supportedFiles: File[] = [];
     
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
+      // Support images from clipboard
       if (item.type.startsWith('image/')) {
         const file = item.getAsFile();
         if (file) {
-          imageFiles.push(file);
+          supportedFiles.push(file);
         }
       }
+      // Note: PDFs typically can't be pasted from clipboard, only dragged
     }
 
-    if (imageFiles.length > 0) {
+    if (supportedFiles.length > 0) {
       e.preventDefault();
-      onImagesAdded(imageFiles);
-      toast.success(`${imageFiles.length} image(s) pasted`);
+      onImagesAdded(supportedFiles);
+      toast.success(`${supportedFiles.length} image(s) pasted`);
     }
   }, [enabled, onImagesAdded]);
 
@@ -72,20 +98,38 @@ export const useImagePaste = ({ onImagesAdded, enabled = true }: UseImagePasteOp
     const files = e.dataTransfer?.files;
     if (!files || files.length === 0) return;
 
-    const imageFiles: File[] = [];
+    const supportedFiles: File[] = [];
+    const unsupportedFiles: string[] = [];
     
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      if (file.type.startsWith('image/')) {
-        imageFiles.push(file);
+      if (isSupportedFile(file)) {
+        supportedFiles.push(file);
+      } else {
+        unsupportedFiles.push(file.name);
       }
     }
 
-    if (imageFiles.length > 0) {
-      onImagesAdded(imageFiles);
-      toast.success(`${imageFiles.length} image(s) added`);
-    } else {
-      toast.error('Please drop image files only');
+    if (supportedFiles.length > 0) {
+      onImagesAdded(supportedFiles);
+      
+      // Count images and PDFs for better toast message
+      const imageCount = supportedFiles.filter(isImageFile).length;
+      const pdfCount = supportedFiles.filter(isPdfFile).length;
+      
+      if (imageCount > 0 && pdfCount > 0) {
+        toast.success(`${imageCount} image(s) and ${pdfCount} PDF(s) added`);
+      } else if (pdfCount > 0) {
+        toast.success(`${pdfCount} PDF(s) added`);
+      } else {
+        toast.success(`${imageCount} image(s) added`);
+      }
+    }
+    
+    if (unsupportedFiles.length > 0 && supportedFiles.length === 0) {
+      toast.error('Please drop images or PDF files');
+    } else if (unsupportedFiles.length > 0) {
+      toast.warning(`${unsupportedFiles.length} unsupported file(s) skipped`);
     }
   }, [enabled, onImagesAdded]);
 

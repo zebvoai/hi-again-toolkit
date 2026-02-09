@@ -308,8 +308,8 @@ export function ChatInterface() {
         <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center pointer-events-none">
           <div className="flex flex-col items-center gap-4 p-8 rounded-2xl border-2 border-dashed border-primary bg-primary/5 animate-pulse">
             <ImageIcon className="w-12 h-12 text-primary" />
-            <p className="text-lg font-medium text-primary">Drop images here</p>
-            <p className="text-sm text-muted-foreground">Supports JPG, PNG, GIF, WebP</p>
+            <p className="text-lg font-medium text-primary">Drop files here</p>
+            <p className="text-sm text-muted-foreground">Supports images (JPG, PNG, GIF, WebP) and PDF documents</p>
           </div>
         </div>
       )}
