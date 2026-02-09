@@ -10,19 +10,74 @@ interface Message {
   content: string | any[];
 }
 
-// Keywords that indicate the user wants real-time/live data
+// Keywords that indicate the user wants real-time/live data or internet access
 const LIVE_DATA_KEYWORDS = [
+  // Time-sensitive
   'today', 'current', 'latest', 'now', 'right now', 'this moment',
-  'weather', 'temperature', 'forecast',
-  'news', 'headlines', 'breaking',
-  'stock', 'price', 'market', 'trading',
-  'score', 'match', 'game', 'live score',
-  'exchange rate', 'currency',
-  'trending', 'viral',
-  'happening', 'recent', 'just happened',
   '2024', '2025', '2026', 'this year', 'this month', 'this week',
-  'yesterday', 'last night', 'this morning',
-  'update', 'status', 'real-time', 'realtime'
+  'yesterday', 'last night', 'this morning', 'recently', 'recent',
+  
+  // Weather
+  'weather', 'temperature', 'forecast', 'humidity', 'rain', 'snow',
+  
+  // News & Events
+  'news', 'headlines', 'breaking', 'happening', 'just happened',
+  'update', 'announcement', 'announced', 'released', 'launched',
+  
+  // Finance & Markets
+  'stock', 'price', 'market', 'trading', 'exchange rate', 'currency',
+  'crypto', 'bitcoin', 'ethereum', 'investment', 'share price',
+  
+  // Sports
+  'score', 'match', 'game', 'live score', 'tournament', 'championship',
+  'standings', 'fixtures', 'results',
+  
+  // Social & Trends
+  'trending', 'viral', 'popular', 'top rated',
+  
+  // Status & Real-time
+  'status', 'real-time', 'realtime', 'live', 'online',
+  
+  // Research & Lookup triggers
+  'search for', 'look up', 'find out', 'what is', 'who is', 'where is',
+  'how much', 'how many', 'when did', 'when will', 'when is',
+  'tell me about', 'information about', 'details about', 'facts about',
+  'latest on', 'updates on', 'news about',
+  
+  // Knowledge queries
+  'biography', 'history of', 'how to', 'tutorial',
+  'review', 'reviews', 'rating', 'ratings', 'comparison',
+  'best', 'top 10', 'top 5', 'list of', 'examples of',
+  
+  // Company/Product info
+  'company', 'startup', 'founded', 'ceo', 'founder',
+  'product', 'service', 'features', 'pricing',
+  
+  // Events & Schedules
+  'event', 'conference', 'schedule', 'calendar', 'date of',
+  'opening hours', 'hours of operation', 'address',
+  
+  // Explicit internet requests
+  'google', 'search', 'browse', 'website', 'online',
+  'check online', 'look online', 'find online'
+];
+
+// Question patterns that typically need internet access
+const INTERNET_QUESTION_PATTERNS = [
+  /^what (is|are|was|were|does|did|will)/i,
+  /^who (is|are|was|were|founded|created|invented)/i,
+  /^where (is|are|can|do|does)/i,
+  /^when (is|are|was|were|did|will|does)/i,
+  /^how (much|many|long|far|old|do|does|did|can|to)/i,
+  /^why (is|are|do|does|did|was|were)/i,
+  /^is (there|it|this|that|the)/i,
+  /^are (there|they|these|those|the)/i,
+  /^can (you|i|we|they) (find|search|look|get|tell)/i,
+  /^tell me (about|more|the)/i,
+  /^give me (info|information|details|facts)/i,
+  /^find (me|out|the|information|details)/i,
+  /^search (for|the)/i,
+  /^look up/i,
 ];
 
 // Extract URLs from a message
@@ -38,12 +93,20 @@ const containsUrls = (message: string): boolean => {
   return extractUrls(message).length > 0;
 };
 
-// Check if a query needs live data
+// Check if a query needs internet/live data
 const needsLiveData = (message: string): boolean => {
   const lowerMessage = message.toLowerCase();
-  // Also trigger for URLs since we need to fetch them
+  
+  // Trigger for URLs since we need to fetch them
   if (containsUrls(message)) return true;
-  return LIVE_DATA_KEYWORDS.some(keyword => lowerMessage.includes(keyword));
+  
+  // Check keyword matches
+  if (LIVE_DATA_KEYWORDS.some(keyword => lowerMessage.includes(keyword))) return true;
+  
+  // Check question patterns that typically need internet
+  if (INTERNET_QUESTION_PATTERNS.some(pattern => pattern.test(message))) return true;
+  
+  return false;
 };
 
 // Fetch live context from Perplexity
