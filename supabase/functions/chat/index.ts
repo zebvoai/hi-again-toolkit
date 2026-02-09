@@ -11,33 +11,73 @@ interface Message {
 }
 
 // Keywords that indicate the user wants real-time/live data or internet access
-// Made MUCH more selective to avoid unnecessary web searches that slow response time
 const LIVE_DATA_KEYWORDS = [
-  // Time-sensitive - EXPLICIT current events
-  'today', 'current news', 'latest news', 'breaking news', 'right now',
-  'this week', 'this month', 'this year',
+  // Time-sensitive
+  'today', 'current', 'latest', 'now', 'right now', 'this moment',
+  '2024', '2025', '2026', 'this year', 'this month', 'this week',
+  'yesterday', 'last night', 'this morning', 'recently', 'recent',
   
-  // Weather - explicit
-  'weather today', 'current weather', 'weather forecast', 'weather in',
+  // Weather
+  'weather', 'temperature', 'forecast', 'humidity', 'rain', 'snow',
   
-  // Finance - explicit
-  'stock price', 'current price', 'live price', 'market today',
-  'exchange rate', 'crypto price', 'bitcoin price',
+  // News & Events
+  'news', 'headlines', 'breaking', 'happening', 'just happened',
+  'update', 'announcement', 'announced', 'released', 'launched',
   
-  // Sports - explicit
-  'live score', 'match result', 'game score', 'standings today',
+  // Finance & Markets
+  'stock', 'price', 'market', 'trading', 'exchange rate', 'currency',
+  'crypto', 'bitcoin', 'ethereum', 'investment', 'share price',
+  
+  // Sports
+  'score', 'match', 'game', 'live score', 'tournament', 'championship',
+  'standings', 'fixtures', 'results',
+  
+  // Social & Trends
+  'trending', 'viral', 'popular', 'top rated',
+  
+  // Status & Real-time
+  'status', 'real-time', 'realtime', 'live', 'online',
+  
+  // Research & Lookup triggers
+  'search for', 'look up', 'find out', 'what is', 'who is', 'where is',
+  'how much', 'how many', 'when did', 'when will', 'when is',
+  'tell me about', 'information about', 'details about', 'facts about',
+  'latest on', 'updates on', 'news about',
+  
+  // Knowledge queries
+  'biography', 'history of', 'how to', 'tutorial',
+  'review', 'reviews', 'rating', 'ratings', 'comparison',
+  'best', 'top 10', 'top 5', 'list of', 'examples of',
+  
+  // Company/Product info
+  'company', 'startup', 'founded', 'ceo', 'founder',
+  'product', 'service', 'features', 'pricing',
+  
+  // Events & Schedules
+  'event', 'conference', 'schedule', 'calendar', 'date of',
+  'opening hours', 'hours of operation', 'address',
   
   // Explicit internet requests
-  'search for', 'look up online', 'find online', 'google',
-  'latest on', 'news about', 'recent news',
+  'google', 'search', 'browse', 'website', 'online',
+  'check online', 'look online', 'find online'
 ];
 
-// Stricter question patterns - only trigger for explicit research/lookup requests
+// Question patterns that typically need internet access
 const INTERNET_QUESTION_PATTERNS = [
-  /^(what|who|where) (is|are|was|were) .{20,}/i, // Longer queries more likely need search
-  /latest .{5,}/i,
-  /current .{10,}/i,
-  /news (about|on|regarding)/i,
+  /^what (is|are|was|were|does|did|will)/i,
+  /^who (is|are|was|were|founded|created|invented)/i,
+  /^where (is|are|can|do|does)/i,
+  /^when (is|are|was|were|did|will|does)/i,
+  /^how (much|many|long|far|old|do|does|did|can|to)/i,
+  /^why (is|are|do|does|did|was|were)/i,
+  /^is (there|it|this|that|the)/i,
+  /^are (there|they|these|those|the)/i,
+  /^can (you|i|we|they) (find|search|look|get|tell)/i,
+  /^tell me (about|more|the)/i,
+  /^give me (info|information|details|facts)/i,
+  /^find (me|out|the|information|details)/i,
+  /^search (for|the)/i,
+  /^look up/i,
 ];
 
 // Extract URLs from a message
@@ -53,21 +93,17 @@ const containsUrls = (message: string): boolean => {
   return extractUrls(message).length > 0;
 };
 
-// Check if a query needs internet/live data - OPTIMIZED for speed
-// Only trigger web search for queries that REALLY need current information
+// Check if a query needs internet/live data
 const needsLiveData = (message: string): boolean => {
-  const lowerMessage = message.toLowerCase().trim();
-  
-  // Short queries (under 15 chars) rarely need web search unless they contain URLs
-  if (lowerMessage.length < 15 && !containsUrls(message)) return false;
+  const lowerMessage = message.toLowerCase();
   
   // Trigger for URLs since we need to fetch them
   if (containsUrls(message)) return true;
   
-  // Check STRICT keyword matches (these are already very selective)
+  // Check keyword matches
   if (LIVE_DATA_KEYWORDS.some(keyword => lowerMessage.includes(keyword))) return true;
   
-  // Check question patterns that typically need internet (already stricter now)
+  // Check question patterns that typically need internet
   if (INTERNET_QUESTION_PATTERNS.some(pattern => pattern.test(message))) return true;
   
   return false;
@@ -745,16 +781,19 @@ async function handleMultiModelRequest(
   const pdfUrls = attachments.filter(isPdfUrl);
   const hasPdfs = pdfUrls.length > 0;
   
-  // OPTIMIZATION: Start live data fetch in parallel - don't block model calls
-  // We'll check the result later and inject if available
-  let liveContextPromise: Promise<string | null> | null = null;
-  const shouldFetchLiveData = !hasPdfs && !hasImages && needsLiveData(message);
-  
-  if (shouldFetchLiveData) {
-    console.log('[Live Data] Starting parallel fetch (non-blocking)...');
-    liveContextPromise = fetchLiveContext(message);
+  // Fetch live context if query needs real-time data
+  // SKIP live data fetch if PDFs are attached - the user wants document analysis, not web search
+  let liveContext = '';
+  let didSearchWeb = false; // Track if we actually searched the web
+  if (!hasPdfs && !hasImages && needsLiveData(message)) {
+    const fetchedContext = await fetchLiveContext(message);
+    if (fetchedContext) {
+      liveContext = fetchedContext;
+      didSearchWeb = true; // Mark that web search was performed
+      console.log('[Live Data] Injecting live context into prompts');
+    }
   } else if (hasPdfs || hasImages) {
-    console.log('[Live Data] Skipped - document/image attachments present');
+    console.log('[Live Data] Skipped - document/image attachments present, focusing on file analysis');
   }
   
   // For PDFs: extract content once and share with all models
@@ -783,16 +822,15 @@ async function handleMultiModelRequest(
   }
   
   // Helper to create user message content with attachments
-  // Note: liveContext is now passed as parameter instead of closure variable
-  const createUserContent = (text: string, fileUrls: string[], isVisionModel: boolean, liveCtx: string): any => {
+  const createUserContent = (text: string, fileUrls: string[], isVisionModel: boolean): any => {
     const images = fileUrls.filter(isImageUrl);
     const pdfs = fileUrls.filter(isPdfUrl);
     const otherFiles = fileUrls.filter(url => !isImageUrl(url) && !isPdfUrl(url));
     
     // Prepend live context to the message if available
     // Also add an explicit instruction so models never claim they "can't access" the link.
-    let enhancedText = liveCtx
-      ? `${liveCtx}INSTRUCTION: The LIVE WEB DATA above already contains the fetched, relevant webpage content and/or up-to-date web results for the URL(s) the user shared. Answer using it. Do NOT say you cannot access links/websites or that you lack browsing.
+    let enhancedText = liveContext
+      ? `${liveContext}INSTRUCTION: The LIVE WEB DATA above already contains the fetched, relevant webpage content and/or up-to-date web results for the URL(s) the user shared. Answer using it. Do NOT say you cannot access links/websites or that you lack browsing.
 
 User question: ${text}`
       : text;
@@ -847,28 +885,6 @@ User question: ${enhancedText}`;
     const streamBody = new ReadableStream({
       async start(controller) {
         try {
-          // OPTIMIZATION: Wait for live context in parallel with initial setup
-          // This reduces the blocking time significantly
-          let liveContext = '';
-          let didSearchWeb = false;
-          
-          if (liveContextPromise) {
-            // Wait for live context but with a timeout to not delay too much
-            try {
-              const fetchedContext = await Promise.race([
-                liveContextPromise,
-                new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000)) // 3 second timeout
-              ]);
-              if (fetchedContext) {
-                liveContext = fetchedContext;
-                didSearchWeb = true;
-                console.log('[Live Data] Context ready, injecting into prompts');
-              }
-            } catch (e) {
-              console.log('[Live Data] Fetch failed or timed out, proceeding without');
-            }
-          }
-          
           // Send activity events first (before model responses start)
           // This lets the frontend know what activities are happening
           if (didSearchWeb) {
@@ -877,9 +893,6 @@ User question: ${enhancedText}`;
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ activity: 'analyzing_pdf' })}\n\n`));
           } else if (hasImages) {
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ activity: 'analyzing_image' })}\n\n`));
-          } else {
-            // Send generating activity for normal queries
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ activity: 'generating' })}\n\n`));
           }
           
           await Promise.all(effectiveModels.map(async (modelName) => {
@@ -927,7 +940,7 @@ User question: ${enhancedText}`;
               const messages = [
                 { role: 'system', content: systemPrompt },
                 ...sanitizedHistory.map(m => ({ role: m.role, content: m.content })),
-                { role: 'user', content: createUserContent(message, attachments, modelIsVisionCapable, liveContext) }
+                { role: 'user', content: createUserContent(message, attachments, modelIsVisionCapable) }
               ];
               
               if (useProvider === 'lovable') {
