@@ -105,6 +105,43 @@ export const MultiModelImageResponse = ({
   } | null>(null);
   const [copiedModel, setCopiedModel] = useState<string | null>(null);
   const [copiedPrompt, setCopiedPrompt] = useState(false);
+  const [timedOutModels, setTimedOutModels] = useState<Set<string>>(new Set());
+  const loadingStartTimeRef = useRef<Record<string, number>>({});
+
+  // Track loading start time for each model and set 60-second timeout
+  useEffect(() => {
+    const timeouts: NodeJS.Timeout[] = [];
+    
+    models.forEach(model => {
+      const imageUrl = content[model];
+      const isLoading = !imageUrl || imageUrl === '';
+      
+      if (isLoading) {
+        // Start tracking if not already tracked
+        if (!loadingStartTimeRef.current[model]) {
+          loadingStartTimeRef.current[model] = Date.now();
+          
+          // Set timeout for 60 seconds
+          const timeout = setTimeout(() => {
+            setTimedOutModels(prev => new Set([...prev, model]));
+          }, 60000);
+          timeouts.push(timeout);
+        }
+      } else {
+        // Clear tracking if loaded
+        delete loadingStartTimeRef.current[model];
+        setTimedOutModels(prev => {
+          const next = new Set(prev);
+          next.delete(model);
+          return next;
+        });
+      }
+    });
+    
+    return () => {
+      timeouts.forEach(t => clearTimeout(t));
+    };
+  }, [models, content]);
 
   // Only apply entrance animation on first mount
   const shouldAnimate = !hasAnimatedRef.current;
@@ -205,6 +242,7 @@ export const MultiModelImageResponse = ({
            imageUrl.toLowerCase().includes('content flagged') ||
            imageUrl.toLowerCase().includes('sensitive'));
         const isLoading = !imageUrl || imageUrl === '';
+        const isTimedOut = timedOutModels.has(model);
         const style = getModelStyle(model);
 
         // Show content flagged error with specific message
@@ -237,6 +275,34 @@ export const MultiModelImageResponse = ({
 
         // Hide other errors entirely - no general errors shown to user
         if (isError) return null;
+
+        // Show timeout error after 1 minute
+        if (isTimedOut && isLoading) {
+          return (
+            <div 
+              key={model} 
+              className={cn(
+                "flex-shrink-0 w-[280px] sm:w-[320px] md:w-[360px] rounded-xl border-2 overflow-hidden",
+                "bg-destructive/5 border-destructive/30"
+              )}
+            >
+              <div className="flex items-center px-3 py-2 border-b border-destructive/20">
+                <span className="text-sm font-medium text-foreground truncate">
+                  {formatModelName(model)}
+                </span>
+              </div>
+              <div className="p-4 flex flex-col items-center justify-center gap-2 min-h-[200px]">
+                <AlertCircle className="w-8 h-8 text-destructive/60" />
+                <p className="text-sm text-center text-destructive/80 font-medium">
+                  Model could not generate the image
+                </p>
+                <p className="text-xs text-center text-muted-foreground">
+                  Please try a different prompt or select another model
+                </p>
+              </div>
+            </div>
+          );
+        }
 
                return <div key={model} className={cn("flex-shrink-0 w-[280px] sm:w-[320px] md:w-[360px] rounded-xl border-2 overflow-hidden relative group", style.bg, style.border)}>
               {/* Model name label */}
