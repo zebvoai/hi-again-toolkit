@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Copy, Check, ChevronLeft, ChevronRight, Download, Columns2, LayoutList } from 'lucide-react';
+import { Copy, Check, ChevronLeft, ChevronRight, Download, Columns2, LayoutList, Globe, ImageIcon, FileText, Loader2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -9,11 +9,41 @@ import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatModelName } from '@/lib/utils';
 import { useChatStore } from '@/features/chat/store/chatStore';
+import type { GenerationActivityType } from '@/features/chat/types';
 
 interface MultiModelResponseProps {
   content: MultiModelContent;
   models: string[];
 }
+
+// Activity indicator component
+const ActivityIndicator = ({ activity, modelName }: { activity: GenerationActivityType; modelName: string }) => {
+  if (!activity) return null;
+  
+  const getActivityConfig = () => {
+    switch (activity) {
+      case 'searching_web':
+        return { icon: Globe, text: 'Searching web', textColor: 'text-blue-500', bgColor: 'bg-blue-500/10' };
+      case 'analyzing_image':
+        return { icon: ImageIcon, text: 'Analyzing image', textColor: 'text-purple-500', bgColor: 'bg-purple-500/10' };
+      case 'analyzing_pdf':
+        return { icon: FileText, text: 'Analyzing PDF', textColor: 'text-orange-500', bgColor: 'bg-orange-500/10' };
+      case 'generating':
+      default:
+        return { icon: Loader2, text: 'Generating', textColor: 'text-primary', bgColor: 'bg-primary/10' };
+    }
+  };
+  
+  const config = getActivityConfig();
+  const Icon = config.icon;
+  
+  return (
+    <span className={`inline-flex items-center gap-1 text-[10px] font-medium ${config.textColor} ${config.bgColor} px-1.5 py-0.5 rounded animate-pulse`}>
+      <Icon className={`w-3 h-3 ${activity === 'generating' ? 'animate-spin' : ''}`} />
+      {config.text}
+    </span>
+  );
+};
 
 // Shared markdown components extracted to avoid re-creation
 const markdownComponents = {
@@ -75,6 +105,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
   const hasAnimatedRef = useRef(false);
   const { toast } = useToast();
   const isLoading = useChatStore((s) => s.isLoading);
+  const generationActivityType = useChatStore((s) => s.generationActivityType);
 
   // Helper to check if a specific model is still generating
   const isModelGenerating = (model: string) => isLoading && (!content[model] || content[model].trim() === '');
@@ -184,11 +215,19 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
               </div>
 
               <div className="flex-1 min-w-0">
-                {/* Model name */}
+                {/* Model name with activity indicator */}
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-xs font-medium text-foreground/80">
                     {formatModelName(currentModel)}
                   </span>
+                  {isModelGenerating(currentModel) && !currentContent && (
+                    <ActivityIndicator activity={generationActivityType} modelName={currentModel} />
+                  )}
+                  {isModelGenerating(currentModel) && currentContent && (
+                    <span className="text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded animate-pulse">
+                      typing...
+                    </span>
+                  )}
                 </div>
 
                 {/* Content - shows skeleton only if this specific model hasn't started, otherwise streams live */}
@@ -312,6 +351,9 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
                           {formatModelName(model)}
                         </span>
                       </div>
+                      {thisModelGenerating && !hasContent && (
+                        <ActivityIndicator activity={generationActivityType} modelName={model} />
+                      )}
                       {thisModelGenerating && hasContent && (
                         <span className="text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded animate-pulse">
                           typing...

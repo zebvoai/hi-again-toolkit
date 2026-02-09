@@ -109,6 +109,7 @@ export const useChat = () => {
     deleteMessagesAfter,
     findUserMessageBefore,
     setCurrentGeneratingModel,
+    setGenerationActivityType,
   } = useChatStore();
   const { selectedMode } = useModeStore();
   const { toast } = useToast();
@@ -437,6 +438,7 @@ export const useChat = () => {
         setResearchStatus('researching');
         setResearchPhase('search');
         setResearchProgress(0);
+        setGenerationActivityType('searching_web'); // Research always starts with web search
         
         // Use a small delay to ensure state is reset before starting timer
         const startTime = Date.now();
@@ -517,6 +519,9 @@ export const useChat = () => {
         
         // Get selected aspect ratio from store
         const aspectRatio = useChatStore.getState().selectedAspectRatio;
+        
+        // Set activity type for image mode
+        setGenerationActivityType(sourceImage ? 'analyzing_image' : 'generating');
         
         // Handle multi-model image generation with progressive loading
         if (selectedModels.length > 1) {
@@ -792,6 +797,29 @@ export const useChat = () => {
         if (effectiveModels.length > 0) {
           setCurrentGeneratingModel(effectiveModels[0]);
         }
+        
+        // Determine activity type based on attachments
+        if (fileUrls.length > 0) {
+          const hasPdf = fileUrls.some(url => url.toLowerCase().endsWith('.pdf'));
+          const hasImage = fileUrls.some(url => 
+            url.match(/\.(jpg|jpeg|png|gif|webp)$/i) || url.includes('image')
+          );
+          if (hasPdf) {
+            setGenerationActivityType('analyzing_pdf');
+          } else if (hasImage) {
+            setGenerationActivityType('analyzing_image');
+          } else {
+            setGenerationActivityType('generating');
+          }
+        } else {
+          // Check if the model or query suggests web search
+          const isWebSearch = effectiveModels.some(m => 
+            m.toLowerCase().includes('perplexity') || 
+            m.toLowerCase().includes('sonar') ||
+            m.toLowerCase().includes('zebvo')
+          );
+          setGenerationActivityType(isWebSearch ? 'searching_web' : 'generating');
+        }
 
         const response = await multiModelApi.sendMessageMultiModel(
           content,
@@ -842,6 +870,29 @@ export const useChat = () => {
         // Set initial model as generating
         if (selectedModel) {
           setCurrentGeneratingModel(selectedModel);
+        }
+        
+        // Determine activity type based on attachments (single-model)
+        if (fileUrls.length > 0) {
+          const hasPdf = fileUrls.some(url => url.toLowerCase().endsWith('.pdf'));
+          const hasImage = fileUrls.some(url => 
+            url.match(/\.(jpg|jpeg|png|gif|webp)$/i) || url.includes('image')
+          );
+          if (hasPdf) {
+            setGenerationActivityType('analyzing_pdf');
+          } else if (hasImage) {
+            setGenerationActivityType('analyzing_image');
+          } else {
+            setGenerationActivityType('generating');
+          }
+        } else {
+          // Check if the model suggests web search
+          const isWebSearch = selectedModel && (
+            selectedModel.toLowerCase().includes('perplexity') || 
+            selectedModel.toLowerCase().includes('sonar') ||
+            selectedModel.toLowerCase().includes('zebvo')
+          );
+          setGenerationActivityType(isWebSearch ? 'searching_web' : 'generating');
         }
 
         const response = await api.sendMessage(
