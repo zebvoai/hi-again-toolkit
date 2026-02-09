@@ -163,16 +163,7 @@ const IMAGE_EDIT_MAPPING: Record<string, string> = {
   'seedream-v4.5': 'bytedance/seedream-v4.5/edit', // Fallback model
 };
 
-// Fallback mappings: if a model fails, try this one instead
-const FALLBACK_MODEL: Record<string, string> = {
-  'nano-banana-pro': 'seedream-v4.5',
-  'gpt-image-1.5': 'seedream-v4.5',
-  'minimax-image-01': 'seedream-v4.5',
-  'qwen-image': 'seedream-v4.5',
-  'grok-imagine': 'seedream-v4.5',
-  'wan-2.6': 'seedream-v4.5',
-  'vidu-q2': 'seedream-v4.5',
-};
+// No fallback models - if generation fails, return error to user
 
 // Model-specific allowed sizes - maps aspect ratio to valid size for each model
 const MODEL_SIZE_CONSTRAINTS: Record<string, Record<string, string>> = {
@@ -540,49 +531,7 @@ async function generateImage(
   return { imageUrl, usedModel: modelKey };
 }
 
-// Ultimate fallback: generate image using Gemini (Nano Banana) via Lovable AI gateway
-async function generateImageWithGemini(
-  prompt: string,
-  lovableApiKey: string
-): Promise<{ imageUrl: string; usedModel: string } | null> {
-  try {
-    console.log('[Gemini Image Fallback] Attempting image generation via Lovable AI...');
-    
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-image',
-        messages: [
-          { role: 'user', content: prompt }
-        ],
-        modalities: ['image', 'text'],
-      }),
-    });
-
-    if (!response.ok) {
-      console.warn(`[Gemini Image Fallback] Failed (${response.status})`);
-      return null;
-    }
-
-    const data = await response.json();
-    const imageData = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-    
-    if (!imageData) {
-      console.warn('[Gemini Image Fallback] No image in response');
-      return null;
-    }
-
-    console.log('[Gemini Image Fallback] Success');
-    return { imageUrl: imageData, usedModel: 'gemini-image-fallback' };
-  } catch (err) {
-    console.warn('[Gemini Image Fallback] Exception:', err);
-    return null;
-  }
-}
+// Removed Gemini fallback - errors are returned directly to user
 
 // Enhance user prompt using Gemini to understand intent and create a detailed image prompt
 async function enhancePromptWithGemini(userPrompt: string, googleApiKey: string): Promise<string> {
@@ -698,67 +647,29 @@ serve(async (req) => {
       throw new Error('WAVESPEED_API_KEY not configured');
     }
     
-    let result: { imageUrl: string; usedModel: string } | null = null;
+    let result: { imageUrl: string; usedModel: string };
     
-    // Layer 1: Try primary model
-    let contentFlagged = false;
+    // Try primary model - no fallbacks
     try {
       result = await generateImage(modelKey, enhancedPrompt, size, sourceImage, wavespeedApiKey);
     } catch (primaryError) {
       const errorMsg = primaryError instanceof Error ? primaryError.message : String(primaryError);
-      console.warn(`[${modelKey}] Primary failed:`, errorMsg);
+      console.error(`[${modelKey}] Generation failed:`, errorMsg);
       
-      // If content was flagged, don't try fallbacks - return immediately
+      // If content was flagged, return specific error
       if (errorMsg === 'IMAGE_CONTENT_FLAGGED') {
-        contentFlagged = true;
+        return new Response(
+          JSON.stringify({ 
+            error: 'The model rejected your prompt due to sensitive or inappropriate content. Please try a different prompt.'
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
       
-      // Layer 2: Try seedream fallback (unless content was flagged)
-      if (!contentFlagged) {
-        const fallbackModelKey = FALLBACK_MODEL[modelKey];
-        if (fallbackModelKey && TEXT_TO_IMAGE_MAPPING[fallbackModelKey]) {
-          console.log(`[${modelKey}] Trying seedream fallback: ${fallbackModelKey}`);
-          try {
-            result = await generateImage(fallbackModelKey, enhancedPrompt, size, sourceImage, wavespeedApiKey);
-            console.log(`[${fallbackModelKey}] Seedream fallback succeeded`);
-          } catch (fallbackError) {
-            const fallbackMsg = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
-            console.warn(`[${fallbackModelKey}] Seedream fallback also failed:`, fallbackMsg);
-            if (fallbackMsg === 'IMAGE_CONTENT_FLAGGED') {
-              contentFlagged = true;
-            }
-          }
-        }
-      }
-    }
-    
-    // If content was flagged by any model, return specific error
-    if (contentFlagged) {
+      // For all other errors, tell user to try different prompt
       return new Response(
         JSON.stringify({ 
-          error: 'IMAGE_CONTENT_FLAGGED'
-        }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Layer 3: Ultimate fallback - Gemini image generation via Lovable AI
-    if (!result) {
-      const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-      if (lovableApiKey) {
-        const geminiResult = await generateImageWithGemini(enhancedPrompt, lovableApiKey);
-        if (geminiResult) {
-          result = geminiResult;
-        }
-      }
-    }
-
-    // If absolutely everything failed, return a clear but non-error response
-    if (!result) {
-      console.error('[Image] All providers failed for model:', modelKey);
-      return new Response(
-        JSON.stringify({ 
-          error: 'Image generation temporarily unavailable. Please try again.'
+          error: 'The model could not generate this image. Please try a different prompt or select another model.'
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
