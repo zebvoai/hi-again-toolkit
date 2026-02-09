@@ -368,6 +368,18 @@ const isImageUrl = (url: string): boolean => {
          url.includes('/chat-attachments/') && /\.(jpg|jpeg|png|gif|webp|bmp|svg)/i.test(url);
 };
 
+// Check if URL is a PDF
+const isPdfUrl = (url: string): boolean => {
+  return /\.pdf$/i.test(url) || 
+         (url.includes('/chat-attachments/') && /\.pdf/i.test(url));
+};
+
+// Check if URL is a document (PDF, Word, etc.)
+const isDocumentUrl = (url: string): boolean => {
+  return /\.(pdf|docx?|xlsx?|pptx?|txt|csv|md|json)$/i.test(url) ||
+         (url.includes('/chat-attachments/') && /\.(pdf|docx?|xlsx?|pptx?|txt|csv|md|json)/i.test(url));
+};
+
 // Create multimodal content for vision models
 const createVisionContent = (text: string, imageUrls: string[]): any[] => {
   const content: any[] = [];
@@ -561,6 +573,114 @@ async function getVisionProxyDescription(imageUrls: string[], userMessage: strin
   return '[Image attached but could not be analyzed]';
 }
 
+// Extract text content from PDF using vision model
+async function extractPdfContent(pdfUrls: string[], userMessage: string): Promise<string> {
+  const lovableKey = Deno.env.get('LOVABLE_API_KEY') || '';
+  const openrouterKey = Deno.env.get('OPENROUTER_API_KEY') || '';
+  
+  console.log(`[PDF Extraction] Processing ${pdfUrls.length} PDF(s)`);
+  
+  // For PDFs, we need to use a model that can handle document URLs
+  // Gemini models can process PDFs directly via their file API workaround
+  // We'll use Claude or GPT for PDF analysis as they handle document URLs better
+  
+  const extractionPrompt = `You are a document analysis assistant. Please analyze the following PDF document(s) thoroughly and provide:
+
+1. **Complete text extraction**: Extract ALL text content from the document(s), preserving structure and formatting as much as possible.
+2. **Summary**: Provide a brief summary of what the document is about.
+3. **Key sections**: Identify and list major sections/headings.
+4. **Important data**: Extract any tables, figures, or data points.
+
+Be thorough and comprehensive. This extraction will be used to answer user questions about the document.
+
+User's question about the document: ${userMessage}
+
+Document URL(s): ${pdfUrls.join(', ')}`;
+
+  // Try with Claude first (via OpenRouter) - Claude handles document analysis well
+  if (openrouterKey) {
+    try {
+      console.log('[PDF Extraction] Attempting extraction via Claude...');
+      
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openrouterKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://lovable.dev',
+          'X-Title': 'Lovable AI'
+        },
+        body: JSON.stringify({
+          model: 'anthropic/claude-sonnet-4',
+          messages: [
+            { 
+              role: 'system', 
+              content: 'You are an expert document analysis assistant. Extract and summarize document content comprehensively. When given a PDF URL, analyze its contents thoroughly.' 
+            },
+            { role: 'user', content: extractionPrompt }
+          ],
+          max_tokens: 4000
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const content = data.choices?.[0]?.message?.content || '';
+        if (content && content.length > 100) {
+          console.log('[PDF Extraction] Success via Claude, length:', content.length);
+          return content;
+        }
+      } else {
+        console.log('[PDF Extraction] Claude failed, status:', response.status);
+      }
+    } catch (e) {
+      console.error('[PDF Extraction] Claude error:', e);
+    }
+  }
+  
+  // Fallback to Gemini via Lovable AI
+  if (lovableKey) {
+    try {
+      console.log('[PDF Extraction] Attempting extraction via Gemini...');
+      
+      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${lovableKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-pro',
+          messages: [
+            { 
+              role: 'system', 
+              content: 'You are an expert document analysis assistant. Extract and summarize document content comprehensively.' 
+            },
+            { role: 'user', content: extractionPrompt }
+          ],
+          max_tokens: 4000
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const content = data.choices?.[0]?.message?.content || '';
+        if (content && content.length > 100) {
+          console.log('[PDF Extraction] Success via Gemini, length:', content.length);
+          return content;
+        }
+      } else {
+        console.log('[PDF Extraction] Gemini failed, status:', response.status);
+      }
+    } catch (e) {
+      console.error('[PDF Extraction] Gemini error:', e);
+    }
+  }
+  
+  // If all else fails, return a helpful message with the URL
+  return `[PDF document attached: ${pdfUrls.join(', ')}. The document could not be automatically extracted. Please describe what you need from this document.]`;
+}
+
 // Multi-model request handler with vision support
 async function handleMultiModelRequest(
   message: string,
@@ -579,6 +699,10 @@ async function handleMultiModelRequest(
   const imageUrls = attachments.filter(isImageUrl);
   const hasImages = imageUrls.length > 0;
   
+  // Check for PDF attachments
+  const pdfUrls = attachments.filter(isPdfUrl);
+  const hasPdfs = pdfUrls.length > 0;
+  
   // Fetch live context if query needs real-time data
   let liveContext = '';
   if (needsLiveData(message)) {
@@ -587,6 +711,14 @@ async function handleMultiModelRequest(
       liveContext = fetchedContext;
       console.log('[Live Data] Injecting live context into prompts');
     }
+  }
+  
+  // For PDFs: extract content once and share with all models
+  let pdfExtractedContent = '';
+  if (hasPdfs) {
+    console.log(`[PDF] ${pdfUrls.length} PDF(s) detected, extracting content...`);
+    pdfExtractedContent = await extractPdfContent(pdfUrls, message);
+    console.log('[PDF] Extraction complete, length:', pdfExtractedContent.length);
   }
   
   // For non-vision models with image attachments: pre-analyze images silently
@@ -609,21 +741,35 @@ async function handleMultiModelRequest(
   // Helper to create user message content with attachments
   const createUserContent = (text: string, fileUrls: string[], isVisionModel: boolean): any => {
     const images = fileUrls.filter(isImageUrl);
-    const otherFiles = fileUrls.filter(url => !isImageUrl(url));
+    const pdfs = fileUrls.filter(isPdfUrl);
+    const otherFiles = fileUrls.filter(url => !isImageUrl(url) && !isPdfUrl(url));
     
     // Prepend live context to the message if available
     // Also add an explicit instruction so models never claim they "can't access" the link.
-    const enhancedText = liveContext
+    let enhancedText = liveContext
       ? `${liveContext}INSTRUCTION: The LIVE WEB DATA above already contains the fetched, relevant webpage content and/or up-to-date web results for the URL(s) the user shared. Answer using it. Do NOT say you cannot access links/websites or that you lack browsing.
 
 User question: ${text}`
       : text;
     
+    // Inject PDF extracted content if available
+    if (pdfExtractedContent && pdfs.length > 0) {
+      enhancedText = `=== PDF DOCUMENT CONTENT ===
+The following is the extracted content from ${pdfs.length} attached PDF document(s):
+
+${pdfExtractedContent}
+=== END PDF CONTENT ===
+
+INSTRUCTION: The PDF content above has been extracted and provided to you. Use this content to answer the user's question. Do NOT say you cannot read PDFs or access documents.
+
+User question: ${enhancedText}`;
+    }
+    
     // For vision models with images, use multimodal format
     if (isVisionModel && images.length > 0) {
       const content = createVisionContent(enhancedText, images);
       
-      // Append non-image files as text references
+      // Append non-image/non-pdf files as text references
       for (const url of otherFiles) {
         content.push({ type: 'text', text: `\n\n[Attached file: ${url}]` });
       }
@@ -632,7 +778,7 @@ User question: ${text}`
     }
     
     // For text-only or non-vision models with proxy description
-    if (fileUrls.length === 0) return enhancedText;
+    if (fileUrls.length === 0 && !pdfExtractedContent) return enhancedText;
     
     let textContent = enhancedText;
     for (const url of otherFiles) {
