@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Copy, Check, ChevronLeft, ChevronRight, Download, Columns2, LayoutList, Globe, ImageIcon, FileText, Loader2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -118,6 +118,21 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
   if (shouldAnimate) {
     hasAnimatedRef.current = true;
   }
+
+  // Keyboard arrow navigation in Single view
+  const handleKeyNav = useCallback((e: KeyboardEvent) => {
+    if (viewMode !== 'single' || models.length <= 1) return;
+    if (e.key === 'ArrowLeft') {
+      setCurrentIndex((prev) => (prev - 1 + models.length) % models.length);
+    } else if (e.key === 'ArrowRight') {
+      setCurrentIndex((prev) => (prev + 1) % models.length);
+    }
+  }, [viewMode, models.length]);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyNav);
+    return () => window.removeEventListener('keydown', handleKeyNav);
+  }, [handleKeyNav]);
 
   const handleCopy = (model: string) => {
     navigator.clipboard.writeText(content[model]);
