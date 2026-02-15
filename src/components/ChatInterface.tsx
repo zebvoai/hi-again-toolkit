@@ -377,7 +377,7 @@ export function ChatInterface() {
           </div>
         </div>
       ) : messages.length > 0 ? (
-        <div key={`conv-${currentConversationId}`} className={`flex-1 overflow-y-auto overflow-x-hidden pb-[240px] py-4 sm:py-6 animate-content-fade-in pointer-events-auto ${selectedMode === 'text' && models?.text || selectedMode === 'image' && models?.image ? 'pt-[max(7rem,calc(var(--model-rail-offset,0px)+12px))] scroll-pt-[max(7rem,calc(var(--model-rail-offset,0px)+12px))]' : ''}`}>
+        <div key={`conv-${currentConversationId}`} className={`flex-1 overflow-y-auto overflow-x-hidden pb-[240px] py-4 sm:py-6 animate-content-fade-in pointer-events-auto touch-pan-y overscroll-contain ${selectedMode === 'text' && models?.text || selectedMode === 'image' && models?.image ? 'pt-[max(7rem,calc(var(--model-rail-offset,0px)+12px))] scroll-pt-[max(7rem,calc(var(--model-rail-offset,0px)+12px))]' : ''}`}>
           <div className="space-y-4 pointer-events-auto">
             <MessageList
               messages={messages}
