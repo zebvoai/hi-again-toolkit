@@ -47,10 +47,17 @@ export const MessageList = memo(({ messages, onRetry, onRegenerate, onEdit }: Me
           }
         }
 
+        // Multi-model responses handle their own padding for full-width layouts
+        const isThisMultiModel =
+          message.role === 'assistant' &&
+          typeof message.content === 'object' &&
+          !Array.isArray(message.content) &&
+          message.metadata?.models?.length > 1;
+
         return (
           <div
             key={message.id}
-            className={`w-full px-4 sm:px-6 lg:px-8 ${index === 0 ? 'mt-4' : ''}`}
+            className={`w-full ${isThisMultiModel ? '' : 'px-4 sm:px-6 lg:px-8'} ${index === 0 ? 'mt-4' : ''}`}
           >
             <Message
               message={message}
