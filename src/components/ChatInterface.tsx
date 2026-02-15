@@ -356,13 +356,13 @@ export function ChatInterface() {
 
       {/* Messages Area */}
       {isLoadingConversation ? (
-        <div className={`flex-1 overflow-y-auto overflow-x-hidden pb-[240px] py-6 ${selectedMode === 'text' && models?.text || selectedMode === 'image' && models?.image ? 'pt-[max(7rem,calc(var(--model-rail-offset,0px)+12px))] scroll-pt-[max(7rem,calc(var(--model-rail-offset,0px)+12px))]' : ''}`}>
+        <div key={`loading-${currentConversationId}`} className={`flex-1 overflow-y-auto overflow-x-hidden pb-[240px] py-6 animate-content-fade-in ${selectedMode === 'text' && models?.text || selectedMode === 'image' && models?.image ? 'pt-[max(7rem,calc(var(--model-rail-offset,0px)+12px))] scroll-pt-[max(7rem,calc(var(--model-rail-offset,0px)+12px))]' : ''}`}>
           <div className="w-full px-4 sm:px-6 lg:px-8">
             <MessageSkeleton />
           </div>
         </div>
       ) : messages.length > 0 ? (
-        <div className={`flex-1 overflow-y-auto overflow-x-hidden pb-[240px] py-4 sm:py-6 animate-content-fade-in pointer-events-auto ${selectedMode === 'text' && models?.text || selectedMode === 'image' && models?.image ? 'pt-[max(7rem,calc(var(--model-rail-offset,0px)+12px))] scroll-pt-[max(7rem,calc(var(--model-rail-offset,0px)+12px))]' : ''}`}>
+        <div key={`conv-${currentConversationId}`} className={`flex-1 overflow-y-auto overflow-x-hidden pb-[240px] py-4 sm:py-6 animate-content-fade-in pointer-events-auto ${selectedMode === 'text' && models?.text || selectedMode === 'image' && models?.image ? 'pt-[max(7rem,calc(var(--model-rail-offset,0px)+12px))] scroll-pt-[max(7rem,calc(var(--model-rail-offset,0px)+12px))]' : ''}`}>
           <div className="space-y-4 pointer-events-auto">
             <MessageList
               messages={messages}
@@ -378,7 +378,7 @@ export function ChatInterface() {
         </div>
       ) : (
         /* Empty State */
-        <div className={`flex-1 flex items-center justify-center px-4 pb-[200px] sm:pb-[240px] ${selectedMode === 'text' && models?.text || selectedMode === 'image' && models?.image ? 'pt-16' : ''}`}>
+        <div key={`empty-${currentConversationId}`} className={`flex-1 flex items-center justify-center px-4 pb-[200px] sm:pb-[240px] animate-empty-state-enter ${selectedMode === 'text' && models?.text || selectedMode === 'image' && models?.image ? 'pt-16' : ''}`}>
           <div className="text-center max-w-lg relative">
             {/* Floating ambient particles */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
