@@ -358,7 +358,7 @@ export function AppSidebar() {
       {/* Expanded: Scrollable content area */}
       {!isCollapsed && (
         <ScrollArea className="flex-1 min-h-0 px-2">
-          <SidebarContent className="pb-4 space-y-3 pr-1">
+          <SidebarContent className="pb-4 space-y-3 pr-1 stagger-sidebar-items">
             {/* Projects Section */}
             <div className="space-y-0.5">
               {/* Projects Header */}

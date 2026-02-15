@@ -162,7 +162,7 @@ export function ModelRail({ models, selectedModels, onToggle, onSelectAll, onCle
           className="flex-1 overflow-x-auto scrollbar-hide"
           style={{ scrollBehavior: 'smooth' }}
         >
-          <div className="flex items-center gap-1.5 sm:gap-2 py-0.5">
+          <div className="flex items-center gap-1.5 sm:gap-2 py-0.5 scroll-fade-edges">
             {models.map((model) => {
               const isSelected = selectedModels.includes(model);
               const style = getModelStyle(model);
