@@ -391,7 +391,7 @@ export function ChatInterface() {
 
             {/* Glass hero card */}
             <div className="relative inline-block mb-6">
-              <div className="absolute inset-0 bg-primary/10 rounded-3xl blur-2xl scale-125 animate-pulse-gentle" />
+              <div className="absolute inset-0 bg-primary/10 rounded-3xl blur-xl scale-125 animate-pulse-gentle" />
               <h1 className="relative text-5xl sm:text-7xl font-bold bg-gradient-to-br from-primary via-primary/80 to-primary/50 bg-clip-text text-transparent mb-0 animate-logo-entrance animate-gradient-shimmer cursor-default select-none">
                 Zebvo AI
               </h1>
