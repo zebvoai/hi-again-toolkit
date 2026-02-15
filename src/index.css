@@ -706,18 +706,58 @@ button, a, [role="button"], [tabindex="0"],
 .stagger-sidebar > *:nth-child(8) { animation-delay: 175ms; }
 .stagger-sidebar > *:nth-child(n+9) { animation-delay: 200ms; }
 
-/* Conversation crossfade when switching chats */
-@keyframes content-fade-in {
+/* Conversation page transition when switching chats */
+@keyframes conversation-enter {
   0% {
     opacity: 0;
+    transform: translateY(12px) scale(0.985);
+    filter: blur(2px);
+  }
+  60% {
+    opacity: 1;
+    filter: blur(0px);
   }
   100% {
     opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0px);
+  }
+}
+
+@keyframes conversation-exit {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.99);
+  }
+}
+
+@keyframes empty-state-enter {
+  0% {
+    opacity: 0;
+    transform: scale(0.96);
+    filter: blur(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0px);
   }
 }
 
 .animate-content-fade-in {
-  animation: content-fade-in 0.25s ease-out both;
+  animation: conversation-enter 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-conversation-exit {
+  animation: conversation-exit 0.15s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+.animate-empty-state-enter {
+  animation: empty-state-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* ----------------------------------------
@@ -839,22 +879,24 @@ button, a, [role="button"], [tabindex="0"],
 @keyframes content-swap-out {
   from {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
   to {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateY(-8px) scale(0.99);
   }
 }
 
 @keyframes content-swap-in {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(12px) scale(0.985);
+    filter: blur(2px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
+    filter: blur(0px);
   }
 }
 
@@ -863,7 +905,7 @@ button, a, [role="button"], [tabindex="0"],
 }
 
 .animate-content-swap-in {
-  animation: content-swap-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: content-swap-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* Button press ripple effect */
