@@ -153,6 +153,13 @@ export function ChatInterface() {
 
   // Trigger confetti on first AI response (only for genuinely new generations, not DB loads)
   const userSentMessageRef = useRef(false);
+
+  // Reset the sent-message flag when switching conversations so DB loads don't trigger confetti
+  useEffect(() => {
+    userSentMessageRef.current = false;
+    prevMessagesLengthRef.current = messages.length;
+  }, [currentConversationId]);
+
   useEffect(() => {
     const hasNewAssistantMessage = messages.length > prevMessagesLengthRef.current && messages[messages.length - 1]?.role === 'assistant';
     if (hasNewAssistantMessage && isFirstResponse && !isCurrentConversationLoading && userSentMessageRef.current) {
