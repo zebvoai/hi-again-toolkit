@@ -220,15 +220,16 @@ export const useChat = () => {
       // Update the user message content locally
       updateMessage(messageId, { content: newContent });
 
-      // Delete all messages after this one from database
+      // Delete all messages after this one from database in a single batch
       if (currentConversationId) {
         const messagesAfter = messages.slice(messageIndex + 1);
-        for (const msg of messagesAfter) {
+        const idsToDelete = messagesAfter.map(msg => msg.id);
+        if (idsToDelete.length > 0) {
           await supabase
             .from('messages')
             .delete()
             .eq('conversation_id', currentConversationId)
-            .eq('id', msg.id);
+            .in('id', idsToDelete);
         }
         
         // Update the user message in database
@@ -788,9 +789,9 @@ export const useChat = () => {
           generationMode: 'text',
         };
         
-        // Save placeholder to DB (fire-and-forget, don't block streaming)
+        // Save placeholder to DB before starting streaming
         if (convId) {
-          saveGeneratingPlaceholder(convId, assistantId, placeholderMetadata);
+          await saveGeneratingPlaceholder(convId, assistantId, placeholderMetadata);
         }
 
         // Add placeholder message immediately for instant feedback
@@ -860,9 +861,9 @@ export const useChat = () => {
           generationMode: 'text',
         };
         
-        // Save placeholder to DB (fire-and-forget, don't block streaming)
+        // Save placeholder to DB before starting streaming
         if (convId) {
-          saveGeneratingPlaceholder(convId, assistantId, placeholderMetadata);
+          await saveGeneratingPlaceholder(convId, assistantId, placeholderMetadata);
         }
         
         let streamingContent = '';
