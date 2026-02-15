@@ -168,12 +168,21 @@ export const useChatStore = create<ChatState>((set, get) => ({
   findUserMessageBefore: (assistantMessageId) => {
     const messages = get().messages;
     const index = messages.findIndex(msg => msg.id === assistantMessageId);
-    if (index <= 0) return null;
+    if (index < 0) return null;
 
+    // Look backward first (normal case)
     for (let i = index - 1; i >= 0; i--) {
       if (messages[i].role === 'user' && typeof messages[i].content === 'string') {
         return messages[i];
       }
+    }
+    // Fallback: look forward (handles edge case where assistant placeholder
+    // was created before user message was persisted, e.g. interrupted generations)
+    for (let i = index + 1; i < messages.length; i++) {
+      if (messages[i].role === 'user' && typeof messages[i].content === 'string') {
+        return messages[i];
+      }
+      if (messages[i].role === 'assistant') break; // stop at next assistant
     }
     return null;
   }
