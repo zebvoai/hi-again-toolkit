@@ -836,7 +836,9 @@ export const useChat = () => {
           abortControllerRef.current?.signal,
           fileUrls.length > 0 ? fileUrls : undefined,
           // Activity callback - update the activity type when backend signals it
-          (activity) => setGenerationActivityType(activity)
+          (activity) => setGenerationActivityType(activity),
+          convId || undefined,
+          assistantId
         );
 
         // Update with final content
@@ -911,7 +913,9 @@ export const useChat = () => {
           abortControllerRef.current?.signal,
           fileUrls.length > 0 ? fileUrls : undefined,
           (model: string) => setCurrentGeneratingModel(model), // onModelChange callback
-          (activity) => setGenerationActivityType(activity) // onActivity callback
+          (activity) => setGenerationActivityType(activity), // onActivity callback
+          convId || undefined,
+          assistantId
         );
         
         if (hasCreatedMessage) {
