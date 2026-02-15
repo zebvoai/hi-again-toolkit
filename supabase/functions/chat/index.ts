@@ -1,4 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.86.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,6 +9,36 @@ const corsHeaders = {
 interface Message {
   role: string;
   content: string | any[];
+}
+
+// Persist a completed response to the database (backend-side safety net)
+// This ensures responses survive page refreshes and chat switches.
+async function persistResponseToDB(
+  conversationId: string,
+  messageId: string,
+  content: any,
+  metadata: Record<string, any>
+) {
+  try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+    if (!supabaseUrl || !serviceRoleKey) {
+      console.warn('[Backend Persist] Missing SUPABASE_URL or SERVICE_ROLE_KEY');
+      return;
+    }
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const { generationStatus, ...cleanMeta } = metadata;
+    await supabase.from('messages').update({
+      content,
+      metadata: { ...cleanMeta, generationStatus: 'complete' },
+    }).eq('id', messageId).eq('conversation_id', conversationId);
+    await supabase.from('conversations')
+      .update({ updated_at: new Date().toISOString() })
+      .eq('id', conversationId);
+    console.log('[Backend Persist] Saved response to DB:', messageId);
+  } catch (e) {
+    console.error('[Backend Persist] Failed:', e);
+  }
 }
 
 // Keywords that indicate the user wants real-time/live data or internet access
@@ -720,7 +751,9 @@ async function handleMultiModelRequest(
   conversationHistory: Message[],
   stream: boolean,
   mode: string = 'text',
-  attachments: string[] = []
+  attachments: string[] = [],
+  conversationId?: string,
+  messageId?: string
 ): Promise<Response> {
   const encoder = new TextEncoder();
   
@@ -838,6 +871,10 @@ User question: ${enhancedText}`;
   if (stream) {
     const streamBody = new ReadableStream({
       async start(controller) {
+        // Accumulate full responses for backend DB persistence
+        const fullContents: Record<string, string> = {};
+        effectiveModels.forEach(m => { fullContents[m] = ''; });
+        
         try {
           // Send activity events first (before model responses start)
           // This lets the frontend know what activities are happening
@@ -996,6 +1033,7 @@ User question: ${enhancedText}`;
                   fallbackContent = 'Unable to process the image. The image may be too large or in an unsupported format. Please try a different image.';
                 }
                 
+                fullContents[modelName] = fallbackContent;
                 const sseData = `data: ${JSON.stringify({ model: modelName, content: fallbackContent, error: true })}\n\n`;
                 controller.enqueue(encoder.encode(sseData));
                 return;
@@ -1028,6 +1066,7 @@ User question: ${enhancedText}`;
                       content = parsed.choices?.[0]?.delta?.content || '';
                       
                       if (content) {
+                        fullContents[modelName] += content;
                         const sseData = `data: ${JSON.stringify({ model: modelName, content })}\n\n`;
                         controller.enqueue(encoder.encode(sseData));
                       }
@@ -1040,15 +1079,31 @@ User question: ${enhancedText}`;
             } catch (error) {
               console.error(`[ERROR] ${modelName}:`, error);
               const fallbackContent = 'The model could not generate a response at the moment. Please try again.';
+              fullContents[modelName] = fallbackContent;
               const sseData = `data: ${JSON.stringify({ model: modelName, content: fallbackContent, error: true })}\n\n`;
               controller.enqueue(encoder.encode(sseData));
             }
           }));
           
+          // Persist accumulated responses to DB (backend safety net for page refresh)
+          if (conversationId && messageId) {
+            await persistResponseToDB(conversationId, messageId, fullContents, {
+              models: effectiveModels,
+              generationMode: mode || 'text',
+            });
+          }
+          
           controller.enqueue(encoder.encode('data: [DONE]\n\n'));
           controller.close();
         } catch (error) {
           console.error('Multi-model streaming error:', error);
+          // Save whatever we accumulated before the error
+          if (conversationId && messageId) {
+            await persistResponseToDB(conversationId, messageId, fullContents, {
+              models: effectiveModels,
+              generationMode: mode || 'text',
+            });
+          }
           controller.error(error);
         }
       }
@@ -1075,6 +1130,8 @@ interface ChatRequest {
   models?: string[];
   stream?: boolean;
   attachments?: string[];
+  conversationId?: string;
+  messageId?: string;
 }
 
 serve(async (req) => {
@@ -1083,7 +1140,7 @@ serve(async (req) => {
   }
 
   try {
-    const { message, mode, conversationHistory = [], provider, model: requestedModel, models, stream = false, attachments = [] }: ChatRequest = await req.json();
+    const { message, mode, conversationHistory = [], provider, model: requestedModel, models, stream = false, attachments = [], conversationId, messageId }: ChatRequest = await req.json();
     
     // Check for image attachments
     const imageUrls = attachments.filter(isImageUrl);
@@ -1130,7 +1187,7 @@ serve(async (req) => {
     // Handle multi-model requests (text mode only) - includes single model in array
     if (models && Array.isArray(models) && models.length >= 1) {
       console.log('Multi-model request:', models, 'attachments:', attachments.length, 'images:', imageUrls.length);
-      return await handleMultiModelRequest(message, models, conversationHistory, stream, mode, attachments);
+      return await handleMultiModelRequest(message, models, conversationHistory, stream, mode, attachments, conversationId, messageId);
     }
     
     // Single model request handling
@@ -1329,6 +1386,8 @@ User question: ${text}`
       const encoder = new TextEncoder();
       const readable = new ReadableStream({
         async start(controller) {
+          let fullContent = '';
+          
           // Send activity events first
           if (didSearchWebSingle) {
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ activity: 'searching_web' })}\n\n`));
@@ -1365,6 +1424,7 @@ User question: ${text}`
                     const parsed = JSON.parse(data);
                     const content = parsed.choices?.[0]?.delta?.content;
                     if (content) {
+                      fullContent += content;
                       const sseData = `data: ${JSON.stringify({ content, model, provider: selectedProvider })}\n\n`;
                       controller.enqueue(encoder.encode(sseData));
                     }
@@ -1375,10 +1435,29 @@ User question: ${text}`
               }
             }
             
+            // Persist to DB before closing stream (safety net for page refresh)
+            if (conversationId && messageId && fullContent) {
+              const displayModel = requestedModel || 'AI';
+              await persistResponseToDB(conversationId, messageId, fullContent, {
+                model: displayModel,
+                provider: selectedProvider,
+                generationMode: mode || 'text',
+              });
+            }
+            
             controller.enqueue(encoder.encode('data: [DONE]\n\n'));
             controller.close();
           } catch (error) {
             console.error('Streaming error:', error);
+            // Save whatever we accumulated before the error
+            if (conversationId && messageId && fullContent) {
+              const displayModel = requestedModel || 'AI';
+              await persistResponseToDB(conversationId, messageId, fullContent, {
+                model: displayModel,
+                provider: selectedProvider,
+                generationMode: mode || 'text',
+              });
+            }
             controller.error(error);
           }
         }

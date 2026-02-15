@@ -39,7 +39,9 @@ export const api = {
     signal?: AbortSignal,
     attachments?: string[],
     onModelChange?: (model: string) => void,
-    onActivity?: (activity: 'searching_web' | 'analyzing_image' | 'analyzing_pdf' | 'generating') => void
+    onActivity?: (activity: 'searching_web' | 'analyzing_image' | 'analyzing_pdf' | 'generating') => void,
+    conversationId?: string,
+    messageId?: string
   ): Promise<ChatResponse> {
     const response = await fetch(`${API_BASE}/chat`, {
       method: 'POST',
@@ -54,7 +56,9 @@ export const api = {
         provider,
         model,
         stream: !!onChunk,
-        attachments
+        attachments,
+        conversationId,
+        messageId
       }),
       signal
     });

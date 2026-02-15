@@ -34,7 +34,9 @@ export const multiModelApi = {
     onProgress?: (modelName: string, chunk: string) => void,
     signal?: AbortSignal,
     attachments?: string[],
-    onActivity?: (activity: 'searching_web' | 'analyzing_image' | 'analyzing_pdf' | 'generating') => void
+    onActivity?: (activity: 'searching_web' | 'analyzing_image' | 'analyzing_pdf' | 'generating') => void,
+    conversationId?: string,
+    messageId?: string
   ): Promise<MultiModelChatResponse> {
     // Send request to backend with multiple models
     const response = await fetch(`${API_BASE}/chat`, {
@@ -49,7 +51,9 @@ export const multiModelApi = {
         conversationHistory: sanitizeHistoryForAPI(history),
         models, // Array of models
         stream: !!onProgress,
-        attachments
+        attachments,
+        conversationId,
+        messageId
       }),
       signal
     });
