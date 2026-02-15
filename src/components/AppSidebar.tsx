@@ -204,9 +204,7 @@ export function AppSidebar() {
     const conversation = conversations.find((c) => c.id === conversationId);
     if (!conversation) return;
 
-    // TODO: Call API to archive conversation
-    console.log(`Archiving conversation: ${conversationId}`);
-    alert(`Archived: ${conversation.title}`);
+    toast({ description: `"${conversation.title}" archived` });
 
     // If this was the current conversation, start a new chat
     if (currentConversationId === conversationId) {

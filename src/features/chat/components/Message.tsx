@@ -98,11 +98,12 @@ export const Message = ({
   };
 
   // Check if this is a research response (long content from research model)
-  const isResearchResponse = !isUser && 
+  const isResearchResponse = !isUser && (
     message.metadata?.isResearch || 
     (message.metadata?.model?.toLowerCase().includes('research') && 
      typeof message.content === 'string' && 
-     message.content.length > 5000);
+     message.content.length > 5000)
+  );
 
   const handleStartEdit = () => {
     if (typeof message.content === 'string') {

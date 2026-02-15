@@ -33,6 +33,7 @@ export const ChatInput = memo(forwardRef<ChatInputHandle, ChatInputProps>(
       clear: () => {
         setValue('');
         onContentChangeRef.current?.(false);
+        if (textareaRef.current) textareaRef.current.style.height = '38px';
       },
       getLength: () => value.length,
     }), [value]);
@@ -42,6 +43,10 @@ export const ChatInput = memo(forwardRef<ChatInputHandle, ChatInputProps>(
       setValue(newValue);
       // Notify parent only about boolean hasContent — not the full string
       onContentChangeRef.current?.(newValue.trim().length > 0);
+      // Auto-resize textarea
+      const textarea = e.target;
+      textarea.style.height = '38px';
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 160)}px`;
     }, []);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -65,7 +70,7 @@ export const ChatInput = memo(forwardRef<ChatInputHandle, ChatInputProps>(
         disabled={disabled}
         rows={1}
         className="w-full bg-transparent border-none outline-none focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 text-[15px] sm:text-[17px] font-medium placeholder:text-muted-foreground/70 disabled:opacity-50 text-foreground resize-none overflow-y-auto leading-[1.5] py-[6px] scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent"
-        style={{ height: '38px' }}
+        style={{ height: '38px', maxHeight: '160px' }}
         maxLength={maxLength}
       />
     );
