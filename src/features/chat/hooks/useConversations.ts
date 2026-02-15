@@ -261,6 +261,22 @@ export const useConversations = () => {
     fetchConversations();
   }, [fetchConversations]);
 
+  // Listen for optimistic conversation creation from useChat
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const conv = (e as CustomEvent).detail as Conversation;
+      if (conv?.id) {
+        setConversations(prev => {
+          // Avoid duplicates
+          if (prev.some(c => c.id === conv.id)) return prev;
+          return [conv, ...prev];
+        });
+      }
+    };
+    window.addEventListener('conversation-created', handler);
+    return () => window.removeEventListener('conversation-created', handler);
+  }, []);
+
   // Realtime subscription — debounced to prevent rapid re-fetches
   useEffect(() => {
     if (!user) return;

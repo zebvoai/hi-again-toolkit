@@ -373,10 +373,12 @@ export const useChat = () => {
           const { data, error } = await supabase
             .from('conversations')
             .insert(insertData)
-            .select()
+            .select('id, title, created_at, updated_at, project_id')
             .single();
           
           if (data && !error) {
+            // Notify sidebar to optimistically prepend the new conversation
+            window.dispatchEvent(new CustomEvent('conversation-created', { detail: data }));
             return data.id as string;
           } else if (error) {
             console.error('Error creating conversation:', error);
