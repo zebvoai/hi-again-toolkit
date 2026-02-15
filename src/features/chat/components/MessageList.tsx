@@ -50,8 +50,7 @@ export const MessageList = memo(({ messages, onRetry, onRegenerate, onEdit }: Me
         return (
           <div
             key={message.id}
-            className={`w-full px-4 sm:px-6 lg:px-8 ${index === 0 ? 'mt-16' : ''}`}
-            style={{ animationDelay: `${Math.min(index * 60, 300)}ms` }}
+            className={`w-full px-4 sm:px-6 lg:px-8 ${index === 0 ? 'mt-4' : ''}`}
           >
             <Message
               message={message}

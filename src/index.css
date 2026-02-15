@@ -307,13 +307,11 @@ html {
    ---------------------------------------- */
    
 /* Global smooth transitions for common properties */
-button, a, input, textarea, select,
-[role="button"], [tabindex="0"],
+button, a, [role="button"], [tabindex="0"],
 .interactive {
   transition-property: transform, background-color, border-color, color, box-shadow, opacity;
   transition-duration: var(--duration-normal);
   transition-timing-function: var(--ease-gentle);
-  will-change: transform;
 }
 
 /* Smooth transform origin for all scaled elements */
@@ -1145,28 +1143,25 @@ button, a, input, textarea, select,
   animation: send-ripple 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Floating particle dots for empty state */
+/* Floating particle dots for empty state — GPU-optimized with reduced motion */
 @keyframes float-particle-1 {
-  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.3; }
-  25% { transform: translate(15px, -20px) scale(1.2); opacity: 0.6; }
-  50% { transform: translate(-10px, -35px) scale(0.8); opacity: 0.4; }
-  75% { transform: translate(20px, -15px) scale(1.1); opacity: 0.5; }
+  0%, 100% { transform: translate3d(0, 0, 0); opacity: 0.3; }
+  50% { transform: translate3d(10px, -20px, 0); opacity: 0.5; }
 }
 
 @keyframes float-particle-2 {
-  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.25; }
-  33% { transform: translate(-20px, -25px) scale(1.3); opacity: 0.5; }
-  66% { transform: translate(15px, -40px) scale(0.9); opacity: 0.35; }
+  0%, 100% { transform: translate3d(0, 0, 0); opacity: 0.25; }
+  50% { transform: translate3d(-12px, -25px, 0); opacity: 0.4; }
 }
 
 @keyframes float-particle-3 {
-  0%, 100% { transform: translate(0, 0) scale(0.9); opacity: 0.2; }
-  50% { transform: translate(-15px, -30px) scale(1.4); opacity: 0.55; }
+  0%, 100% { transform: translate3d(0, 0, 0); opacity: 0.2; }
+  50% { transform: translate3d(-8px, -18px, 0); opacity: 0.4; }
 }
 
-.animate-float-particle-1 { animation: float-particle-1 6s ease-in-out infinite; }
-.animate-float-particle-2 { animation: float-particle-2 8s ease-in-out infinite; }
-.animate-float-particle-3 { animation: float-particle-3 7s ease-in-out infinite; }
+.animate-float-particle-1 { animation: float-particle-1 8s ease-in-out infinite; will-change: transform, opacity; }
+.animate-float-particle-2 { animation: float-particle-2 10s ease-in-out infinite; will-change: transform, opacity; }
+.animate-float-particle-3 { animation: float-particle-3 9s ease-in-out infinite; will-change: transform, opacity; }
 
 /* Gradient shimmer sweep for hero text */
 @keyframes gradient-shimmer {
