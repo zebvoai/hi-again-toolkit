@@ -257,6 +257,14 @@ html {
   border: 1px solid hsl(220 30% 95% / 0.6);
 }
 
+.dark .glass-panel {
+  background: hsl(222 47% 11% / 0.7);
+  box-shadow: 
+    0 4px 32px hsl(220 40% 5% / 0.4),
+    0 1px 4px hsl(220 30% 10% / 0.2);
+  border: 1px solid hsl(217 33% 20% / 0.6);
+}
+
 .glass-panel-hover {
   transition: all 220ms cubic-bezier(0.25, 0.1, 0.25, 1);
 }
@@ -269,11 +277,23 @@ html {
   transform: translateY(-1px);
 }
 
+.dark .glass-panel-hover:hover {
+  background: hsl(222 47% 11% / 0.85);
+  box-shadow: 
+    0 8px 48px hsl(220 40% 5% / 0.5),
+    0 2px 8px hsl(220 30% 10% / 0.25);
+}
+
 .frosted-glass {
   background: hsl(0 0% 100% / 0.85);
   backdrop-filter: blur(32px);
   -webkit-backdrop-filter: blur(32px);
   border: 1px solid hsl(220 30% 95% / 0.5);
+}
+
+.dark .frosted-glass {
+  background: hsl(222 47% 11% / 0.85);
+  border: 1px solid hsl(217 33% 20% / 0.5);
 }
 
 /* ========================================
@@ -1094,11 +1114,11 @@ button, a, input, textarea, select,
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 rounded-full;
+  @apply bg-gray-300 dark:bg-gray-600 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-400;
+  @apply bg-gray-400 dark:bg-gray-500;
 }
 
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
@@ -1244,6 +1264,18 @@ All colors MUST be HSL.
     min-height: 100vh;
   }
 
+  .dark body {
+    background: linear-gradient(
+      135deg,
+      hsl(222 47% 8%) 0%,
+      hsl(225 40% 10%) 20%,
+      hsl(220 35% 9%) 40%,
+      hsl(230 30% 10%) 60%,
+      hsl(225 35% 9%) 80%,
+      hsl(222 47% 8%) 100%
+    );
+  }
+
   /* Premium gradient mesh background with subtle animated orbs */
   body::before {
     content: '';
@@ -1263,6 +1295,14 @@ All colors MUST be HSL.
     z-index: -1;
     filter: blur(40px);
     animation: gradient-shift 20s ease infinite;
+  }
+
+  .dark body::before {
+    background: 
+      radial-gradient(ellipse 60% 80% at 10% 30%, hsla(217, 91%, 60%, 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse 50% 70% at 90% 40%, hsla(280, 80%, 50%, 0.06) 0%, transparent 50%),
+      radial-gradient(ellipse 40% 50% at 50% 80%, hsla(200, 100%, 50%, 0.05) 0%, transparent 45%);
+    filter: blur(60px);
   }
 
   @keyframes gradient-shift {
@@ -1296,11 +1336,25 @@ All colors MUST be HSL.
     0 1px 3px hsl(220 30% 85% / 0.15);
 }
 
+.dark .canvas-glass {
+  background: hsl(222 47% 11% / 0.65);
+  border: 1px solid hsl(217 33% 20% / 0.8);
+  box-shadow: 
+    0 4px 24px hsl(220 40% 5% / 0.4),
+    0 1px 3px hsl(220 30% 10% / 0.2);
+}
+
 /* Canvas ambient glow effect */
 .canvas-glow {
   box-shadow: 
     0 0 60px hsl(260 40% 92% / 0.4),
     0 0 100px hsl(220 50% 94% / 0.3);
+}
+
+.dark .canvas-glow {
+  box-shadow: 
+    0 0 60px hsl(260 40% 20% / 0.2),
+    0 0 100px hsl(220 50% 15% / 0.15);
 }
 
 /* Deep Research status text animation */
