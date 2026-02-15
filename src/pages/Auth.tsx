@@ -90,11 +90,14 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md stagger-auth">
         {/* Logo */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            Zebvo AI
-          </h1>
-          <p className="text-muted-foreground">
+        <div className="text-center mb-10">
+          <div className="relative inline-block mb-3">
+            <div className="absolute inset-0 bg-primary/10 rounded-2xl blur-xl scale-125" />
+            <h1 className="relative text-4xl font-bold bg-gradient-to-br from-primary to-primary/70 bg-clip-text text-transparent">
+              Zebvo AI
+            </h1>
+          </div>
+          <p className="text-muted-foreground text-sm">
             {isLogin ? 'Welcome back' : 'Create your account'}
           </p>
         </div>

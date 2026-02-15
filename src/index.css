@@ -1204,42 +1204,50 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 222 47% 8%;
-    --foreground: 210 40% 98%;
+    /* Richer, deeper dark with subtle blue warmth */
+    --background: 225 30% 6%;
+    --foreground: 210 40% 96%;
 
-    --card: 222 47% 11%;
-    --card-foreground: 210 40% 98%;
+    --card: 225 25% 10%;
+    --card-foreground: 210 40% 96%;
 
-    --popover: 222 47% 11%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 225 25% 10%;
+    --popover-foreground: 210 40% 96%;
 
     --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 220 25% 14%;
+    --secondary-foreground: 210 40% 96%;
 
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 220 20% 14%;
+    --muted-foreground: 215 20% 58%;
 
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 220 25% 14%;
+    --accent-foreground: 210 40% 96%;
 
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
+    --border: 220 20% 16%;
+    --input: 220 20% 16%;
     --ring: 217 91% 60%;
 
-    --sidebar-background: 222 47% 8%;
-    --sidebar-foreground: 210 40% 98%;
+    --sidebar-background: 225 30% 7%;
+    --sidebar-foreground: 210 40% 96%;
     --sidebar-primary: 217 91% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 33% 17%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 33% 17%;
+    --sidebar-accent: 220 20% 14%;
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 220 20% 14%;
     --sidebar-ring: 217 91% 60%;
+
+    /* Enhanced shadow system for dark mode */
+    --shadow-sm: 0 1px 3px hsl(0 0% 0% / 0.3), 0 1px 2px hsl(0 0% 0% / 0.2);
+    --shadow-md: 0 4px 12px hsl(0 0% 0% / 0.35), 0 2px 6px hsl(0 0% 0% / 0.2);
+    --shadow-lg: 0 8px 30px hsl(0 0% 0% / 0.4), 0 4px 14px hsl(0 0% 0% / 0.25);
+    --shadow-xl: 0 20px 60px hsl(0 0% 0% / 0.45), 0 8px 24px hsl(0 0% 0% / 0.3);
+    --shadow-glow: 0 0 24px hsl(217 91% 60% / 0.2), 0 0 8px hsl(217 91% 60% / 0.15);
   }
 }
 
@@ -1266,13 +1274,12 @@ All colors MUST be HSL.
 
   .dark body {
     background: linear-gradient(
-      135deg,
-      hsl(222 47% 8%) 0%,
-      hsl(225 40% 10%) 20%,
-      hsl(220 35% 9%) 40%,
-      hsl(230 30% 10%) 60%,
-      hsl(225 35% 9%) 80%,
-      hsl(222 47% 8%) 100%
+      160deg,
+      hsl(225 30% 5%) 0%,
+      hsl(228 28% 7%) 25%,
+      hsl(225 25% 6%) 50%,
+      hsl(230 22% 8%) 75%,
+      hsl(225 30% 5%) 100%
     );
   }
 
@@ -1299,10 +1306,11 @@ All colors MUST be HSL.
 
   .dark body::before {
     background: 
-      radial-gradient(ellipse 60% 80% at 10% 30%, hsla(217, 91%, 60%, 0.08) 0%, transparent 50%),
-      radial-gradient(ellipse 50% 70% at 90% 40%, hsla(280, 80%, 50%, 0.06) 0%, transparent 50%),
-      radial-gradient(ellipse 40% 50% at 50% 80%, hsla(200, 100%, 50%, 0.05) 0%, transparent 45%);
-    filter: blur(60px);
+      radial-gradient(ellipse 60% 80% at 10% 30%, hsla(217, 91%, 60%, 0.06) 0%, transparent 50%),
+      radial-gradient(ellipse 50% 70% at 85% 35%, hsla(260, 80%, 55%, 0.05) 0%, transparent 50%),
+      radial-gradient(ellipse 40% 50% at 50% 80%, hsla(200, 100%, 50%, 0.04) 0%, transparent 45%),
+      radial-gradient(at 30% 70%, hsla(217, 91%, 60%, 0.03) 0%, transparent 50%);
+    filter: blur(80px);
   }
 
   @keyframes gradient-shift {
@@ -1337,11 +1345,12 @@ All colors MUST be HSL.
 }
 
 .dark .canvas-glass {
-  background: hsl(222 47% 11% / 0.65);
-  border: 1px solid hsl(217 33% 20% / 0.8);
+  background: hsl(225 25% 10% / 0.75);
+  border: 1px solid hsl(220 20% 18% / 0.6);
   box-shadow: 
-    0 4px 24px hsl(220 40% 5% / 0.4),
-    0 1px 3px hsl(220 30% 10% / 0.2);
+    0 4px 24px hsl(0 0% 0% / 0.4),
+    0 1px 3px hsl(0 0% 0% / 0.25),
+    inset 0 1px 0 hsl(220 20% 20% / 0.15);
 }
 
 /* Canvas ambient glow effect */

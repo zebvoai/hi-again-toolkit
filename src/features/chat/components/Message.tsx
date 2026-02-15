@@ -224,10 +224,10 @@ export const Message = ({
           )}
           
           {/* Message bubble */}
-          <div className={`shadow-sm transition-all duration-normal ease-spring hover:shadow-md ${
+          <div className={`shadow-sm dark:shadow-lg transition-all duration-normal ease-spring hover:shadow-md dark:hover:shadow-xl ${
             isUser 
-              ? `rounded-2xl rounded-br-md bg-gradient-to-br from-primary to-primary/90 text-primary-foreground ${isVeryShortMessage ? 'px-3 py-1.5' : isShortMessage ? 'px-3.5 py-2' : 'px-4 py-2.5'}`
-              : 'rounded-2xl rounded-bl-md bg-card border border-border/30 text-foreground px-4 py-3'
+              ? `rounded-2xl rounded-br-md bg-gradient-to-br from-primary to-primary/85 text-primary-foreground ${isVeryShortMessage ? 'px-3 py-1.5' : isShortMessage ? 'px-3.5 py-2' : 'px-4 py-2.5'}`
+              : 'rounded-2xl rounded-bl-md bg-card/90 dark:bg-card/60 backdrop-blur-sm border border-border/20 dark:border-border/15 text-foreground px-4 py-3'
           }`}>
             {isUser ? (
               isEditing ? (
