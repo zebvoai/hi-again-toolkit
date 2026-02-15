@@ -11,80 +11,56 @@ interface Message {
 }
 
 // Keywords that indicate the user wants real-time/live data or internet access
+// IMPORTANT: Keep these specific to avoid triggering on basic factual/math questions
 const LIVE_DATA_KEYWORDS = [
   // Time-sensitive
-  'today', 'current', 'latest', 'now', 'right now', 'this moment',
+  'today', 'current', 'latest', 'right now', 'this moment',
   '2024', '2025', '2026', 'this year', 'this month', 'this week',
-  'yesterday', 'last night', 'this morning', 'recently', 'recent',
+  'yesterday', 'last night', 'this morning', 'recently',
   
   // Weather
-  'weather', 'temperature', 'forecast', 'humidity', 'rain', 'snow',
+  'weather', 'temperature', 'forecast',
   
   // News & Events
-  'news', 'headlines', 'breaking', 'happening', 'just happened',
-  'update', 'announcement', 'announced', 'released', 'launched',
+  'news', 'headlines', 'breaking', 'just happened',
+  'announcement', 'announced', 'released', 'launched',
   
   // Finance & Markets
-  'stock', 'price', 'market', 'trading', 'exchange rate', 'currency',
-  'crypto', 'bitcoin', 'ethereum', 'investment', 'share price',
+  'stock price', 'market', 'exchange rate',
+  'crypto price', 'bitcoin price', 'share price',
   
   // Sports
-  'score', 'match', 'game', 'live score', 'tournament', 'championship',
-  'standings', 'fixtures', 'results',
+  'live score', 'match score', 'tournament', 'championship',
+  'standings', 'fixtures',
   
   // Social & Trends
-  'trending', 'viral', 'popular', 'top rated',
+  'trending', 'viral',
   
   // Status & Real-time
-  'status', 'real-time', 'realtime', 'live', 'online',
+  'real-time', 'realtime',
   
-  // Research & Lookup triggers
-  'search for', 'look up', 'find out', 'what is', 'who is', 'where is',
-  'how much', 'how many', 'when did', 'when will', 'when is',
-  'tell me about', 'information about', 'details about', 'facts about',
+  // Explicit search/lookup triggers (specific phrases only)
+  'search for', 'look up', 'find me',
   'latest on', 'updates on', 'news about',
   
-  // Knowledge queries
-  'biography', 'history of', 'how to', 'tutorial',
-  'review', 'reviews', 'rating', 'ratings', 'comparison',
-  'best', 'top 10', 'top 5', 'list of', 'examples of',
-  
-  // Company/Product info
-  'company', 'startup', 'founded', 'ceo', 'founder',
-  'product', 'service', 'features', 'pricing',
-  
-  // Events & Schedules
-  'event', 'conference', 'schedule', 'calendar', 'date of',
-  'opening hours', 'hours of operation', 'address',
-  
   // Explicit internet requests
-  'google', 'search', 'browse', 'website', 'online',
-  'check online', 'look online', 'find online'
+  'google it', 'search online', 'browse', 'check online', 'look online', 'find online'
 ];
 
 // Question patterns that typically need internet access
+// These are MORE specific than before - simple "what is X" no longer triggers
 const INTERNET_QUESTION_PATTERNS = [
-  /^what (is|are|was|were|does|did|will)/i,
-  /^who (is|are|was|were|founded|created|invented)/i,
-  /^where (is|are|can|do|does)/i,
-  /^when (is|are|was|were|did|will|does)/i,
-  /^how (much|many|long|far|old|do|does|did|can|to)/i,
-  /^why (is|are|do|does|did|was|were)/i,
-  /^is (there|it|this|that|the)/i,
-  /^are (there|they|these|those|the)/i,
-  /^can (you|i|we|they) (find|search|look|get|tell)/i,
-  /^tell me (about|more|the)/i,
-  /^give me (info|information|details|facts)/i,
-  /^find (me|out|the|information|details)/i,
-  /^search (for|the)/i,
-  /^look up/i,
+  /^who (is|are|was|were|founded|created|invented) .{10,}/i,  // "who is X" only for longer queries
+  /^when (is|was|did|will) .{10,}/i,  // "when is X" only for longer queries  
+  /^(find|search|look up) .+/i,
+  /^tell me (the latest|recent|current|news)/i,
+  /^give me (the latest|recent|current|news)/i,
 ];
 
 // Extract URLs from a message
 const extractUrls = (message: string): string[] => {
   const urlRegex = /https?:\/\/[^\s<>"{}|\\^`\[\]]+/gi;
   const matches = message.match(urlRegex) || [];
-  // Clean up trailing punctuation
   return matches.map(url => url.replace(/[.,;:!?)]+$/, ''));
 };
 
@@ -94,16 +70,20 @@ const containsUrls = (message: string): boolean => {
 };
 
 // Check if a query needs internet/live data
+// Conservative: only triggers for queries that genuinely need current/real-time information
 const needsLiveData = (message: string): boolean => {
-  const lowerMessage = message.toLowerCase();
+  const lowerMessage = message.toLowerCase().trim();
   
   // Trigger for URLs since we need to fetch them
   if (containsUrls(message)) return true;
   
+  // Skip very short messages (likely simple questions like "what is 2+2")
+  if (lowerMessage.length < 15) return false;
+  
   // Check keyword matches
   if (LIVE_DATA_KEYWORDS.some(keyword => lowerMessage.includes(keyword))) return true;
   
-  // Check question patterns that typically need internet
+  // Check specific question patterns
   if (INTERNET_QUESTION_PATTERNS.some(pattern => pattern.test(message))) return true;
   
   return false;
