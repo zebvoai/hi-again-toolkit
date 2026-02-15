@@ -894,6 +894,27 @@ User question: ${enhancedText}`;
 [END IDENTITY RULE]
 
 `;
+
+            // Model-specific response style to differentiate multi-model outputs
+            // This is critical for web search queries where all models receive the same data
+            const modelStyleMap: Record<string, string> = {
+              'GPT 5.2': '[RESPONSE STYLE] Be direct and practical. Use numbered lists and bold key points. Focus on actionable insights and clear recommendations. Start with the most important finding.',
+              'Claude Opus 4.6': '[RESPONSE STYLE] Be thoughtful and nuanced. Explore multiple perspectives and add context. Use paragraphs with smooth transitions. Highlight trade-offs and considerations the user should know about.',
+              'Claude Sonnet 4.5': '[RESPONSE STYLE] Be analytical and structured. Break information into clear categories. Use headers and bullet points. Add brief analysis after presenting facts.',
+              'Gemini 3 Pro': '[RESPONSE STYLE] Be comprehensive and well-organized. Use a mix of bullet points and short paragraphs. Include relevant details others might miss. Add a brief summary at the end.',
+              'Gemini 2.5 Pro': '[RESPONSE STYLE] Be thorough and educational. Explain context and background. Use examples and comparisons. Structure with clear sections.',
+              'Gemini 2.5 Flash': '[RESPONSE STYLE] Be concise and efficient. Get straight to the point with key facts. Use short bullets. Prioritize the most relevant information.',
+              'Grok 4': '[RESPONSE STYLE] Be conversational and engaging. Mix facts with brief commentary. Use a casual but informative tone. Add interesting observations.',
+              'DeepSeek-R1': '[RESPONSE STYLE] Be methodical and precise. Present information step-by-step. Use structured formatting with clear labels. Focus on accuracy and completeness.',
+              'Qwen3-Max': '[RESPONSE STYLE] Be balanced and informative. Organize by importance. Use a clean format with headers and concise bullets. Add practical takeaways.',
+              'Mistral Large 3': '[RESPONSE STYLE] Be clear and well-structured. Use a professional tone with organized sections. Present information logically with supporting details.',
+              'MiniMax M2.1': '[RESPONSE STYLE] Be friendly and accessible. Use simple language and short sentences. Organize with easy-to-scan bullet points. Highlight what matters most.',
+              'Command A': '[RESPONSE STYLE] Be factual and systematic. Present data in a structured way. Use comparisons and rankings where appropriate. Include source context.',
+              'Perplexity Sonar Pro': '[RESPONSE STYLE] Be research-oriented and citation-heavy. Present findings with source attribution. Use an academic but readable style. Cross-reference multiple data points.',
+              'Kimi K2.5': '[RESPONSE STYLE] Be detailed and exploratory. Cover the topic from multiple angles. Use a blend of narrative and structured formats. Add unique insights.',
+            };
+            
+            const styleInstruction = modelStyleMap[modelName] || '';
             
             // Use vision-specific system prompt if images are present
             let baseSystemPrompt = hasImages && modelIsVisionCapable
@@ -902,12 +923,15 @@ User question: ${enhancedText}`;
                 ? 'You are an expert software engineer. Generate complete, production-ready code with clear explanations. Include all necessary imports, error handling, and best practices. Format code in markdown code blocks with proper language tags. Provide comprehensive, detailed responses of at least 500 words. When presenting data in tables, ensure proper markdown table formatting with aligned columns and headers.'
                 : 'You are a helpful AI assistant. Provide comprehensive, detailed, and well-structured responses of at least 500 words. When presenting data in tables, always use proper markdown table formatting with aligned columns, clear headers, and consistent cell content. Never truncate or abbreviate table data.';
             
-            // Add live data instruction if we have context
-            if (liveContext) {
-              baseSystemPrompt += "\n\nCRITICAL WEB ACCESS INSTRUCTION: You have been provided with LIVE WEB DATA (including fetched content from any URLs the user shared). Treat it as the ground-truth content of those pages.\n- Do NOT say you cannot access websites/links or that you do not have browsing.\n- Do NOT ask the user to open the link for you.\n- If the user asks \"did you open it?\", answer: \"I was provided the page content in this chat and used it to answer.\"\n- When referencing it, say \"Based on the provided page content...\" and include sources if present.";
+            // Add model-specific style differentiation
+            if (styleInstruction) {
+              baseSystemPrompt += '\n\n' + styleInstruction;
             }
             
-            // No suffix needed - identity rule at the start is sufficient
+            // Add live data instruction if we have context
+            if (liveContext) {
+              baseSystemPrompt += "\n\nCRITICAL WEB ACCESS INSTRUCTION: You have been provided with LIVE WEB DATA (including fetched content from any URLs the user shared). Treat it as the ground-truth content of those pages.\n- Do NOT say you cannot access websites/links or that you do not have browsing.\n- Do NOT ask the user to open the link for you.\n- If the user asks \"did you open it?\", answer: \"I was provided the page content in this chat and used it to answer.\"\n- When referencing it, say \"Based on the provided page content...\" and include sources if present.\n- IMPORTANT: Present the information in YOUR OWN unique style and structure. Do NOT just repeat the raw search results.";
+            }
             
             const systemPrompt = modelIdentityPrefix + baseSystemPrompt;
             
