@@ -339,13 +339,12 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
 
         {/* Scrollable Cards Container */}
         <div className="relative">
-          {/* Gradient fades */}
-          <div className="absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
-          <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+          {/* Gradient fade on right edge to hint more cards */}
+          <div className="absolute right-0 top-0 bottom-0 w-6 sm:w-8 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
 
-          <div className="overflow-x-auto scroll-smooth pb-2 [&::-webkit-scrollbar]:hidden touch-pan-x" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
+          <div className="overflow-x-auto scroll-smooth pb-2 [&::-webkit-scrollbar]:hidden touch-pan-x snap-x snap-mandatory" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
             <div
-              className={`flex gap-2.5 sm:gap-3 px-4 sm:px-6 lg:px-8 ${shouldAnimate ? 'stagger-cards' : ''}`}
+              className={`flex gap-2.5 sm:gap-3 pl-4 pr-6 sm:pl-6 sm:pr-8 lg:pl-8 lg:pr-10 ${shouldAnimate ? 'stagger-cards' : ''}`}
               style={{ minWidth: 'min-content' }}
             >
               {models.map((model, idx) => {
@@ -355,7 +354,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
                 return (
                   <div
                     key={model}
-                    className="w-[260px] sm:w-[340px] lg:w-[380px] flex-shrink-0 flex flex-col bg-card/90 dark:bg-card/60 backdrop-blur-sm rounded-xl border border-border/30 dark:border-border/20 shadow-sm dark:shadow-lg overflow-hidden hover:shadow-md dark:hover:shadow-xl hover:border-border/50 dark:hover:border-border/30 hover:-translate-y-1 transition-all duration-normal ease-spring hover-border-shimmer"
+                    className="w-[260px] sm:w-[340px] lg:w-[380px] flex-shrink-0 flex flex-col bg-card/90 dark:bg-card/60 backdrop-blur-sm rounded-xl border border-border/30 dark:border-border/20 shadow-sm dark:shadow-lg overflow-hidden hover:shadow-md dark:hover:shadow-xl hover:border-border/50 dark:hover:border-border/30 hover:-translate-y-1 transition-all duration-normal ease-spring hover-border-shimmer snap-start"
                     style={{ minHeight: '180px', maxHeight: '400px' }}
                   >
                     {/* Card Header */}
