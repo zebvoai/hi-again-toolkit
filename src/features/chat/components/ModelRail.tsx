@@ -86,9 +86,11 @@ export function ModelRail({ models, selectedModels, onToggle, onSelectAll, onCle
     if (!el) return;
     
     const handleWheel = (e: WheelEvent) => {
+      // Only hijack if content overflows horizontally
+      if (el.scrollWidth <= el.clientWidth) return;
       if (Math.abs(e.deltaX) < Math.abs(e.deltaY)) {
         e.preventDefault();
-        el.scrollLeft += e.deltaY;
+        el.scrollLeft += e.deltaY * 1.5;
       }
     };
     
@@ -159,10 +161,9 @@ export function ModelRail({ models, selectedModels, onToggle, onSelectAll, onCle
         {/* Horizontal Scroll Rail */}
         <div 
           ref={scrollRef}
-          className="flex-1 overflow-x-auto scrollbar-hide"
-          style={{ scrollBehavior: 'smooth' }}
+          className="flex-1 overflow-x-auto scrollbar-hide scroll-fade-edges"
         >
-          <div className="flex items-center gap-1.5 sm:gap-2 py-0.5 scroll-fade-edges">
+          <div className="flex items-center gap-1.5 sm:gap-2 py-0.5 pr-4">
             {models.map((model) => {
               const isSelected = selectedModels.includes(model);
               const style = getModelStyle(model);
