@@ -15,21 +15,24 @@ export const InterruptedMessage = ({ mode, onRetry }: InterruptedMessageProps) =
   return (
     <div className="flex justify-start appear-smooth">
       <div className="flex flex-row max-w-[90%] sm:max-w-[75%] gap-2 sm:gap-2.5">
-        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-destructive/15 to-destructive/35 flex items-center justify-center shadow-sm flex-shrink-0 mt-0.5">
-          <AlertTriangle className="w-3.5 h-3.5 text-destructive" />
+        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/15 to-primary/35 flex items-center justify-center shadow-sm flex-shrink-0 mt-0.5">
+          <span className="text-primary font-semibold text-[10px]">Z</span>
         </div>
         <div className="flex flex-col min-w-0">
-          <div className="rounded-2xl rounded-bl-md bg-card border border-border/30 px-4 py-3">
-            <div className="flex flex-col gap-2">
-              <p className="text-sm text-muted-foreground">
-                {modeLabel} was interrupted. This can happen when the page is refreshed or the browser tab is closed during generation.
-              </p>
+          <div className="rounded-2xl rounded-bl-md bg-card/90 dark:bg-card/60 backdrop-blur-sm border border-border/20 dark:border-border/15 px-4 py-3">
+            <div className="flex flex-col gap-2.5">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-foreground/80">
+                  {modeLabel} was interrupted. This can happen when the page is refreshed or the browser tab is closed during generation.
+                </p>
+              </div>
               {onRetry && (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={onRetry}
-                  className="w-fit gap-1.5 text-xs"
+                  className="w-fit gap-1.5 text-xs ml-6"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                   Retry generation
