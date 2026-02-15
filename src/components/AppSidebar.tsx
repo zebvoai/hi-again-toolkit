@@ -1,4 +1,4 @@
-import { Plus, User, Search, Library, Folder, ChevronDown, ChevronRight, MoreVertical, Edit, Share, Trash2 } from "lucide-react";
+import { Plus, User, Search, Library, Folder, ChevronDown, ChevronRight, MoreVertical, Edit, Share, Trash2, Sun, Moon } from "lucide-react";
 import zebvoLogo from "@/assets/zebvo_logo.jpeg";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -49,6 +49,7 @@ import { exportAsMarkdown, exportAsJSON } from "@/lib/exportConversation";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
+import { useTheme } from "next-themes";
 import type { Message } from "@/types";
 
 export function AppSidebar() {
@@ -62,6 +63,7 @@ export function AppSidebar() {
   const { toast } = useToast();
   const { user } = useAuth();
   const { profile } = useProfile();
+  const { theme, setTheme } = useTheme();
 
   // Projects state
   const [isProjectsOpen, setIsProjectsOpen] = useState(true);
@@ -583,6 +585,19 @@ export function AppSidebar() {
               >
                 <User className="w-4 h-4 mr-2.5 text-[#8E8E93]" />
                 Account
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                className="rounded-xl px-3 py-2.5 text-[13px] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] transition-colors cursor-pointer"
+                onClick={() => {
+                  setTheme(theme === 'dark' ? 'light' : 'dark');
+                }}
+              >
+                {theme === 'dark' ? (
+                  <Sun className="w-4 h-4 mr-2.5 text-[#8E8E93]" />
+                ) : (
+                  <Moon className="w-4 h-4 mr-2.5 text-[#8E8E93]" />
+                )}
+                {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
               </DropdownMenuItem>
               <div className="h-px bg-border/30 my-1 mx-2" />
               <DropdownMenuItem 
