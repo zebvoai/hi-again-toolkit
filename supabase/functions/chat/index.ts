@@ -92,162 +92,136 @@ const needsLiveData = (message: string): boolean => {
 // Fetch live context from Perplexity
 async function fetchLiveContext(query: string): Promise<string | null> {
   const perplexityApiKey = Deno.env.get('PERPLEXITY_API_KEY');
-  
-  if (!perplexityApiKey) {
-    console.log('[Live Data] PERPLEXITY_API_KEY not configured, skipping live data fetch');
-    return null;
-  }
-  
-  try {
-    // Check if query contains URLs - need to fetch URL content specifically
-    const urls = extractUrls(query);
-    const hasUrls = urls.length > 0;
-    
-    console.log('[Live Data] Fetching live context for query:', query);
-    console.log('[Live Data] URLs detected:', urls.length, hasUrls ? urls : '');
-    console.log('[Live Data] API Key present:', !!perplexityApiKey, 'Length:', perplexityApiKey.length);
-    
-    // Clean the API key - remove any whitespace or prefix if accidentally included
-    const cleanedApiKey = perplexityApiKey.trim().replace(/^Bearer\s+/i, '');
-    
-    // Build the appropriate system prompt based on whether URLs are present
-    const systemPrompt = hasUrls 
-      ? `You are a web content analyzer with real-time internet access. When given URLs, you MUST:
-1. Actually visit and read the content from those URLs
-2. Provide a comprehensive summary of what is on each page
-3. Extract key information, main topics, and important details
-4. If the URL is a company/product page, describe what they offer
-5. If the URL is an article, summarize the main points
-6. Always confirm you accessed the URL and describe its actual content
-DO NOT say you cannot access URLs - you CAN and MUST fetch and summarize them.`
-      : 'You are a search assistant. Provide factual, up-to-date information with specific data points (numbers, dates, names). Be concise but comprehensive. Include the current date/time context when relevant. Format as bullet points for easy reading.';
-    
-    // Build the user message - emphasize URL fetching if URLs present
-    const userMessage = hasUrls 
-      ? `Please visit and summarize the content from the following URL(s): ${urls.join(', ')}\n\nUser's question: ${query}`
-      : query;
-    
-    const response = await fetch('https://api.perplexity.ai/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${cleanedApiKey}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'sonar-pro', // Use sonar-pro for better URL fetching
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userMessage }
-        ],
-        max_tokens: 2000, // More tokens for URL content
-        search_domain_filter: hasUrls ? urls.map(u => new URL(u).hostname) : undefined
-      }),
-    });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('[Live Data] Perplexity API error:', response.status, errorText);
-      
-      // If Perplexity direct API fails, try using it via OpenRouter as fallback
-      console.log('[Live Data] Attempting fallback via OpenRouter...');
-      return await fetchLiveContextViaOpenRouter(query);
-    }
-    
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
-    const citations = data.citations || [];
-    
-    if (content) {
-      let liveContext = `\n\n=== LIVE WEB DATA (fetched just now) ===\n${content}`;
-      
-      if (citations.length > 0) {
-        liveContext += `\n\nSources:\n${citations.slice(0, 5).map((url: string, i: number) => `${i + 1}. ${url}`).join('\n')}`;
-      }
-      
-      liveContext += '\n=== END LIVE DATA ===\n\n';
-      
-      console.log('[Live Data] Successfully fetched live context via Perplexity');
-      return liveContext;
-    }
-    
-    return null;
-  } catch (error) {
-    console.error('[Live Data] Error fetching live context:', error);
-    // Fallback to OpenRouter
-    return await fetchLiveContextViaOpenRouter(query);
-  }
-}
-
-// Fallback: Fetch live context via OpenRouter's Perplexity Sonar
-async function fetchLiveContextViaOpenRouter(query: string): Promise<string | null> {
   const openrouterApiKey = Deno.env.get('OPENROUTER_API_KEY');
   
-  if (!openrouterApiKey) {
-    console.log('[Live Data Fallback] OPENROUTER_API_KEY not configured');
+  if (!perplexityApiKey && !openrouterApiKey) {
+    console.log('[Live Data] No API keys configured, skipping live data fetch');
     return null;
   }
   
-  try {
-    // Check for URLs in query
-    const urls = extractUrls(query);
-    const hasUrls = urls.length > 0;
-    
-    console.log('[Live Data Fallback] Fetching via OpenRouter perplexity/sonar-pro');
-    
-    const systemPrompt = hasUrls 
-      ? `You are a web content analyzer with real-time internet access. When given URLs, you MUST:
+  const urls = extractUrls(query);
+  const hasUrls = urls.length > 0;
+  
+  console.log('[Live Data] Fetching live context for query:', query);
+  console.log('[Live Data] URLs detected:', urls.length, hasUrls ? urls : '');
+  
+  const systemPrompt = hasUrls 
+    ? `You are a web content analyzer with real-time internet access. When given URLs, you MUST:
 1. Actually visit and read the content from those URLs
 2. Provide a comprehensive summary of what is on each page
 3. Extract key information, main topics, and important details
-4. If the URL is a company/product page, describe what they offer
-5. If the URL is an article, summarize the main points
-6. Always confirm you accessed the URL and describe its actual content
 DO NOT say you cannot access URLs - you CAN and MUST fetch and summarize them.`
-      : 'You are a search assistant with real-time internet access. Provide factual, up-to-date information with specific data points (numbers, dates, names). Be concise but comprehensive. Include the current date/time context when relevant.';
-    
-    const userMessage = hasUrls 
-      ? `Please visit and summarize the content from the following URL(s): ${urls.join(', ')}\n\nUser's question: ${query}`
-      : query;
-    
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openrouterApiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://lovable.dev',
-        'X-Title': 'Lovable AI'
-      },
-      body: JSON.stringify({
-        model: 'perplexity/sonar-pro',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userMessage }
-        ],
-        max_tokens: 2000
-      }),
-    });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('[Live Data Fallback] OpenRouter API error:', response.status, errorText);
-      return null;
+    : 'You are a search assistant. Provide factual, up-to-date information with specific data points (numbers, dates, names). Be concise but comprehensive. Include the current date/time context when relevant. Format as bullet points for easy reading.';
+  
+  const userMessage = hasUrls 
+    ? `Please visit and summarize the content from the following URL(s): ${urls.join(', ')}\n\nUser's question: ${query}`
+    : query;
+
+  // Race both providers in parallel — use whichever responds first successfully
+  const promises: Promise<string | null>[] = [];
+  
+  // OpenRouter Perplexity (more reliable, already has the key)
+  if (openrouterApiKey) {
+    promises.push((async () => {
+      try {
+        console.log('[Live Data] Racing: OpenRouter perplexity/sonar-pro');
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openrouterApiKey}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://lovable.dev',
+            'X-Title': 'Lovable AI'
+          },
+          body: JSON.stringify({
+            model: 'perplexity/sonar-pro',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userMessage }
+            ],
+            max_tokens: 2000
+          }),
+        });
+        
+        if (!response.ok) {
+          console.error('[Live Data] OpenRouter failed:', response.status);
+          return null;
+        }
+        
+        const data = await response.json();
+        const content = data.choices?.[0]?.message?.content;
+        if (content) {
+          console.log('[Live Data] Got context via OpenRouter');
+          return `\n\n=== LIVE WEB DATA (fetched just now) ===\n${content}\n=== END LIVE DATA ===\n\n`;
+        }
+        return null;
+      } catch (e) {
+        console.error('[Live Data] OpenRouter error:', e);
+        return null;
+      }
+    })());
+  }
+  
+  // Perplexity direct API
+  if (perplexityApiKey) {
+    promises.push((async () => {
+      try {
+        const cleanedApiKey = perplexityApiKey.trim().replace(/^Bearer\s+/i, '');
+        console.log('[Live Data] Racing: Perplexity direct API');
+        const response = await fetch('https://api.perplexity.ai/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${cleanedApiKey}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'sonar-pro',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userMessage }
+            ],
+            max_tokens: 2000,
+            search_domain_filter: hasUrls ? urls.map(u => new URL(u).hostname) : undefined
+          }),
+        });
+        
+        if (!response.ok) {
+          console.error('[Live Data] Perplexity direct failed:', response.status);
+          return null;
+        }
+        
+        const data = await response.json();
+        const content = data.choices?.[0]?.message?.content;
+        const citations = data.citations || [];
+        
+        if (content) {
+          let liveContext = `\n\n=== LIVE WEB DATA (fetched just now) ===\n${content}`;
+          if (citations.length > 0) {
+            liveContext += `\n\nSources:\n${citations.slice(0, 5).map((url: string, i: number) => `${i + 1}. ${url}`).join('\n')}`;
+          }
+          liveContext += '\n=== END LIVE DATA ===\n\n';
+          console.log('[Live Data] Got context via Perplexity direct');
+          return liveContext;
+        }
+        return null;
+      } catch (e) {
+        console.error('[Live Data] Perplexity direct error:', e);
+        return null;
+      }
+    })());
+  }
+  
+  if (promises.length === 0) return null;
+  
+  // Use Promise.any to get the first successful result
+  try {
+    const results = await Promise.allSettled(promises);
+    for (const r of results) {
+      if (r.status === 'fulfilled' && r.value) return r.value;
     }
-    
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
-    
-    if (content) {
-      let liveContext = `\n\n=== LIVE WEB DATA (fetched just now) ===\n${content}`;
-      liveContext += '\n=== END LIVE DATA ===\n\n';
-      
-      console.log('[Live Data Fallback] Successfully fetched live context via OpenRouter');
-      return liveContext;
-    }
-    
     return null;
-  } catch (error) {
-    console.error('[Live Data Fallback] Error:', error);
+  } catch {
     return null;
   }
 }

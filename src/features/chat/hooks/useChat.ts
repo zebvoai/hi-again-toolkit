@@ -289,122 +289,130 @@ export const useChat = () => {
     setLoading(true, currentConversationId || 'optimistic');
     setError(null);
     
-    // === BACKGROUND: Create conversation if needed ===
+    // === BACKGROUND: Create conversation + upload files IN PARALLEL ===
     let convId = currentConversationId;
-    if (!convId && messages.length === 0) {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        toast({
-          title: 'Not authenticated',
-          description: 'Please log in to save your conversations',
-          variant: 'destructive',
-        });
-        setLoading(false);
-        return;
-      }
-      
-      const title = content.slice(0, 50) + (content.length > 50 ? '...' : '');
-      const insertData: { title: string; user_id: string; project_id?: string } = { 
-        title, 
-        user_id: user.id 
-      };
-      
-      if (selectedProjectId) {
-        insertData.project_id = selectedProjectId;
-      }
-      
-      const { data, error } = await supabase
-        .from('conversations')
-        .insert(insertData)
-        .select()
-        .single();
-      
-      if (data && !error) {
-        convId = data.id;
-        setCurrentConversationId(convId);
-      } else if (error) {
-        console.error('Error creating conversation:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to create conversation',
-          variant: 'destructive',
-        });
-      }
+    
+    // Start file uploads immediately (don't wait for conversation creation)
+    const fileUploadPromise = (files && files.length > 0)
+      ? (async () => {
+          try {
+            const uploadPromises = files.map(async (file) => {
+              const fileExt = file.name.split('.').pop();
+              const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+              // Use 'temp' path initially, will work with any conversation
+              const filePath = `temp/${fileName}`;
+              
+              const { error: uploadError } = await supabase.storage
+                .from('chat-attachments')
+                .upload(filePath, file);
+              
+              if (uploadError) {
+                console.error('File upload error:', uploadError);
+                return null;
+              }
+              
+              const { data: urlData } = supabase.storage
+                .from('chat-attachments')
+                .getPublicUrl(filePath);
+              
+              if (urlData?.publicUrl) {
+                const isImage = file.type.startsWith('image/');
+                if (isImage) {
+                  saveImageToLibrary({
+                    url: urlData.publicUrl,
+                    source_type: 'uploaded',
+                    filename: file.name,
+                    mime_type: file.type,
+                    size_bytes: file.size,
+                  });
+                }
+                return urlData.publicUrl;
+              }
+              return null;
+            });
+            
+            const results = await Promise.all(uploadPromises);
+            return results.filter((url): url is string => url !== null);
+          } catch (err) {
+            console.error('Error uploading files:', err);
+            toast({
+              title: 'File upload failed',
+              description: 'Some files could not be uploaded.',
+              variant: 'destructive',
+            });
+            return [] as string[];
+          }
+        })()
+      : Promise.resolve([] as string[]);
+    
+    // Create conversation in parallel with file uploads
+    const convCreationPromise = (!convId && messages.length === 0)
+      ? (async () => {
+          const { data: { user } } = await supabase.auth.getUser();
+          
+          if (!user) {
+            toast({
+              title: 'Not authenticated',
+              description: 'Please log in to save your conversations',
+              variant: 'destructive',
+            });
+            setLoading(false);
+            return null;
+          }
+          
+          const title = content.slice(0, 50) + (content.length > 50 ? '...' : '');
+          const insertData: { title: string; user_id: string; project_id?: string } = { 
+            title, 
+            user_id: user.id 
+          };
+          
+          if (selectedProjectId) {
+            insertData.project_id = selectedProjectId;
+          }
+          
+          const { data, error } = await supabase
+            .from('conversations')
+            .insert(insertData)
+            .select()
+            .single();
+          
+          if (data && !error) {
+            return data.id as string;
+          } else if (error) {
+            console.error('Error creating conversation:', error);
+          }
+          return null;
+        })()
+      : Promise.resolve(convId);
+    
+    // Wait for both in parallel
+    const [fileUrls, resolvedConvId] = await Promise.all([fileUploadPromise, convCreationPromise]);
+    
+    if (resolvedConvId && !convId) {
+      convId = resolvedConvId;
+      setCurrentConversationId(convId);
     }
     
     // Store the conversation ID this request is for
     requestConversationIdRef.current = convId;
-    // Update loading state with real conversation ID now that we have it
     if (convId) setLoading(true, convId);
 
-    // === BACKGROUND: Upload files in parallel and replace blob URLs with real ones ===
-    let fileUrls: string[] = [];
-    if (files && files.length > 0) {
-      try {
-        const uploadPromises = files.map(async (file) => {
-          const fileExt = file.name.split('.').pop();
-          const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-          const filePath = `${convId || 'temp'}/${fileName}`;
-          
-          const { error: uploadError } = await supabase.storage
-            .from('chat-attachments')
-            .upload(filePath, file);
-          
-          if (uploadError) {
-            console.error('File upload error:', uploadError);
-            return null;
-          }
-          
-          const { data: urlData } = supabase.storage
-            .from('chat-attachments')
-            .getPublicUrl(filePath);
-          
-          if (urlData?.publicUrl) {
-            // Save images to library (fire-and-forget)
-            const isImage = file.type.startsWith('image/');
-            if (isImage) {
-              saveImageToLibrary({
-                url: urlData.publicUrl,
-                source_type: 'uploaded',
-                filename: file.name,
-                mime_type: file.type,
-                size_bytes: file.size,
-                conversation_id: convId || undefined,
-              });
-            }
-            return urlData.publicUrl;
-          }
-          return null;
-        });
-        
-        const results = await Promise.all(uploadPromises);
-        fileUrls = results.filter((url): url is string => url !== null);
-        
-        // Update message metadata with real URLs (replace blob previews)
-        if (fileUrls.length > 0) {
-          updateMessage(userMessage.id, { metadata: { ...userMessage.metadata, attachments: fileUrls } });
-          // Revoke blob URLs to free memory
-          localPreviewUrls.forEach(url => URL.revokeObjectURL(url));
-        }
-      } catch (err) {
-        console.error('Error uploading files:', err);
-        toast({
-          title: 'File upload failed',
-          description: 'Some files could not be uploaded.',
-          variant: 'destructive',
-        });
-      }
+    // Update message metadata with real URLs (replace blob previews)
+    if (fileUrls.length > 0) {
+      updateMessage(userMessage.id, { metadata: { ...userMessage.metadata, attachments: fileUrls } });
+      localPreviewUrls.forEach(url => URL.revokeObjectURL(url));
     }
 
-    // Save user message to database with real URLs
+    // Save user message to database (fire-and-forget, don't block AI call)
     if (convId) {
-      await supabase.from('messages').insert({
+      supabase.from('messages').insert({
         id: userMessage.id,
         conversation_id: convId,
         role: userMessage.role,
         content: userMessage.content,
         metadata: fileUrls.length > 0 ? { attachments: fileUrls } : userMessage.metadata,
+      }).then(({ error }) => {
+        if (error) console.error('[useChat] Failed to save user message:', error);
       });
     }
     
@@ -778,9 +786,9 @@ export const useChat = () => {
           generationMode: 'text',
         };
         
-        // Save placeholder to DB before starting
+        // Save placeholder to DB (fire-and-forget, don't block streaming)
         if (convId) {
-          await saveGeneratingPlaceholder(convId, assistantId, placeholderMetadata);
+          saveGeneratingPlaceholder(convId, assistantId, placeholderMetadata);
         }
 
         // Add placeholder message immediately for instant feedback
@@ -801,16 +809,26 @@ export const useChat = () => {
         // Always start with 'generating' - backend will send activity events if web search or file analysis happens
         setGenerationActivityType('generating');
 
+        // Throttle UI updates — batch rapid streaming chunks
+        let updateScheduled = false;
+        const THROTTLE_MS = 80;
+
         const response = await multiModelApi.sendMessageMultiModel(
           content,
           selectedMode,
           messages,
           effectiveModels,
           (modelName: string, chunk: string) => {
-            // Update the generating model indicator when receiving from a model
             setCurrentGeneratingModel(modelName);
             multiModelContent[modelName] += chunk;
-            safeUpdateMessage(assistantId, { content: { ...multiModelContent } }, convId);
+            
+            if (!updateScheduled) {
+              updateScheduled = true;
+              setTimeout(() => {
+                safeUpdateMessage(assistantId, { content: { ...multiModelContent } }, convId);
+                updateScheduled = false;
+              }, THROTTLE_MS);
+            }
           },
           abortControllerRef.current?.signal,
           fileUrls.length > 0 ? fileUrls : undefined,
@@ -840,9 +858,9 @@ export const useChat = () => {
           generationMode: 'text',
         };
         
-        // Save placeholder to DB before starting
+        // Save placeholder to DB (fire-and-forget, don't block streaming)
         if (convId) {
-          await saveGeneratingPlaceholder(convId, assistantId, placeholderMetadata);
+          saveGeneratingPlaceholder(convId, assistantId, placeholderMetadata);
         }
         
         let streamingContent = '';
