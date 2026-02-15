@@ -232,7 +232,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
 
                 {/* Content - shows skeleton only if this specific model hasn't started, otherwise streams live */}
                 <div
-                  className="bg-card rounded-xl border border-border/30 p-4 shadow-sm"
+                  className="bg-card/80 dark:bg-card/60 backdrop-blur-sm rounded-xl border border-border/30 dark:border-border/20 p-4 shadow-sm dark:shadow-lg"
                   style={{
                     minHeight: isModelGenerating(currentModel) ? '220px' : 'auto',
                     transition: 'min-height 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
@@ -340,11 +340,11 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
                 return (
                   <div
                     key={model}
-                    className="w-[260px] sm:w-[340px] lg:w-[380px] flex-shrink-0 flex flex-col bg-card rounded-xl border border-border/40 shadow-sm overflow-hidden hover:shadow-md hover:border-border/60 hover:-translate-y-1 transition-all duration-normal ease-spring"
+                    className="w-[260px] sm:w-[340px] lg:w-[380px] flex-shrink-0 flex flex-col bg-card/90 dark:bg-card/60 backdrop-blur-sm rounded-xl border border-border/30 dark:border-border/20 shadow-sm dark:shadow-lg overflow-hidden hover:shadow-md dark:hover:shadow-xl hover:border-border/50 dark:hover:border-border/30 hover:-translate-y-1 transition-all duration-normal ease-spring"
                     style={{ minHeight: '180px', maxHeight: '400px' }}
                   >
                     {/* Card Header */}
-                    <div className="flex-shrink-0 h-11 px-3 border-b border-border/20 bg-muted/20 flex items-center gap-2.5">
+                    <div className="flex-shrink-0 h-11 px-3 border-b border-border/15 bg-muted/15 dark:bg-muted/10 flex items-center gap-2.5">
                       <div className={`w-2 h-2 rounded-full bg-gradient-to-br ${getProviderColor(model)} ${thisModelGenerating && !hasContent ? 'animate-pulse' : ''}`} />
                       <div className="flex-1 min-w-0">
                         <span className="text-[13px] font-medium text-foreground truncate block">

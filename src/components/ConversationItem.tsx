@@ -49,11 +49,10 @@ export const ConversationItem = ({
   return (
     <div
       className={cn(
-        // Relative container for absolute-positioned pencil icon
-        "group relative px-2 py-1.5 rounded-xl cursor-pointer overflow-hidden",
+        "group relative px-2 py-1.5 rounded-xl cursor-pointer overflow-hidden transition-all duration-fast ease-gentle",
         isActive 
-          ? 'bg-white dark:bg-white/10 shadow-sm' 
-          : 'hover:bg-muted/50 dark:hover:bg-white/[0.06]'
+          ? 'bg-white dark:bg-white/8 shadow-sm dark:shadow-md border border-transparent dark:border-border/10' 
+          : 'hover:bg-muted/50 dark:hover:bg-white/[0.05]'
       )}
       onClick={onClick}
     >

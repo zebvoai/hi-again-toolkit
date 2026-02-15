@@ -379,30 +379,34 @@ export function ChatInterface() {
       ) : (
         /* Empty State */
         <div className={`flex-1 flex items-center justify-center px-4 pb-[200px] sm:pb-[240px] ${selectedMode === 'text' && models?.text || selectedMode === 'image' && models?.image ? 'pt-16' : ''}`}>
-          <div className="text-center">
-            <h1 className="text-4xl sm:text-6xl font-bold text-primary mb-2 sm:mb-3 animate-logo-entrance animate-float-gentle hover:scale-[1.02] transition-transform duration-300 cursor-default">
-              Zebvo AI
-            </h1>
-            <p className="text-muted-foreground text-sm sm:text-base mb-4 sm:mb-6 animate-tagline-entrance">
+          <div className="text-center max-w-lg">
+            {/* Glass hero card */}
+            <div className="relative inline-block mb-6">
+              <div className="absolute inset-0 bg-primary/10 rounded-3xl blur-2xl scale-110" />
+              <h1 className="relative text-5xl sm:text-7xl font-bold bg-gradient-to-br from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent mb-0 animate-logo-entrance cursor-default select-none">
+                Zebvo AI
+              </h1>
+            </div>
+            <p className="text-muted-foreground text-sm sm:text-base mb-8 animate-tagline-entrance font-medium tracking-wide">
               Get Answers from the World's Top AI Models in One Chat
             </p>
-            <div className="flex items-center justify-center gap-1.5 mb-6 sm:mb-8">
-              <div className="w-2 h-2 rounded-full bg-primary animate-dot-pulse-wave" />
-              <div className="w-2 h-2 rounded-full bg-primary/50 animate-dot-pulse-wave" style={{ animationDelay: '0.2s' }} />
-              <div className="w-2 h-2 rounded-full bg-primary/50 animate-dot-pulse-wave" style={{ animationDelay: '0.4s' }} />
+            <div className="flex items-center justify-center gap-2 mb-8">
+              <div className="w-1.5 h-1.5 rounded-full bg-primary animate-dot-pulse-wave" />
+              <div className="w-1.5 h-1.5 rounded-full bg-primary/40 animate-dot-pulse-wave" style={{ animationDelay: '0.2s' }} />
+              <div className="w-1.5 h-1.5 rounded-full bg-primary/40 animate-dot-pulse-wave" style={{ animationDelay: '0.4s' }} />
             </div>
             {/* Keyboard shortcuts hint - hidden on mobile */}
-            <div className="hidden sm:flex items-center justify-center gap-4 text-xs text-muted-foreground/60">
-              <span className="flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono">⌘K</kbd>
+            <div className="hidden sm:flex items-center justify-center gap-5 text-xs text-muted-foreground/50">
+              <span className="flex items-center gap-1.5">
+                <kbd className="px-2 py-1 bg-card/80 dark:bg-card/50 rounded-lg text-[10px] font-mono border border-border/30 shadow-sm">⌘K</kbd>
                 <span>Focus</span>
               </span>
-              <span className="flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono">⌘↵</kbd>
+              <span className="flex items-center gap-1.5">
+                <kbd className="px-2 py-1 bg-card/80 dark:bg-card/50 rounded-lg text-[10px] font-mono border border-border/30 shadow-sm">⌘↵</kbd>
                 <span>Send</span>
               </span>
-              <span className="flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono">⌘N</kbd>
+              <span className="flex items-center gap-1.5">
+                <kbd className="px-2 py-1 bg-card/80 dark:bg-card/50 rounded-lg text-[10px] font-mono border border-border/30 shadow-sm">⌘N</kbd>
                 <span>New Chat</span>
               </span>
             </div>
@@ -411,7 +415,7 @@ export function ChatInterface() {
       )}
 
       {/* Chat Input Area - Fixed at bottom */}
-      <div className="fixed bottom-0 right-0 z-30 bg-background border-t border-border/20 transition-[left] duration-300 animate-slide-up-fade" style={{
+      <div className="fixed bottom-0 right-0 z-30 bg-background/80 dark:bg-background/60 backdrop-blur-xl border-t border-border/10 transition-[left] duration-300 animate-slide-up-fade" style={{
         left: isMobile ? 0 : isSidebarExpanded ? 280 : 60
       }}>
         <div className="w-full px-3 sm:px-6 lg:px-8 py-2 sm:py-4">
@@ -513,7 +517,7 @@ export function ChatInterface() {
             <input ref={fileInputRef} type="file" multiple accept="*/*" onChange={handleFileSelect} className="hidden" />
 
             {/* Glass Input Bar */}
-            <div className="flex items-end w-full min-h-[52px] sm:min-h-[60px] bg-card rounded-[24px] sm:rounded-[30px] shadow-[0_2px_8px_rgba(0,0,0,0.04)] focus-within:shadow-[0_4px_16px_rgba(0,0,0,0.08)] focus-within:bg-card/95 transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] px-[8px] sm:px-[11px] py-[7px] sm:py-[9px]">
+            <div className="flex items-end w-full min-h-[52px] sm:min-h-[60px] bg-card/90 dark:bg-card/60 backdrop-blur-lg rounded-[24px] sm:rounded-[30px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.3)] focus-within:shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:focus-within:shadow-[0_4px_20px_rgba(0,0,0,0.4)] border border-border/20 dark:border-border/30 focus-within:border-primary/20 transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] px-[8px] sm:px-[11px] py-[7px] sm:py-[9px]">
               {/* Left Plus Button */}
               <button type="button" onClick={triggerFileInput} className="flex-shrink-0 w-[36px] h-[36px] sm:w-[42px] sm:h-[42px] rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 hover:scale-[1.05] active:scale-[0.95] transition-all duration-[180ms] border border-border/50">
                 <svg width="16" height="16" viewBox="0 0 20 20" fill="none" className="sm:w-[18px] sm:h-[18px]">
