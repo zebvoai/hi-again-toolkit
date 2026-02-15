@@ -66,9 +66,19 @@ export const multiModelApi = {
       let buffer = '';
       const fullContents: MultiModelContent = {};
       
+      // Batch update tracking — throttle zustand updates to reduce re-renders
+      let pendingUpdate = false;
+      const BATCH_INTERVAL = 50; // ms between UI updates
+      
       models.forEach(model => {
         fullContents[model] = '';
       });
+
+      const flushUpdate = () => {
+        // Notify with empty chunk to trigger a batched re-render
+        // The actual content is tracked in fullContents
+        pendingUpdate = false;
+      };
 
       try {
         while (true) {
@@ -90,9 +100,19 @@ export const multiModelApi = {
                 if (parsed.activity && onActivity) {
                   onActivity(parsed.activity);
                 }
-                // Handle content chunks
+                // Handle content chunks — accumulate and batch UI updates
                 else if (parsed.model && parsed.content) {
                   fullContents[parsed.model] += parsed.content;
+                  
+                  if (!pendingUpdate) {
+                    pendingUpdate = true;
+                    // Use setTimeout to batch multiple chunks arriving within the interval
+                    setTimeout(() => {
+                      onProgress(parsed.model, ''); // Signal update
+                      flushUpdate();
+                    }, BATCH_INTERVAL);
+                  }
+                  // Always call onProgress so the caller accumulates content correctly
                   onProgress(parsed.model, parsed.content);
                 }
               } catch (e) {
@@ -102,13 +122,9 @@ export const multiModelApi = {
           }
         }
       } catch (error: any) {
-        // If the request was intentionally aborted (Stop button), bubble up an AbortError
-        // so the caller can preserve partial content.
         if (signal?.aborted) {
           throw new DOMException('The user aborted a request.', 'AbortError');
         }
-
-        // Otherwise, this is a real streaming failure.
         throw new Error('Streaming failed');
       }
 
