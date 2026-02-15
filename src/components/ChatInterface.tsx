@@ -307,11 +307,24 @@ export function ChatInterface() {
   return <div className="flex flex-col h-full relative bg-background overflow-hidden">
       {/* Drag & Drop Overlay */}
       {isDragging && (
-        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center pointer-events-none">
-          <div className="flex flex-col items-center gap-4 p-8 rounded-2xl border-2 border-dashed border-primary bg-primary/5 animate-pulse">
-            <ImageIcon className="w-12 h-12 text-primary" />
-            <p className="text-lg font-medium text-primary">Drop files here</p>
-            <p className="text-sm text-muted-foreground">Supports images (JPG, PNG, GIF, WebP) and PDF documents</p>
+        <div className="fixed inset-0 z-50 bg-background/60 backdrop-blur-xl flex items-center justify-center pointer-events-none animate-fade-in" style={{ animationDuration: '150ms' }}>
+          {/* Ambient glow */}
+          <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-primary/5" />
+          
+          {/* Drop zone card */}
+          <div className="relative flex flex-col items-center gap-5 px-12 py-10 rounded-3xl border-2 border-dashed border-primary/40 bg-card/80 dark:bg-card/40 backdrop-blur-md shadow-[0_8px_40px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_40px_rgba(0,0,0,0.3)] animate-scale-in" style={{ animationDuration: '200ms' }}>
+            {/* Icon with ring pulse */}
+            <div className="relative">
+              <div className="absolute inset-0 rounded-full bg-primary/15 scale-150 animate-pulse-gentle" />
+              <div className="relative w-16 h-16 rounded-2xl bg-primary/10 dark:bg-primary/15 flex items-center justify-center border border-primary/20">
+                <ImageIcon className="w-7 h-7 text-primary" />
+              </div>
+            </div>
+            
+            <div className="text-center space-y-1.5">
+              <p className="text-lg font-semibold text-foreground">Drop files here</p>
+              <p className="text-sm text-muted-foreground">Images (JPG, PNG, GIF, WebP) and PDF documents</p>
+            </div>
           </div>
         </div>
       )}
