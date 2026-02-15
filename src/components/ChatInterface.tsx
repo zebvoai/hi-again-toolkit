@@ -151,12 +151,14 @@ export function ChatInterface() {
     return () => updatePageTitle('idle');
   }, [isCurrentConversationLoading]);
 
-  // Trigger confetti on first AI response
+  // Trigger confetti on first AI response (only for genuinely new generations, not DB loads)
+  const userSentMessageRef = useRef(false);
   useEffect(() => {
     const hasNewAssistantMessage = messages.length > prevMessagesLengthRef.current && messages[messages.length - 1]?.role === 'assistant';
-    if (hasNewAssistantMessage && isFirstResponse && !isCurrentConversationLoading) {
+    if (hasNewAssistantMessage && isFirstResponse && !isCurrentConversationLoading && userSentMessageRef.current) {
       triggerConfetti();
       setIsFirstResponse(false);
+      userSentMessageRef.current = false;
     }
     prevMessagesLengthRef.current = messages.length;
   }, [messages, isFirstResponse, isCurrentConversationLoading]);
@@ -236,6 +238,7 @@ export function ChatInterface() {
   const handleSendMessage = useCallback((valueOverride?: string) => {
     const value = valueOverride ?? inputRef.current?.getValue() ?? '';
     if (!value.trim()) return;
+    userSentMessageRef.current = true;
     triggerHapticFeedback('light');
     sendMessage(value, attachedFiles);
     inputRef.current?.clear();
