@@ -10,7 +10,7 @@ import SharedChat from "./pages/SharedChat";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2 } from "lucide-react";
+import PremiumLoader from "@/components/PremiumLoader";
 import { ThemeProvider } from "next-themes";
 
 const queryClient = new QueryClient();
@@ -19,11 +19,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
+    return <PremiumLoader />;
   }
 
   if (!user) {
