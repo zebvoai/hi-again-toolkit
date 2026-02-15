@@ -343,7 +343,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
           <div className="absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
           <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
 
-          <div className="overflow-x-auto scroll-smooth pb-2 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <div className="overflow-x-auto scroll-smooth pb-2 [&::-webkit-scrollbar]:hidden touch-pan-x" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
             <div
               className={`flex gap-2.5 sm:gap-3 px-4 sm:px-6 lg:px-8 ${shouldAnimate ? 'stagger-cards' : ''}`}
               style={{ minWidth: 'min-content' }}
@@ -380,7 +380,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
                     </div>
 
                     {/* Response Content - shows live content as it streams */}
-                    <div className={`flex-1 p-3 min-h-0 overflow-y-auto`}>
+                    <div className={`flex-1 p-3 min-h-0 overflow-y-auto overscroll-contain touch-pan-y`}>
                       <div className="text-[13px] leading-[1.6] text-foreground">
                         {!hasContent ? (
                           <div className="space-y-2.5 py-1">
