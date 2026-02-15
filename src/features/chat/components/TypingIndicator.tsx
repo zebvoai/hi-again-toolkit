@@ -1,11 +1,21 @@
 import { useChatStore } from '@/features/chat/store/chatStore';
 import { formatModelName } from '@/lib/utils';
+import { Search, ImageIcon, FileText, Sparkles } from 'lucide-react';
+import type { GenerationActivityType } from '@/features/chat/types';
+
+const activityConfig: Record<string, { icon: typeof Search; text: string; textColor: string; bgColor: string }> = {
+  searching_web: { icon: Search, text: 'Searching web', textColor: 'text-blue-500', bgColor: 'bg-blue-500/10' },
+  analyzing_image: { icon: ImageIcon, text: 'Analyzing image', textColor: 'text-purple-500', bgColor: 'bg-purple-500/10' },
+  analyzing_pdf: { icon: FileText, text: 'Analyzing PDF', textColor: 'text-orange-500', bgColor: 'bg-orange-500/10' },
+  generating: { icon: Sparkles, text: 'Generating', textColor: 'text-primary', bgColor: 'bg-primary/10' },
+};
 
 export const TypingIndicator = ({ models }: { models?: string[] }) => {
   const currentGeneratingModel = useChatStore((s) => s.currentGeneratingModel);
+  const generationActivityType = useChatStore((s) => s.generationActivityType);
   
-  // Format the display name
   const displayModel = currentGeneratingModel ? formatModelName(currentGeneratingModel) : null;
+  const activity = generationActivityType && activityConfig[generationActivityType];
   
   return (
     <div className="flex justify-start mb-4 appear-smooth">
@@ -17,17 +27,25 @@ export const TypingIndicator = ({ models }: { models?: string[] }) => {
         
         {/* Thinking bubble with model indicator */}
         <div className="flex flex-col gap-1.5">
-          {/* Model indicator */}
-          {displayModel && (
-            <div className="flex items-center gap-1.5 animate-fade-in">
-              <span className="text-[11px] font-medium text-muted-foreground">
-                Generating with
+          {/* Model + activity indicator */}
+          <div className="flex items-center gap-1.5 animate-fade-in flex-wrap">
+            {displayModel && (
+              <>
+                <span className="text-[11px] font-medium text-muted-foreground">
+                  Generating with
+                </span>
+                <span className="text-[11px] font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded-md">
+                  {displayModel}
+                </span>
+              </>
+            )}
+            {activity && activity.text !== 'Generating' && (
+              <span className={`inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-md ${activity.textColor} ${activity.bgColor}`}>
+                <activity.icon className="w-3 h-3" />
+                {activity.text}
               </span>
-              <span className="text-[11px] font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded-md">
-                {displayModel}
-              </span>
-            </div>
-          )}
+            )}
+          </div>
           
           {/* Thinking bubble with Apple-style wave dots */}
           <div className="rounded-[18px_18px_18px_4px] px-5 py-3.5 bg-muted shadow-sm transition-all duration-normal">
