@@ -1215,6 +1215,7 @@ button, a, [role="button"], [tabindex="0"],
 .animate-gradient-shimmer {
   background-size: 200% auto;
   animation: gradient-shimmer 4s ease-in-out infinite;
+  will-change: background-position;
 }
 
 /* Model chip pop on toggle */
