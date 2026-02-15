@@ -1104,6 +1104,213 @@ button, a, input, textarea, select,
   animation: shimmer-slide 1.5s ease-in-out infinite;
 }
 
+/* ----------------------------------------
+   ENGAGING MICRO-ANIMATIONS
+   Premium interactive effects
+   ---------------------------------------- */
+
+/* Glow ring pulse on focused input */
+@keyframes glow-ring-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0), 0 2px 12px hsl(0 0% 0% / 0.04);
+  }
+  50% {
+    box-shadow: 0 0 0 4px hsl(var(--primary) / 0.12), 0 4px 20px hsl(0 0% 0% / 0.08);
+  }
+}
+
+.input-glow-focus:focus-within {
+  animation: glow-ring-pulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Send button ripple burst */
+@keyframes send-ripple {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0.4);
+  }
+  50% {
+    transform: scale(0.92);
+  }
+  70% {
+    box-shadow: 0 0 0 12px hsl(var(--primary) / 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0);
+  }
+}
+
+.animate-send-ripple {
+  animation: send-ripple 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Floating particle dots for empty state */
+@keyframes float-particle-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.3; }
+  25% { transform: translate(15px, -20px) scale(1.2); opacity: 0.6; }
+  50% { transform: translate(-10px, -35px) scale(0.8); opacity: 0.4; }
+  75% { transform: translate(20px, -15px) scale(1.1); opacity: 0.5; }
+}
+
+@keyframes float-particle-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.25; }
+  33% { transform: translate(-20px, -25px) scale(1.3); opacity: 0.5; }
+  66% { transform: translate(15px, -40px) scale(0.9); opacity: 0.35; }
+}
+
+@keyframes float-particle-3 {
+  0%, 100% { transform: translate(0, 0) scale(0.9); opacity: 0.2; }
+  50% { transform: translate(-15px, -30px) scale(1.4); opacity: 0.55; }
+}
+
+.animate-float-particle-1 { animation: float-particle-1 6s ease-in-out infinite; }
+.animate-float-particle-2 { animation: float-particle-2 8s ease-in-out infinite; }
+.animate-float-particle-3 { animation: float-particle-3 7s ease-in-out infinite; }
+
+/* Gradient shimmer sweep for hero text */
+@keyframes gradient-shimmer {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient-shimmer {
+  background-size: 200% auto;
+  animation: gradient-shimmer 4s ease-in-out infinite;
+}
+
+/* Model chip pop on toggle */
+@keyframes chip-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(0.92); }
+  70% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+.animate-chip-pop {
+  animation: chip-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Sidebar item slide-in from left */
+@keyframes sidebar-item-in {
+  0% {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.stagger-sidebar-items > * {
+  animation: sidebar-item-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.stagger-sidebar-items > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-sidebar-items > *:nth-child(2) { animation-delay: 30ms; }
+.stagger-sidebar-items > *:nth-child(3) { animation-delay: 60ms; }
+.stagger-sidebar-items > *:nth-child(4) { animation-delay: 90ms; }
+.stagger-sidebar-items > *:nth-child(5) { animation-delay: 120ms; }
+.stagger-sidebar-items > *:nth-child(6) { animation-delay: 150ms; }
+.stagger-sidebar-items > *:nth-child(7) { animation-delay: 180ms; }
+.stagger-sidebar-items > *:nth-child(n+8) { animation-delay: 200ms; }
+
+/* Stagger messages with alternating slide directions */
+.stagger-messages > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-messages > *:nth-child(2) { animation-delay: 60ms; }
+.stagger-messages > *:nth-child(3) { animation-delay: 120ms; }
+.stagger-messages > *:nth-child(4) { animation-delay: 180ms; }
+.stagger-messages > *:nth-child(5) { animation-delay: 240ms; }
+.stagger-messages > *:nth-child(n+6) { animation-delay: 300ms; }
+
+/* Subtle breathing glow for AI avatar */
+@keyframes avatar-breathe {
+  0%, 100% {
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0);
+  }
+  50% {
+    box-shadow: 0 0 12px 2px hsl(var(--primary) / 0.2);
+  }
+}
+
+.avatar-breathe {
+  animation: avatar-breathe 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Keyboard shortcut key bounce */
+@keyframes kbd-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+.kbd-interactive:hover {
+  animation: kbd-bounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Smooth text reveal for empty state tagline */
+@keyframes text-reveal {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+    filter: blur(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0px);
+  }
+}
+
+.animate-text-reveal {
+  animation: text-reveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Response card shimmer border on hover */
+@keyframes border-shimmer {
+  0% { border-color: hsl(var(--border) / 0.3); }
+  50% { border-color: hsl(var(--primary) / 0.3); }
+  100% { border-color: hsl(var(--border) / 0.3); }
+}
+
+.hover-border-shimmer:hover {
+  animation: border-shimmer 1.5s ease-in-out infinite;
+}
+
+/* Action buttons reveal with scale */
+@keyframes actions-reveal {
+  0% {
+    opacity: 0;
+    transform: translateY(4px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.group-hover\:animate-actions-reveal {
+  animation: actions-reveal 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Emoji/icon wiggle for delight */
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-5deg); }
+  75% { transform: rotate(5deg); }
+}
+
+.hover-wiggle:hover {
+  animation: wiggle 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Scroll fade edges for horizontal scrolling containers */
+.scroll-fade-edges {
+  mask-image: linear-gradient(to right, transparent, black 24px, black calc(100% - 24px), transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 24px, black calc(100% - 24px), transparent);
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;

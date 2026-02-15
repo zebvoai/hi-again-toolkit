@@ -190,6 +190,15 @@ export default {
           "0%": { transform: "translateX(-100%)" },
           "100%": { transform: "translateX(100%)" },
         },
+        "wiggle": {
+          "0%, 100%": { transform: "rotate(0deg)" },
+          "25%": { transform: "rotate(-5deg)" },
+          "75%": { transform: "rotate(5deg)" },
+        },
+        "glow-pulse": {
+          "0%, 100%": { opacity: "0.6" },
+          "50%": { opacity: "1" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
@@ -214,6 +223,8 @@ export default {
         "research-progress": "research-progress 3s ease infinite",
         "research-icon": "research-icon 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite",
         "shimmer": "shimmer 2s ease-in-out infinite",
+        "wiggle": "wiggle 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
+        "glow-pulse": "glow-pulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite",
       },
     },
   },

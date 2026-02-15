@@ -340,7 +340,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
                 return (
                   <div
                     key={model}
-                    className="w-[260px] sm:w-[340px] lg:w-[380px] flex-shrink-0 flex flex-col bg-card/90 dark:bg-card/60 backdrop-blur-sm rounded-xl border border-border/30 dark:border-border/20 shadow-sm dark:shadow-lg overflow-hidden hover:shadow-md dark:hover:shadow-xl hover:border-border/50 dark:hover:border-border/30 hover:-translate-y-1 transition-all duration-normal ease-spring"
+                    className="w-[260px] sm:w-[340px] lg:w-[380px] flex-shrink-0 flex flex-col bg-card/90 dark:bg-card/60 backdrop-blur-sm rounded-xl border border-border/30 dark:border-border/20 shadow-sm dark:shadow-lg overflow-hidden hover:shadow-md dark:hover:shadow-xl hover:border-border/50 dark:hover:border-border/30 hover:-translate-y-1 transition-all duration-normal ease-spring hover-border-shimmer"
                     style={{ minHeight: '180px', maxHeight: '400px' }}
                   >
                     {/* Card Header */}
