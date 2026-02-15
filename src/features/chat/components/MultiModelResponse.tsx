@@ -167,7 +167,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
   );
 
   return (
-    <div className={`w-full mt-16 ${shouldAnimate ? 'appear-smooth' : ''}`}>
+    <div className={`w-full mt-2 ${shouldAnimate ? 'appear-smooth' : ''}`}>
       {/* ===== SINGLE VIEW ===== */}
       <div
         className="transition-all duration-moderate ease-gentle"
@@ -175,7 +175,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
           display: viewMode === 'single' ? 'block' : 'none',
         }}
       >
-        <div className="px-4 sm:px-6">
+        <div className="px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">{ViewToggle}</div>
@@ -308,7 +308,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
         }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between mb-2 sm:mb-3 px-3 sm:px-6">
+        <div className="flex items-center justify-between mb-2 sm:mb-3 px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2 sm:gap-3">
             {ViewToggle}
             <span className="text-[11px] sm:text-xs text-muted-foreground">
@@ -330,7 +330,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
 
           <div className="overflow-x-auto scroll-smooth pb-2 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             <div
-              className={`flex gap-2.5 sm:gap-3 px-3 sm:px-6 ${shouldAnimate ? 'stagger-cards' : ''}`}
+              className={`flex gap-2.5 sm:gap-3 px-4 sm:px-6 lg:px-8 ${shouldAnimate ? 'stagger-cards' : ''}`}
               style={{ minWidth: 'min-content' }}
             >
               {models.map((model, idx) => {
@@ -417,7 +417,7 @@ export const MultiModelResponse = ({ content, models }: MultiModelResponseProps)
         </div>
 
         {/* Disclaimer */}
-        <p className="text-xs text-muted-foreground mt-4 px-3 sm:px-6">
+        <p className="text-xs text-muted-foreground mt-4 px-4 sm:px-6 lg:px-8">
           <span className="font-medium">Note:</span> {DISCLAIMER_TEXT}
         </p>
       </div>
