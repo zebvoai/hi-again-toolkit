@@ -89,6 +89,7 @@ export function ChatInterface() {
   );
   const { models } = useModels();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<ChatInputHandle>(null);
   const prevMessagesLengthRef = useRef(messages.length);
@@ -233,9 +234,19 @@ export function ChatInterface() {
     }
   }, [selectedMode, models, selectedModels, setSelectedModels]);
 
-  // Smooth scroll to new messages
+  // Auto-scroll to bottom only when user is already near the bottom.
+  // This prevents hijacking scroll during horizontal swiping in compare view.
   useEffect(() => {
-    smoothScrollTo(messagesEndRef.current);
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    const threshold = 150; // px from bottom to count as "near bottom"
+    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
+    if (isNearBottom) {
+      // Use rAF + scrollTop instead of scrollIntoView to avoid blocking nested scroll
+      requestAnimationFrame(() => {
+        container.scrollTop = container.scrollHeight;
+      });
+    }
   }, [messages, isLoading]);
 
   const handleContentChange = useCallback((hasContent: boolean) => {
@@ -387,7 +398,7 @@ export function ChatInterface() {
           </div>
         </div>
       ) : messages.length > 0 ? (
-        <div key={`conv-${currentConversationId}`} className={`flex-1 overflow-y-auto overflow-x-hidden pb-[240px] py-4 sm:py-6 animate-content-fade-in pointer-events-auto touch-auto overscroll-contain ${selectedMode === 'text' && models?.text || selectedMode === 'image' && models?.image ? 'pt-[max(7rem,calc(var(--model-rail-offset,0px)+12px))] scroll-pt-[max(7rem,calc(var(--model-rail-offset,0px)+12px))]' : ''}`}>
+        <div ref={messagesContainerRef} key={`conv-${currentConversationId}`} className={`flex-1 overflow-y-auto overflow-x-hidden pb-[240px] py-4 sm:py-6 animate-content-fade-in pointer-events-auto touch-auto overscroll-contain ${selectedMode === 'text' && models?.text || selectedMode === 'image' && models?.image ? 'pt-[max(7rem,calc(var(--model-rail-offset,0px)+12px))] scroll-pt-[max(7rem,calc(var(--model-rail-offset,0px)+12px))]' : ''}`}>
           <div className="space-y-4 pointer-events-auto">
             <MessageList
               messages={messages}
