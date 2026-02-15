@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, memo, useMemo } from 'react';
-import { Square, Menu, Share, Pencil, Trash2, MoreVertical, MessageSquare, ImageIcon, Plus } from 'lucide-react';
+import { Square, Menu, Share, Pencil, Trash2, MoreVertical, MessageSquare, ImageIcon, Plus, Moon, Sun } from 'lucide-react';
 import { toast } from 'sonner';
 import { useChat } from '@/features/chat/hooks/useChat';
 import { useModeStore } from '@/features/modes/store/modeStore';
@@ -31,6 +31,7 @@ import { exportAsMarkdown, exportAsJSON } from '@/lib/exportConversation';
 import { useSidebar } from '@/components/ui/sidebar';
 import { ChatInput, type ChatInputHandle } from '@/components/ChatInput';
 import { formatModelName } from '@/lib/utils';
+import { useTheme } from 'next-themes';
 
 export function ChatInterface() {
   const [hasInputContent, setHasInputContent] = useState(false);
@@ -75,6 +76,7 @@ export function ChatInterface() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
   const [showDeepResearchConfirm, setShowDeepResearchConfirm] = useState(false);
+  const { theme, setTheme } = useTheme();
 
   // Get current conversation title
   const currentConversation = conversations.find(c => c.id === currentConversationId);
@@ -493,6 +495,10 @@ export function ChatInterface() {
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => setShowFeedbackDialog(true)} className="gap-2">
                         <MessageSquare className="h-4 w-4 text-muted-foreground" /> Feedback
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="gap-2">
+                        {theme === 'dark' ? <Sun className="h-4 w-4 text-muted-foreground" /> : <Moon className="h-4 w-4 text-muted-foreground" />}
+                        {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={handleDelete} className="gap-2 text-destructive focus:text-destructive">
                         <Trash2 className="h-4 w-4" /> Delete

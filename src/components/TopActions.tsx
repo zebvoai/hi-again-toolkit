@@ -1,5 +1,6 @@
-import { Users, Glasses, MoreVertical, MessageSquare, Plus } from 'lucide-react';
+import { Users, Glasses, MoreVertical, MessageSquare, Plus, Moon, Sun } from 'lucide-react';
 import { useState } from 'react';
+import { useTheme } from 'next-themes';
 import { TestRunner } from '@/components/TestRunnerSimple';
 import { FeedbackDialog } from '@/components/FeedbackDialog';
 import { Button } from '@/components/ui/button';
@@ -21,10 +22,12 @@ export function TopActions({
   onNewChat
 }: TopActionsProps) {
   const isMobile = useIsMobile();
+  const { theme, setTheme } = useTheme();
   const [showGroupDialog, setShowGroupDialog] = useState(false);
   const [showTempConfirm, setShowTempConfirm] = useState(false);
   const [showTestRunner, setShowTestRunner] = useState(false);
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
+  const isDark = theme === 'dark';
 
   const handleTemporaryClick = () => {
     if (!isTemporaryMode) {
@@ -97,6 +100,10 @@ export function TopActions({
             </Tooltip>
           </TooltipProvider>
           <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem onClick={() => setTheme(isDark ? 'light' : 'dark')}>
+              {isDark ? <Sun className="w-4 h-4 mr-2" /> : <Moon className="w-4 h-4 mr-2" />}
+              {isDark ? 'Light Mode' : 'Dark Mode'}
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={handleSettingsClick}>
               Settings
             </DropdownMenuItem>
