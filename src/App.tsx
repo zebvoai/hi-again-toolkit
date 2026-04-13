@@ -12,6 +12,7 @@ import Auth from "./pages/Auth";
 import { useAuth } from "@/hooks/useAuth";
 import PremiumLoader from "@/components/PremiumLoader";
 import { ThemeProvider } from "next-themes";
+import { PasswordGate, usePasswordGate } from "@/components/PasswordGate";
 
 const queryClient = new QueryClient();
 
