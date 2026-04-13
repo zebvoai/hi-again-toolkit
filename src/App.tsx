@@ -12,6 +12,7 @@ import Auth from "./pages/Auth";
 import { useAuth } from "@/hooks/useAuth";
 import PremiumLoader from "@/components/PremiumLoader";
 import { ThemeProvider } from "next-themes";
+import { PasswordGate, usePasswordGate } from "@/components/PasswordGate";
 
 const queryClient = new QueryClient();
 
@@ -46,31 +47,38 @@ const MainLayout = () => {
   );
 };
 
-const App = () => (
-  <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-        <Routes>
-          {/* Auth route */}
-          <Route path="/auth" element={<Auth />} />
-          
-          {/* Shared chat route - no sidebar, no auth required */}
-          <Route path="/chat/:conversationId" element={<SharedChat />} />
-          
-          {/* Main app with sidebar - protected */}
-          <Route path="/*" element={
-            <ProtectedRoute>
-              <MainLayout />
-            </ProtectedRoute>
-          } />
-        </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </ThemeProvider>
-);
+const App = () => {
+  const { unlocked, unlock } = usePasswordGate();
+
+  if (!unlocked) {
+    return (
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+        <PasswordGate onUnlock={unlock} />
+      </ThemeProvider>
+    );
+  }
+
+  return (
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/chat/:conversationId" element={<SharedChat />} />
+            <Route path="/*" element={
+              <ProtectedRoute>
+                <MainLayout />
+              </ProtectedRoute>
+            } />
+          </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
+  );
+};
 
 export default App;
